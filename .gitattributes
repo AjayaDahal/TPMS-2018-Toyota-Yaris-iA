@@ -1,0 +1,4 @@
+# keep generated binaries byte-exact (the fit template PDF is plain text inside, so git would convert line endings)
+*.pdf binary
+*.zip binary
+*.png binary
