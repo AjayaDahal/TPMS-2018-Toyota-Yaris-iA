@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 
-// Edge capture on a demodulated-data pin and a protocol-agnostic Manchester decoder, used to find out
-// what a TPMS sensor sends before writing a protocol-specific decoder.
+// Edge capture on a demodulated-data pin, and a protocol-agnostic Manchester decoder that prints the bits of
+// any burst the EG53MA4 decoder doesn't recognise (for analysis of other sensors or interference).
 namespace rf {
 
 constexpr int kMaxPulses = 1024;

@@ -1,12 +1,14 @@
-// Host unit test for the burst decoder (no ESP32 needed). From firmware/bringup:
-//   python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp -o test_decode.exe
+// Host unit test for the burst decoders (no ESP32 needed). From firmware/bringup:
+//   python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp src/eg53ma4.cpp -o test_decode.exe
 // (any C++17 compiler works the same way). Exit code 0 = all tests passed.
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <random>
 #include <vector>
 
+#include "eg53ma4.h"
 #include "rf.h"
 
 namespace {
@@ -142,6 +144,74 @@ void testSyncViolationThenData() {
   if (ok) CHECK(contains(unpack(f.man, f.nbits), data), "sync frame: data bits not found after the sync word");
 }
 
+// ---- GM / Schrader EG53MA4: 120-bit message = hard-coded 0 + 39 sync bits + 10 payload bytes
+Bits eg53Message(const uint8_t payload[10], int nbits = 120) {
+  Bits bits = {0};
+  bits = concat(bits, randomBits(39));
+  for (int i = 0; i < 80; i++) bits.push_back((payload[i / 8] >> (7 - i % 8)) & 1);
+  bits.resize(nbits);
+  return bits;
+}
+
+// One or more messages, each starting and ending in carrier-off (the idle gap absorbs those chips),
+// separated by gapUs of silence. Durations get +-jitterPct.
+rf::Burst eg53Burst(const std::vector<Bits>& messages, int jitterPct, int gapUs = 1000) {
+  std::vector<std::pair<int, int>> runs;   // (level, chips or -us for a fixed gap)
+  for (size_t m = 0; m < messages.size(); m++) {
+    Bits chips = manchester(messages[m]);
+    std::vector<std::pair<int, int>> r;
+    for (size_t i = 0; i < chips.size();) {
+      size_t k = i;
+      while (k < chips.size() && chips[k] == chips[i]) k++;
+      r.push_back({chips[i], (int)(k - i)});
+      i = k;
+    }
+    if (r.front().first == 0) r.erase(r.begin());
+    if (r.back().first == 0) r.pop_back();
+    if (m > 0) runs.push_back({0, -gapUs});
+    runs.insert(runs.end(), r.begin(), r.end());
+  }
+  rf::Burst b;
+  b.n = 0;
+  b.firstLevel = 1;
+  std::uniform_int_distribution<int> jitter(-123 * jitterPct / 100, 123 * jitterPct / 100);
+  for (auto& run : runs) {
+    const int us = run.second < 0 ? -run.second : run.second * 123 + jitter(rng);
+    if (b.n < rf::kMaxPulses) b.us[b.n++] = (uint16_t)us;
+  }
+  return b;
+}
+
+void testEg53ma4() {
+  uint8_t p[10] = {0x05, 0x8F, 0x20, 0x01, 0x12, 0x34, 0x56, 88, 77, 0};
+  unsigned sum = 0;
+  for (int i = 0; i < 9; i++) sum += p[i];
+  p[9] = (uint8_t)sum;
+  eg53ma4::Reading r[4];
+
+  int n = eg53ma4::decode(eg53Burst({eg53Message(p)}, 10), r, 4);
+  CHECK(n == 1, "EG53MA4: %d readings, expected 1", n);
+  if (n == 1) {
+    CHECK(r[0].id == 0x123456, "EG53MA4: id %06X", (unsigned)r[0].id);
+    CHECK(r[0].kPa10 == 2200, "EG53MA4: %u x0.1 kPa, expected 2200 (88 x 2.5 kPa)", r[0].kPa10);
+    CHECK(r[0].tempF == 77, "EG53MA4: %d F", r[0].tempF);
+    CHECK(r[0].flags == 0x058F2001u, "EG53MA4: flags %08X", (unsigned)r[0].flags);
+    CHECK(std::abs(eg53ma4::psi(r[0]) - 31.9f) < 0.1f, "EG53MA4: %.2f psi", eg53ma4::psi(r[0]));
+  }
+
+  n = eg53ma4::decode(eg53Burst({eg53Message(p), eg53Message(p)}, 10), r, 4);
+  CHECK(n == 2, "EG53MA4: two repeats in one burst gave %d readings", n);
+
+  uint8_t bad[10];
+  std::copy(p, p + 10, bad);
+  bad[9] ^= 0x01;
+  CHECK(eg53ma4::decode(eg53Burst({eg53Message(bad)}, 10), r, 4) == 0, "EG53MA4: bad checksum accepted");
+  CHECK(eg53ma4::decode(eg53Burst({eg53Message(p, 119)}, 10), r, 4) == 0, "EG53MA4: 119-bit message accepted");
+
+  rf::Frame f;
+  CHECK(rf::decode(eg53Burst({eg53Message(p)}, 10), f), "EG53MA4 burst not seen by the generic decoder");
+}
+
 }  // namespace
 
 int main() {
@@ -153,6 +223,7 @@ int main() {
   testNoiseRejected();
   testShortBurstRejected();
   testSyncViolationThenData();
+  testEg53ma4();
   std::printf(failures ? "%d FAILURE(S)\n" : "all decoder tests passed\n", failures);
   return failures ? 1 : 0;
 }

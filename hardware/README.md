@@ -15,7 +15,7 @@ change the dimensions and rebuild it (see section 7).
 
 ## 1. Review: will the documented receiver (MX-05V / XY-MK-5V) work?
 
-**The sensor.** The FCC report in your appendix is for the GM/Schrader **EG53MA4** (FCC ID MRXEG53MA4). Its key specs:
+**The sensor.** The FCC report in your appendix is for the GM/Schrader **EG53MA4** (FCC ID MRXEG53MA4). These are the four sensors installed in the car's tyres; the Yaris iA's own TPMS is indirect and uses no wheel sensors. Key specs:
 - 315 MHz ±70 kHz, **ASK/OOK**, Manchester coded.
 - Half-bit pulses are about **123 µs**, so roughly 8 kBd on air and ~4 kbit/s of data.
 - Each frame lasts 13–28 ms.
@@ -32,7 +32,10 @@ At 3 m the FCC measured a peak field strength of 78.4 dBµV/m, which is about �
 | ~123 µs Manchester | Marginal: these modules are designed for slow (a few kbit/s) remotes, and the LM358 slicer distorts short pulses | Handled easily |
 | Supply / logic | 5 V | 3.3 V only (1.8–3.6 V, not 5 V tolerant) |
 
-**Verdict:** the MX-05V can work as a bench proof of concept on your GM sensors, but only if it is the **315 MHz** version (the 433 MHz one will not hear them). Expect missed and corrupted frames in the car. **Use the CC1101.** The PCB still has an optional socket for the MX-05V (J3, with R9/R10 as a 5 V→3.3 V divider), so you can compare the two receivers side by side.
+**Verdict: the MX-05V is not suitable for the in-car panel. Use the CC1101.**
+- On the bench it can be a proof of concept with your GM sensors, but only if it is the **315 MHz** version; the 433 MHz one won't hear them.
+- In the car, expect missed and corrupted frames, for the reasons in the table above.
+- The PCB keeps an optional, unpopulated socket for it (J3, with R9/R10 as a 5 V→3.3 V divider), only for a side-by-side comparison. Leave J3, R9 and R10 empty.
 
 **Your actual module (from the photos): EBYTE E07-M1101D(-SMA) V2.0**
 - **Nothing is missing.** The E07 has an 8-pin 2×4 header and all 8 pins are present; pin 1 is the square pad. The green 10-pin CC1101 boards only add a second VCC and GND.
@@ -164,9 +167,8 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
 
 ## 6. Firmware starting points
 
-> **Your car's sensors are probably not the EG53MA4.** The 2018 Yaris iA is a Mazda2, and its factory sensor (Mazda BHA4-37-140 / GDDL-37-140, probably made by TRW) uses an undocumented protocol.
-> Capture and identify it first: rtl_433 with your RTL-SDR, or the sniffer in [firmware/bringup](../firmware/bringup/README.md). See [docs/premortem.md](../docs/premortem.md).
-> The values below are for the GM/Schrader EG53MA4 bench sensors from the report, which are useful for developing and testing the receiver.
+> The Yaris iA's own TPMS is indirect (ABS wheel speeds, no wheel sensors). The four GM/Schrader EG53MA4 sensors you had installed feed only this panel, so the settings below are the ones to use.
+> The [bring-up firmware](../firmware/bringup/README.md) already uses them and decodes the sensors (ID, pressure, temperature). Risks and next steps are in [docs/premortem.md](../docs/premortem.md).
 
 ### CC1101 settings for the GM/Schrader EG53MA4
 

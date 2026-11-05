@@ -1,10 +1,10 @@
-# Bring-up firmware and 315 MHz sniffer
+# Bring-up firmware and 315 MHz receiver test
 
 This firmware does two jobs:
 1. It checks a freshly assembled panel part by part.
-2. It finds out what your car's TPMS sensors actually transmit.
+2. It receives your four GM/Schrader EG53MA4 tyre sensors and shows each one's ID, pressure, temperature and signal strength. That proves the whole receive chain before the real application is written.
 
-The second job matters because the 2018 Yaris iA's sensor protocol isn't publicly documented (see [../../docs/premortem.md](../../docs/premortem.md)). It is not the GM/Schrader EG53MA4 analysed in the report.
+The car's own TPMS is indirect (ABS-based), so these sensors are heard only by this panel. Their frame format is the one rtl_433 decodes as `Schrader-EG53MA4`. Bursts that aren't EG53MA4 frames are printed as raw bits for analysis, in case you ever try other sensors.
 
 The CC1101 is only ever put in receive mode; this firmware never transmits.
 
@@ -27,39 +27,44 @@ The CC1101 is only ever put in receive mode; this firmware never transmits.
 | LEDs and buzzer | FL, FR, RR, RL light in turn, then one beep | Check LED polarity (square pad = cathode). A passive buzzer only clicks; it needs a tone |
 | Knob and button | The screen's "knob" count changes by 1 per click; pressing beeps | Check the encoder solder joints |
 
-## Finding out what your sensors send (do this before the real decoder, and ideally before ordering)
+## Checking your four sensors
 
 1. Take a laptop and the panel into the car, powered from the laptop's USB. The car's wiring isn't needed.
-2. Select a receive profile:
-   - Start with `FSK d25k bw135k` (turn the knob or send `p`).
-   - Drive: sensors send about once a minute when moving and rarely when parked.
-   - A TPMS activation tool, or letting a little air out, makes them send immediately.
-3. A good result looks like this:
-   - Frames keep coming with the same chip length and bit count.
-   - They come from four different sensors (the ID part of the bits stays constant per wheel).
-   - Signal strength is around −60 to −90 dBm.
-4. Try the other FSK profiles, then OOK. Keep the one that decodes the most frames.
-5. Each frame prints three versions of the same bits: `MAN` (Manchester), `DMAN` (differential Manchester) and the raw `chips`.
-   - The bits alone can't show which line code the sensor uses, or whether the polarity is inverted.
-   - Find the decoding where the ID repeats, the pressure changes when you add air, and a checksum or CRC matches.
-   - rtl_433 with your RTL-SDR (`rtl_433 -f 315M -A`) and its BitBench tool help with this.
-6. Send `r` to also print the raw pulse widths for offline analysis.
-7. Write down the wheel each ID belongs to: deflate one tyre slightly, or note which ID changes.
+2. Keep the first profile, `OOK bw203k 16kBd`; it's the one for the EG53MA4.
+3. Wake each wheel with the OEC-T5 tool, or drive. The sensors send about once a minute when moving and stay quiet when parked.
+4. Each decoded frame prints a line like this:
+   ```
+   12.345 s  EG53MA4 id 123456  220.0 kPa = 31.9 psi   77 F ( 25 C)  flags 058F2001  rssi  -71 dBm
+   ```
+   The OLED lists up to four sensors with their psi, °F and how many seconds ago each was heard.
+5. Write down the wheel each ID belongs to; with the OEC-T5 you can trigger one wheel at a time. The real application will learn and store these IDs.
+6. Check the signal strength of each wheel, especially the rear ones, with the panel where it will be mounted:
+   - −60 to −90 dBm is fine.
+   - Close to −100 dBm means the antenna needs a better spot (use an SMA extension, keep it away from metal).
+7. Frames from other cars' sensors (other IDs) are normal; the application will ignore IDs it hasn't learned.
+8. Bursts that aren't EG53MA4 frames are printed as `MAN` / `DMAN` / `chips` bit dumps. Send `r` to also print raw pulse widths.
+
+If no EG53MA4 frame ever appears but `chips` dumps do, send `r` to capture the raw pulse widths. Then compare them with `rtl_433 -f 315M -A` on your RTL-SDR.
 
 ## Decoder unit test (on a PC, no hardware)
 
 From `firmware/bringup`, with any C++17 compiler (here using the pip-installable zig compiler):
 
 ```
-python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp -o test_decode.exe
+python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp src/eg53ma4.cpp -o test_decode.exe
 test_decode.exe
 ```
 
-The test feeds synthetic sensor bursts through the decoder:
-- GM-style OOK Manchester at 123 µs per chip, normal and inverted;
-- FSK Manchester at 52 µs with 15 % jitter;
-- Toyota/Pacific-style differential Manchester at 52 µs and 100 µs;
-- a sync word in front of the data;
-- random noise and too-short bursts, which must be rejected.
+The test feeds synthetic bursts through both decoders:
+- EG53MA4 messages built to rtl_433's format:
+  - a normal frame, with ID, pressure (kPa and psi), temperature and flags all checked;
+  - two repeats in one burst;
+  - a bad checksum and a 119-bit frame, which must be rejected.
+- Generic decoder cases:
+  - OOK Manchester at 123 µs, normal and inverted;
+  - FSK Manchester at 52 µs with 15 % jitter;
+  - differential Manchester at 52 µs and 100 µs;
+  - a sync word in front of the data;
+  - random noise and too-short bursts, which must be rejected.
 
 It prints `all decoder tests passed` and exits with 0.

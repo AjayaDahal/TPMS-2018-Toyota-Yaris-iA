@@ -15,10 +15,10 @@ A dash panel that receives the car's 315 MHz tyre-pressure (TPMS) sensors and sh
 | [hardware/README.md](hardware/README.md) | Receiver review, MCU choice, pin map, ordering, assembly, firmware notes, how to regenerate |
 | [hardware/docs/design_audit.md](hardware/docs/design_audit.md) | Design audit of the schematic, board and Gerbers |
 | [hardware/production/](hardware/production/) | JLCPCB Gerber/drill files and the BOM |
-| [firmware/bringup/](firmware/bringup/README.md) | Bring-up self-test and 315 MHz sniffer for identifying the car's sensors (PlatformIO, ESP32) |
+| [firmware/bringup/](firmware/bringup/README.md) | Bring-up self-test and receiver test that decodes the tyre sensors (PlatformIO, ESP32) |
 | [docs/premortem.md](docs/premortem.md) | How the project could fail and what has been done about it |
 
-> **First step: identify the car's sensors.** The Yaris iA's factory TPMS protocol isn't publicly documented, and it is not the GM sensor analysed in the report. See [docs/premortem.md](docs/premortem.md).
+> **Sensors:** the Yaris iA's own TPMS is indirect (ABS-based, no wheel sensors). Four GM/Schrader EG53MA4 sensors were added to the tyres, and this panel is their receiver.
 
 > **Status: not ready to order.** The panel dimensions are still scaled from the report image. The Gerber zip is named
 > `..._DRAFT_dims_unconfirmed.zip` until the real dimensions are entered.

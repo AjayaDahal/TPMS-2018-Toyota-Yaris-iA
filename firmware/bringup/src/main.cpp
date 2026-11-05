@@ -1,15 +1,18 @@
-// TPMS panel bring-up and 315 MHz sniffer.
+// TPMS panel bring-up and 315 MHz receiver test.
 //
 // 1. Self-test: CC1101 ID / receive state / noise floor, OLED, LEDs, buzzer, encoder and button.
-// 2. Sniffer: receives on 315 MHz with the selected profile, groups the demodulated data into bursts,
-//    Manchester-decodes them and prints the bits (Serial 115200 + OLED). Use it to find out what your
-//    car's sensors send before writing the real decoder. Turn the knob (or send 'p') to change profile.
+// 2. Receiver: listens on 315 MHz with the selected profile. GM/Schrader EG53MA4 frames (the sensors in the
+//    tyres) are decoded to ID / pressure / temperature and listed on the OLED; any other burst is printed as
+//    Manchester / differential Manchester / raw chips for analysis. Turn the knob (or send 'p') to change profile.
 #include <Arduino.h>
 #include <SPI.h>
 #include <U8g2lib.h>
 
+#include <algorithm>
+
 #include "cc1101.h"
 #include "driver/gpio.h"
+#include "eg53ma4.h"
 #include "pins.h"
 #include "rf.h"
 #include "soc/gpio_reg.h"
@@ -20,10 +23,10 @@ namespace {
 // 38.4 kBd filter so chips down to ~50 us (19.2 kchip/s sensors) are resolved.
 const RfProfile kProfiles[] = {
     // name               MDMCFG4 MDMCFG3 MDMCFG2 DEVIATN AGCCTRL2/1/0
-    {"OOK bw203k 16kBd",   0x89,   0x4B,   0x30,   0x15,   0x03, 0x00, 0x91},  // Schrader EG53MA4 (report)
-    {"FSK d25k bw135k",    0xAA,   0x83,   0x00,   0x40,   0x43, 0x40, 0x91},  // typical FSK TPMS
+    {"OOK bw203k 16kBd",   0x89,   0x4B,   0x30,   0x15,   0x03, 0x00, 0x91},  // GM/Schrader EG53MA4 (yours)
+    {"FSK d25k bw135k",    0xAA,   0x83,   0x00,   0x40,   0x43, 0x40, 0x91},  // other sensor brands
     {"FSK d38k bw203k",    0x8A,   0x83,   0x00,   0x44,   0x43, 0x40, 0x91},
-    {"FSK d48k bw270k",    0x6A,   0x83,   0x00,   0x47,   0x43, 0x40, 0x91},  // wide: big deviation/offset
+    {"FSK d48k bw270k",    0x6A,   0x83,   0x00,   0x47,   0x43, 0x40, 0x91},
 };
 constexpr int kCcModes = sizeof(kProfiles) / sizeof(kProfiles[0]);
 constexpr int kModes = kCcModes + 1;   // last mode: optional MX-05V on IO36 (CC1101 idle)
@@ -39,6 +42,39 @@ int peakRssi = -200, liveRssi = -200, lastRssi = 0;
 rf::Burst burst;
 rf::Frame frame, lastFrame;
 uint32_t ledsOffAt = 0, buzzerOffAt = 0;
+
+// EG53MA4 sensors heard so far (the 4 in the tyres plus any from nearby cars)
+struct Sensor {
+  eg53ma4::Reading r;
+  int rssi;
+  uint32_t at;
+  uint32_t count;
+};
+constexpr int kMaxSensors = 8;
+Sensor sensors[kMaxSensors];
+int nSensors = 0;
+
+void remember(const eg53ma4::Reading& r, int rssi) {
+  int slot = -1;
+  for (int i = 0; i < nSensors; i++) {
+    if (sensors[i].r.id == r.id) slot = i;
+  }
+  if (slot < 0) {
+    if (nSensors < kMaxSensors) {
+      slot = nSensors++;
+    } else {
+      slot = 0;   // table full: replace the one heard longest ago
+      for (int i = 1; i < kMaxSensors; i++) {
+        if (sensors[i].at < sensors[slot].at) slot = i;
+      }
+    }
+    sensors[slot].count = 0;
+  }
+  sensors[slot].r = r;
+  sensors[slot].rssi = rssi;
+  sensors[slot].at = millis();
+  sensors[slot].count++;
+}
 
 // ---- encoder: quadrature state machine on both edges of A and B (EC11: 4 counts per detent)
 volatile int32_t encCount = 0;
@@ -91,6 +127,7 @@ void setMode(int m) {
 
 void printHelp() {
   Serial.println("keys: p = next profile, r = raw pulse dump on/off, t = LED/buzzer test, h = help");
+  Serial.println("Profile 0 (OOK) decodes your GM/Schrader EG53MA4 sensors: wake one with the OEC-T5 tool, or drive.");
 }
 
 void selfTest() {
@@ -130,6 +167,19 @@ void drawScreen() {
   char line[32];
   oled.clearBuffer();
   oled.setFont(u8g2_font_6x10_tf);
+  if (nSensors > 0) {   // sensor table: ID, pressure, temperature, seconds since last heard
+    oled.drawStr(0, 9, "ID      psi   F  age");
+    for (int i = 0; i < nSensors && i < 4; i++) {
+      const Sensor& s = sensors[i];
+      const unsigned long age = std::min<unsigned long>((millis() - s.at) / 1000, 999);
+      snprintf(line, sizeof line, "%06lX %4.1f %3d %3lus", (unsigned long)s.r.id, eg53ma4::psi(s.r), s.r.tempF, age);
+      oled.drawStr(0, 20 + i * 11, line);
+    }
+    snprintf(line, sizeof line, "%s %4ddBm %lu", mode < kCcModes ? "315" : "MX05", liveRssi, (unsigned long)nFrames);
+    oled.drawStr(0, 63, line);
+    oled.sendBuffer();
+    return;
+  }
   if (mode < kCcModes) {
     snprintf(line, sizeof line, ccOk ? "CC1101 v%02X %4ddBm" : "CC1101 missing", cc.version(), liveRssi);
   } else {
@@ -168,7 +218,6 @@ void printHex(const char* label, const uint8_t* bytes, int nbits) {
 
 void handleBurst() {
   nBursts++;
-  const bool ok = rf::decode(burst, frame);
   const int rssi = peakRssi;
   peakRssi = -200;
   if (rawDump) {
@@ -176,15 +225,27 @@ void handleBurst() {
     for (int i = 0; i < burst.n; i++) Serial.printf(i % 16 ? " %u" : "\n  %u", burst.us[i]);
     Serial.println();
   }
-  if (!ok) return;
-  nFrames++;
-  lastFrame = frame;
-  lastRssi = rssi;
-  Serial.printf("%9.3f s  %-17s pulses=%-4u chip=%-4uus rssi=%4d dBm\n", millis() / 1000.0, modeName(mode),
-                burst.n, frame.chipUs, rssi);
-  printHex("MAN", frame.man, frame.nbits);
-  printHex("DMAN", frame.dman, frame.ndman);
-  printHex("chips", frame.chips, frame.nchips);
+  eg53ma4::Reading readings[4];
+  const int nr = eg53ma4::decode(burst, readings, 4);
+  for (int i = 0; i < nr; i++) {
+    const eg53ma4::Reading& r = readings[i];
+    nFrames++;
+    remember(r, rssi);
+    Serial.printf("%9.3f s  EG53MA4 id %06lX  %5.1f kPa = %4.1f psi  %3d F (%3.0f C)  flags %08lX  rssi %4d dBm\n",
+                  millis() / 1000.0, (unsigned long)r.id, r.kPa10 / 10.0, eg53ma4::psi(r), r.tempF,
+                  eg53ma4::tempC(r), (unsigned long)r.flags, rssi);
+  }
+  if (nr == 0) {   // not one of ours: show the bits for analysis
+    if (!rf::decode(burst, frame)) return;
+    nFrames++;
+    lastFrame = frame;
+    lastRssi = rssi;
+    Serial.printf("%9.3f s  %-17s pulses=%-4u chip=%-4uus rssi=%4d dBm\n", millis() / 1000.0, modeName(mode),
+                  burst.n, frame.chipUs, rssi);
+    printHex("MAN", frame.man, frame.nbits);
+    printHex("DMAN", frame.dman, frame.ndman);
+    printHex("chips", frame.chips, frame.nchips);
+  }
   setLeds(true);
   ledsOffAt = millis() + 40;
 }
