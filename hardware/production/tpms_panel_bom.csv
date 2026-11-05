@@ -1,0 +1,34 @@
+Designators,Qty,Value,Footprint,Part / suggestion,Description,Populate
+A1,1,ESP32_DevKit_V1,ESP32_DOIT_DevKit_V1_30pin,DOIT ESP32 DEVKIT V1 30-pin + 2x 1x15 2.54 mm female header,ESP32 dev board (0.9 in or 1.0 in row spacing),yes
+BZ1,1,Buzzer_5V,Buzzer_12x9.5RM7.6,"12 mm 5 V active magnetic buzzer, 7.6 mm pitch",Low-pressure alarm,yes
+C1,1,47u/50V,CP_Elec_6.3x7.7,Panasonic EEE-FK1H470XP,"Aluminium electrolytic 47 uF 50 V, 6.3 mm (U3 needs 22 uF / 50 V at its input above 30-32 V)",yes
+C2,1,1u/50V,C_1206_3216Metric,,MLCC X7R 1206,yes
+C3,1,22u/10V,C_1206_3216Metric,,MLCC X5R 1206,yes
+C4 C6 C8,3,10u/25V,C_1206_3216Metric,,MLCC X5R 1206,yes
+C5,1,22u/10V Ta,CP_EIA-3216-18_Kemet-A_HandSolder,KEMET T491A226K010AT,"Tantalum 22 uF 10 V case A: AMS1117 output, as its datasheet specifies for stability",yes
+C7 C9 C12,3,100n,C_1206_3216Metric,,MLCC X7R 1206,yes
+C10 C11,2,10n,C_1206_3216Metric,,MLCC X7R 1206,yes
+D1 D2 D3 D4,4,LED_FL / LED_FR / LED_RL / LED_RR,LED_D5.0mm,5 mm LED,Tyre status LEDs,yes
+D5,1,SS34,D_SMA,SS34,"Schottky 40 V 3 A, reverse-polarity protection",yes
+D6,1,SMAJ22CA,D_SMA,Littelfuse SMAJ22CA,"Bidirectional TVS 22 V, SMA: 24.4 V min breakdown (24 V jump start), 35.5 V clamp (< 36 V of U3)",yes
+D7,1,1N4148W,D_SOD-123,1N4148W,Flyback diode,yes
+F1,1,0.75A,Fuse_1812_4532Metric,Bourns MF-MSMF075/24X-2,"PTC fuse 1812, 0.75 A hold (0.49 A at 70 C), 24 V",yes
+H1 H2 H3 H4,4,M3,MountingHole_3.2mm_M3,,M3 mounting hole,board feature (no part)
+H5 H6,2,USB_CUTOUT,USB_PanelMount_Cutout,,Panel-mount USB socket cut-out,board feature (no part)
+J1,1,12V_IN,"TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal","Phoenix MKDS 1,5/2-5,08 (1715721)","Screw terminal, 12 V ACC input",yes
+J2,1,CC1101_ALT,PinHeader_1x08_P2.54mm_Vertical,1x8 2.54 mm pin header,Breakout for CC1101 modules with other pinouts,optional
+J3,1,MX-05V(opt),PinSocket_1x04_P2.54mm_Vertical,1x4 2.54 mm female header,Optional MX-05V / XY-MK-5V 315 MHz receiver,optional
+J4,1,EXPANSION,PinHeader_1x07_P2.54mm_Vertical,1x7 2.54 mm pin header,Future expansion: I2C + spare GPIO,optional
+JP1,1,BC_VDD_5V,SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm,,Close for display jumper option #1,board feature (no part)
+Q1,1,MMBT3904,SOT-23,MMBT3904,Buzzer driver,yes
+R1 R2 R3 R4,4,220,R_1206_3216Metric,,1206 1%,yes
+R5 R6 R7 R12 R15 R16,6,10k,R_1206_3216Metric,,1206 1%,yes
+R9,1,1k,R_1206_3216Metric,,1206 1%,optional
+R10,1,10k,R_1206_3216Metric,,1206 1%,optional
+R11,1,1k,R_1206_3216Metric,,1206 1%,yes
+R13 R14,2,4k7,R_1206_3216Metric,,1206 1%,yes
+SW1,1,EC11_Encoder_SW,RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm,"EC11 rotary encoder with push switch (ALPS EC11E-switch type), 20 mm D-shaft + 20-25 mm knob","Menu knob: rotate = up/down, push = OK",yes
+U1,1,CC1101_315MHz,CC1101_E07-M1101D_Socket,EBYTE E07-M1101D-SMA (CC1101; 433 MHz-tuned build works at 315 MHz with some loss) + 2x4 2.54 mm female header + 315 MHz antenna,Sub-GHz transceiver used as OOK receiver,yes
+U2,1,NHD-2.7-12864WDW3,NHD-2.7-12864WDW3,Newhaven NHD-2.7-12864WDW3 + 1x20 2.54 mm header + 4x M2 screws/nuts + 4x M2 x 3 mm spacers,"2.7 in 128x64 OLED, 4-wire SPI",yes
+U3,1,TSR_1-2450,Converter_DCDC_TRACO_TSR-1_THT,"TRACO TSR 1-2450 (6.5-36 V in; alt. Mornsun K7805-1000R3, 8-36 V)","5 V 1 A switching regulator, 7805 pinout, needs >= 36 V input rating",yes
+U4,1,AMS1117-3.3,SOT-223-3_TabPin2,AMS1117-3.3,3.3 V 1 A LDO (display + radio),yes

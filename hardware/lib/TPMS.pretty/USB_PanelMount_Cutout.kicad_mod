@@ -1,0 +1,88 @@
+(footprint "USB_PanelMount_Cutout"
+	(version 20260206)
+	(generator "tpms_build")
+	(layer "F.Cu")
+	(descr "Round 22 mm cut-out for a panel-mount USB socket with front nut")
+	(tags "TPMS")
+	(property "Reference" "REF**"
+		(at 0 -16 0)
+		(layer "F.Fab")
+		(uuid "555fc700-1686-5df6-a789-ac91fc324703")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "USB_PANEL_CUTOUT"
+		(at 0 16 0)
+		(layer "F.Fab")
+		(uuid "537ee68d-f924-5172-9eb3-7e7259de6e68")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "bccfd800-02d8-5a69-a825-58257b1294d2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr board_only exclude_from_pos_files exclude_from_bom)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 0 0)
+		(end 11 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "Edge.Cuts")
+		(uuid "795dd61e-326f-53b0-928a-4cf2616c00af")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 14.5 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "8c6a23b7-6eff-5abb-97ea-082a7a35d558")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 14.75 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "2145e987-a259-5a87-815b-b74f60831de1")
+	)
+	(model "${KIPRJMOD}/lib/3d/USB_PanelMount.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(embedded_fonts no)
+)

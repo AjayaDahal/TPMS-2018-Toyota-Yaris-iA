@@ -1,0 +1,18 @@
+# KiCad local state and caches
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
+_autosave-*
+\#auto_saved_files#
+
+# Build intermediates (netlist, DSN/SES, router log, ERC/DRC JSON); they contain local absolute paths
+hardware/build/
+
+# Python / Freerouting
+__pycache__/
+logs/
+
+# Personal files kept out of the public repo
+hardware/git_ignore_me/
+Dahal_Ajaya_Grad Project ECE 6723 Embedded System_Final.pdf

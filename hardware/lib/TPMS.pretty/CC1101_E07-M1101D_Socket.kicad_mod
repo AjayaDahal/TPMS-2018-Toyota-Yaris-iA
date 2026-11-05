@@ -1,0 +1,240 @@
+(footprint "CC1101_E07-M1101D_Socket"
+	(version 20260206)
+	(generator "tpms_build")
+	(layer "F.Cu")
+	(descr "CC1101 module, Ebyte E07-M1101D(-SMA) form factor (15x30 mm), 2x4 2.54 mm socket. Pin 1 GND, 2 VCC, 3 GDO0, 4 CSN, 5 SCK, 6 MOSI, 7 MISO, 8 GDO2.")
+	(tags "TPMS")
+	(property "Reference" "REF**"
+		(at -3.8 9.5 0)
+		(layer "F.SilkS")
+		(uuid "98069855-3219-58f0-bbae-cf76f78c54ed")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CC1101_315MHz"
+		(at -3.8 20 0)
+		(layer "F.Fab")
+		(uuid "df8cdaa6-a8fa-5f4d-921c-33b1f0e9955c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b32180ab-d71e-511f-8c9c-cedb878cef30")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "0ef6c064-4232-56ab-9b16-08c00ea61aca")
+	)
+	(pad "2" thru_hole circle
+		(at 0 2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "9b62c6cc-2b72-5eef-b12c-673d157434bb")
+	)
+	(fp_text user "VCC"
+		(at 0 6 90)
+		(layer "F.SilkS")
+		(uuid "263ee245-e572-5258-9538-afe4d490f30a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "3" thru_hole circle
+		(at -2.54 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "894afbd1-e0e1-51ab-abd2-788a9d7b1184")
+	)
+	(pad "4" thru_hole circle
+		(at -2.54 2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "b9162748-b0d2-52fa-9e89-4cce6952be6d")
+	)
+	(fp_text user "CSN"
+		(at -2.54 6 90)
+		(layer "F.SilkS")
+		(uuid "f7dadd63-4903-5bfd-8731-b49cdbf8db99")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "5" thru_hole circle
+		(at -5.08 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "4cb64ce0-7607-5001-8065-ec45fa574dda")
+	)
+	(pad "6" thru_hole circle
+		(at -5.08 2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "5b0d98fe-a5db-5195-90a9-b84556e2a8a4")
+	)
+	(fp_text user "MOSI"
+		(at -5.08 6 90)
+		(layer "F.SilkS")
+		(uuid "6db686d4-a47d-5326-9428-5d57b921056d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "7" thru_hole circle
+		(at -7.62 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "bf944291-de3e-5929-9c56-0115a4c64213")
+	)
+	(pad "8" thru_hole circle
+		(at -7.62 2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "92040726-9263-55c1-b2ac-c7f90a12abde")
+	)
+	(fp_text user "GDO2"
+		(at -7.62 6 90)
+		(layer "F.SilkS")
+		(uuid "4a2e4b1e-8dac-5528-acec-339578e6b19b")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_rect
+		(start -11.3 -1.6)
+		(end 3.7 28.4)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "e855bb6f-ea3d-5f84-bd40-9321d461ffe0")
+	)
+	(fp_rect
+		(start -11.3 -1.6)
+		(end 3.7 28.4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "e51eed3f-1af5-5664-b798-77e4fbd26d9d")
+	)
+	(fp_rect
+		(start -11.55 -1.85)
+		(end 3.95 28.65)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "f0919a69-6a27-540b-848c-83f532ae94a5")
+	)
+	(fp_rect
+		(start -7 28.4)
+		(end -0.6 39.4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "b930708d-6688-559a-871d-93f31c879015")
+	)
+	(fp_text user "CC1101 315MHz"
+		(at -3.8 13 0)
+		(layer "F.SilkS")
+		(uuid "0f8fd3db-6e04-529e-94c6-be0d38812959")
+		(effects
+			(font
+				(size 1.2 1.2)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "SMA"
+		(at -3.8 26.6 0)
+		(layer "F.SilkS")
+		(uuid "0cdd0249-edc1-54c4-bf3c-a7d660253c28")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "1"
+		(at 1.9 -0.9 0)
+		(layer "F.SilkS")
+		(uuid "1b78d0c7-5833-58dd-9368-09fa0c14503f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(model "${KIPRJMOD}/lib/3d/CC1101_Module.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(embedded_fonts no)
+)
