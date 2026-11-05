@@ -148,13 +148,29 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
 7. Power:
    - Connect switched **12 V ACC** to J1 (expected draw < 0.5 A).
    - Tap ACC through an **add-a-fuse (1–2 A)** at the fuse box. The on-board PTC protects the board, not the wire.
-   - On the bench, the ESP32's USB alone powers everything.
+   - **Never wire it to constant 12 V.** The panel draws about 1 W, which flattens a car battery in roughly two weeks.
+   - On the bench, the ESP32's USB alone powers everything. A laptop port (500 mA) can brown out when the screen is bright and Wi-Fi is on, so use a powered hub or a 12 V supply if it resets.
    - Most DevKits have a VBUS diode, so 12 V and USB can be connected together. If yours doesn't, use one or the other.
-8. The panel-mount USB sockets are not wired to the board. Measure your sockets and adjust `USB_HOLE_DIAMETER` before ordering.
+8. The panel-mount USB sockets are not wired to the board. Measure your sockets and adjust `USB_HOLE_DIAMETER` before ordering. If they should charge phones, feed them from a separate 12 V → 5 V/3 A car USB charger module; U3 can't power them.
+9. **First power-up:**
+   - Before plugging in the DevKit, CC1101 and display, power the bare board and measure 5 V and 3V3 on the J4 pads.
+   - The CC1101's 2×4 header and the DevKit are symmetric, so a module rotated 180° gets reversed power. Check the "1"/"SMA" and "USB"/"ANTENNA" silkscreen first.
+   - Then flash the [bring-up firmware](../firmware/bringup/README.md); its self-test checks every part.
+10. **For the car (vibration):**
+    - Use machined round-pin gold sockets for the DevKit, or solder it in.
+    - Put a dab of RTV on the socketed modules.
+    - Mount the antenna on an SMA extension instead of hanging it on the module.
+    - Crimp ferrules on the J1 wires.
 
-## 6. Firmware starting points (CC1101 receiving the GM/Schrader EG53MA4)
+## 6. Firmware starting points
 
-These values are calculated from the CC1101 datasheet formulas for a 26 MHz crystal. Treat them as a starting point and check them in TI SmartRF Studio, which also gives the ASK/OOK AGC settings.
+> **Your car's sensors are probably not the EG53MA4.** The 2018 Yaris iA is a Mazda2, and its factory sensor (Mazda BHA4-37-140 / GDDL-37-140, probably made by TRW) uses an undocumented protocol.
+> Capture and identify it first: rtl_433 with your RTL-SDR, or the sniffer in [firmware/bringup](../firmware/bringup/README.md). See [docs/premortem.md](../docs/premortem.md).
+> The values below are for the GM/Schrader EG53MA4 bench sensors from the report, which are useful for developing and testing the receiver.
+
+### CC1101 settings for the GM/Schrader EG53MA4
+
+These values are calculated from the CC1101 datasheet formulas for a 26 MHz crystal. Treat them as a starting point and check them in TI SmartRF Studio, which also gives the ASK/OOK AGC settings. The bring-up firmware's OOK profile uses the same settings with a 16 kBd demodulator filter.
 
 | Register | Value | Meaning |
 |---|---|---|
