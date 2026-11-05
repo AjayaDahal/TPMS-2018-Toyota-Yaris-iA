@@ -1544,6 +1544,7 @@ def export_outputs(render=True):
 
     os.makedirs(DOCS, exist_ok=True)
     kicad_cli("sch", "export", "pdf", "-o", os.path.join(DOCS, NAME + "_schematic.pdf"), SCH)
+    export_fit_template()
     kicad_cli("pcb", "export", "pdf", "-o", os.path.join(DOCS, NAME + "_pcb_front.pdf"), "--layers",
               "F.Cu,F.SilkS,F.Mask,Edge.Cuts,F.Fab", "--mode-single", "--include-border-title", PCB, check=False)
     if render:
@@ -1610,6 +1611,351 @@ def set_stackup_colors(path):
         fh.write(txt)
 
 
+# ====================================================================== 1:1 fit template (printable PDF)
+MM_PT = 72.0 / 25.4
+_HELV = {" ": 278, "!": 278, '"': 355, "#": 556, "%": 889, "&": 667, "'": 191, "(": 333, ")": 333, "*": 389,
+         "+": 584, ",": 278, "-": 333, ".": 278, "/": 278, ":": 278, ";": 278, "<": 584, "=": 584, ">": 584,
+         "?": 556, "[": 278, "]": 278, "_": 556, "|": 260, "~": 584, "°": 400, "×": 584, "Ø": 778, "µ": 556,
+         "A": 667, "B": 667, "C": 722, "D": 722, "E": 667, "F": 611, "G": 778, "H": 722, "I": 278, "J": 500,
+         "K": 667, "L": 556, "M": 833, "N": 722, "O": 778, "P": 667, "Q": 778, "R": 722, "S": 667, "T": 611,
+         "U": 722, "V": 667, "W": 944, "X": 667, "Y": 667, "Z": 611, "f": 278, "i": 222, "j": 222, "l": 222,
+         "m": 833, "r": 333, "t": 278, "w": 722, "c": 500, "k": 500, "s": 500, "v": 500, "x": 500, "y": 500,
+         "z": 500}
+
+
+class _FitPdf:
+    """Minimal vector PDF writer: US Letter landscape, y measured downwards from the top, units in points."""
+    W, H = 792.0, 612.0
+
+    def __init__(self):
+        self.pages = []
+        self.ops = None
+
+    def page(self):
+        self.ops = []
+        self.pages.append(self.ops)
+
+    def stroke(self, width, rgb=(0, 0, 0), dash=None):
+        d = f"[{' '.join(f'{v:.2f}' for v in dash)}] 0 d" if dash else "[] 0 d"
+        self.ops.append(f"{width:.2f} w {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f} RG {d} 1 J 1 j")
+
+    def fill(self, rgb):
+        self.ops.append(f"{rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f} rg")
+
+    def path(self, pts, close=False, op="S"):
+        s = f"{pts[0][0]:.3f} {self.H - pts[0][1]:.3f} m " + " ".join(f"{x:.3f} {self.H - y:.3f} l" for x, y in pts[1:])
+        self.ops.append(s + (" h" if close else "") + f" {op}")
+
+    def circle(self, cx, cy, r, op="S"):
+        k, y = 0.5522847498 * r, self.H - cy
+        self.ops.append(f"{cx + r:.3f} {y:.3f} m {cx + r:.3f} {y + k:.3f} {cx + k:.3f} {y + r:.3f} {cx:.3f} {y + r:.3f} c "
+                        f"{cx - k:.3f} {y + r:.3f} {cx - r:.3f} {y + k:.3f} {cx - r:.3f} {y:.3f} c "
+                        f"{cx - r:.3f} {y - k:.3f} {cx - k:.3f} {y - r:.3f} {cx:.3f} {y - r:.3f} c "
+                        f"{cx + k:.3f} {y - r:.3f} {cx + r:.3f} {y - k:.3f} {cx + r:.3f} {y:.3f} c h {op}")
+
+    @staticmethod
+    def width(s, size):
+        return sum(_HELV.get(ch, 556) for ch in s) * size / 1000.0
+
+    def text(self, x, y, s, size=7.0, bold=False, rgb=(0.1, 0.1, 0.1), align="left", rot=0):
+        w = self.width(s, size)
+        off = {"left": 0.0, "center": -w / 2, "right": -w}[align]
+        esc = s.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        if rot == 90:      # reads bottom-to-top; the offset runs along the (vertical) baseline
+            tm = f"0 1 -1 0 {x:.3f} {self.H - y + off:.3f}"
+        else:
+            tm = f"1 0 0 1 {x + off:.3f} {self.H - y:.3f}"
+        self.ops.append(f"BT /{'F2' if bold else 'F1'} {size:.2f} Tf {rgb[0]:.3f} {rgb[1]:.3f} {rgb[2]:.3f} rg "
+                        f"{tm} Tm ({esc}) Tj ET")
+
+    def save(self, path):
+        objs = []
+
+        def add(body):
+            objs.append(body)
+            return len(objs)
+
+        catalog, pages = add(b""), add(b"")
+        f1 = add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>")
+        f2 = add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>")
+        kids = []
+        for ops in self.pages:
+            data = "\n".join(ops).encode("latin-1", "replace")
+            cs = add(b"<< /Length %d >>\nstream\n" % len(data) + data + b"\nendstream")
+            kids.append(add(f"<< /Type /Page /Parent {pages} 0 R /MediaBox [0 0 {self.W:.0f} {self.H:.0f}] "
+                            f"/Resources << /Font << /F1 {f1} 0 R /F2 {f2} 0 R >> >> /Contents {cs} 0 R >>".encode()))
+        # PrintScaling /None makes viewers default to "actual size" instead of "fit to page"
+        objs[catalog - 1] = (f"<< /Type /Catalog /Pages {pages} 0 R "
+                             f"/ViewerPreferences << /PrintScaling /None >> >>").encode()
+        objs[pages - 1] = f"<< /Type /Pages /Kids [{' '.join(f'{k} 0 R' for k in kids)}] /Count {len(kids)} >>".encode()
+        out = bytearray(b"%PDF-1.6\n%\xe2\xe3\xcf\xd3\n")
+        offsets = []
+        for i, body in enumerate(objs, 1):
+            offsets.append(len(out))
+            out += b"%d 0 obj\n" % i + body + b"\nendobj\n"
+        xref = len(out)
+        out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objs) + 1)
+        for o in offsets:
+            out += b"%010d 00000 n \n" % o
+        out += b"trailer\n<< /Size %d /Root %d 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objs) + 1, catalog, xref)
+        with open(path, "wb") as fh:
+            fh.write(out)
+
+
+def _arc_points(s, m, e, step_deg=2.0):
+    (x1, y1), (x2, y2), (x3, y3) = s, m, e
+    d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+    if abs(d) < 1e-9:
+        return [s, e]
+    ux = ((x1 * x1 + y1 * y1) * (y2 - y3) + (x2 * x2 + y2 * y2) * (y3 - y1) + (x3 * x3 + y3 * y3) * (y1 - y2)) / d
+    uy = ((x1 * x1 + y1 * y1) * (x3 - x2) + (x2 * x2 + y2 * y2) * (x1 - x3) + (x3 * x3 + y3 * y3) * (x2 - x1)) / d
+    r = math.hypot(x1 - ux, y1 - uy)
+    a1, a2, a3 = (math.atan2(y - uy, x - ux) for x, y in (s, m, e))
+    sweep13, sweep12 = (a3 - a1) % (2 * math.pi), (a2 - a1) % (2 * math.pi)
+    sweep = sweep13 if sweep12 <= sweep13 else sweep13 - 2 * math.pi
+    n = max(2, int(abs(math.degrees(sweep)) / step_deg) + 1)
+    return [(ux + r * math.cos(a1 + sweep * i / n), uy + r * math.sin(a1 + sweep * i / n)) for i in range(n + 1)]
+
+
+def _mm(v):
+    return pcbnew.ToMM(v.x) - CFG.PAGE_ORIGIN[0], pcbnew.ToMM(v.y) - CFG.PAGE_ORIGIN[1]
+
+
+def _geom(s):
+    """PCB_SHAPE -> ('poly', points, closed) or ('circle', centre, radius), panel mm (front view)."""
+    st = s.GetShape()
+    if st == pcbnew.SHAPE_T_SEGMENT:
+        return "poly", [_mm(s.GetStart()), _mm(s.GetEnd())], False
+    if st in (pcbnew.SHAPE_T_RECTANGLE, pcbnew.SHAPE_T_RECT):
+        (x1, y1), (x2, y2) = _mm(s.GetStart()), _mm(s.GetEnd())
+        return "poly", [(x1, y1), (x2, y1), (x2, y2), (x1, y2)], True
+    if st == pcbnew.SHAPE_T_CIRCLE:
+        return "circle", _mm(s.GetCenter()), pcbnew.ToMM(s.GetRadius())
+    if st == pcbnew.SHAPE_T_ARC:
+        return "poly", _arc_points(_mm(s.GetStart()), _mm(s.GetArcMid()), _mm(s.GetEnd())), False
+    if st == pcbnew.SHAPE_T_POLY:
+        ol = s.GetPolyShape().Outline(0)
+        return "poly", [_mm(ol.CPoint(i)) for i in range(ol.PointCount())], True
+    return None
+
+
+def export_fit_template(path=None):
+    """1:1 printable template of the panel (front view) to test-fit it in the car: cut line, holes, front parts,
+    and the outlines of tall parts behind the panel."""
+    path = path or os.path.join(DOCS, NAME + "_fit_template_1to1.pdf")
+    board = pcbnew.LoadBoard(PCB)
+    fps = {fp.GetReference(): fp for fp in board.GetFootprints()}
+
+    def layer_geoms(items, layer):
+        return [g for g in (_geom(i) for i in items if isinstance(i, pcbnew.PCB_SHAPE) and i.GetLayerName() == layer)
+                if g]
+
+    edge = layer_geoms(board.GetDrawings(), "Edge.Cuts")
+    usb_cut = [g for r in ("H5", "H6") for g in layer_geoms(fps[r].GraphicalItems(), "Edge.Cuts")]
+    usb_nut = [g for r in ("H5", "H6") for g in layer_geoms(fps[r].GraphicalItems(), "F.Fab")]
+    front = {r: layer_geoms(fps[r].GraphicalItems(), "F.Fab") for r in ("U2", "SW1", "D1", "D2", "D3", "D4")
+             if r in fps}
+    silk = layer_geoms(board.GetDrawings(), "F.Silkscreen")
+    just = {pcbnew.GR_TEXT_H_ALIGN_LEFT: "left", pcbnew.GR_TEXT_H_ALIGN_RIGHT: "right"}
+    labels = [(t.GetText(), _mm(t.GetPosition()), just.get(t.GetHorizJustify(), "center"))
+              for t in board.GetDrawings() if isinstance(t, pcbnew.PCB_TEXT) and t.GetLayerName() == "F.Silkscreen"]
+    behind = {  # ref: (label, approximate depth behind the panel, where to put the label)
+        "A1": ("ESP32 DevKit on sockets", "~14 mm", "inside-bottom"), "U1": ("CC1101 + SMA", "~16 mm", "right"),
+        "J1": ("12 V terminal", "~10 mm", "left"), "U3": ("5 V regulator", "~10 mm", "left"),
+        "BZ1": ("buzzer", "~10 mm", "below"), "C1": ("47 µF cap", "~8 mm", "right")}
+    back = {r: layer_geoms(fps[r].GraphicalItems(), "B.Fab") for r in behind if r in fps}
+    holes = [(_mm(p.GetPosition()), pcbnew.ToMM(p.GetDrillSize().x), fp.GetReference()) for fp in fps.values()
+             for p in fp.Pads() if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH]
+
+    outline_pts = [p for kind, *rest in edge if kind == "poly" for p in rest[0]]
+    x0, x1 = min(p[0] for p in outline_pts), max(p[0] for p in outline_pts)
+    y0, y1 = min(p[1] for p in outline_pts), max(p[1] for p in outline_pts)
+    bottom = [g[1] for g in edge if g[0] == "poly" and len(g[1]) == 2 and all(abs(p[1] - y1) < 0.01 for p in g[1])]
+    bottom_w = abs(bottom[0][1][0] - bottom[0][0][0]) if bottom else 0.0
+    notch = [g[1] for g in edge if g[0] == "poly" and len(g[1]) > 2]
+
+    ox, oy = _FitPdf.W / 2, 74.0          # page position of the panel origin (top-centre)
+
+    def P(x, y):
+        return ox + x * MM_PT, oy + y * MM_PT
+
+    def draw(pdf, geoms, width, rgb, dash=None, close_polys=False):
+        pdf.stroke(width, rgb, dash)
+        for g in geoms:
+            if g[0] == "circle":
+                pdf.circle(*P(*g[1]), g[2] * MM_PT)
+            else:
+                pdf.path([P(*p) for p in g[1]], close=g[2] or close_polys)
+
+    def cross(pdf, x, y, size=2.0):
+        pdf.path([P(x - size, y), P(x + size, y)])
+        pdf.path([P(x, y - size), P(x, y + size)])
+
+    def cut_layer(pdf):
+        draw(pdf, edge, 1.1, (0, 0, 0))
+        draw(pdf, usb_cut, 1.1, (0, 0, 0))
+        pdf.stroke(0.35, (0, 0, 0))
+        for g in usb_cut:
+            cross(pdf, *g[1], 3.0)
+        for (x, y), d, ref in holes:
+            if ref.startswith("H"):
+                pdf.stroke(0.6, (0, 0, 0))
+                pdf.circle(*P(x, y), d / 2 * MM_PT)
+                pdf.stroke(0.3, (0, 0, 0))
+                cross(pdf, x, y, 2.2)
+
+    def scale_bars(pdf, x, y):
+        pdf.stroke(0.8, (0, 0, 0))
+        pdf.path([(x, y), (x + 100 * MM_PT, y)])
+        for i in range(11):
+            t = 4.0 if i % 5 == 0 else 2.2
+            pdf.path([(x + i * 10 * MM_PT, y - t), (x + i * 10 * MM_PT, y + t)])
+        pdf.text(x + 50 * MM_PT, y - 6, "100 mm  (measure: must be exactly 100 mm)", 7, align="center")
+        y2 = y + 22
+        pdf.path([(x, y2), (x + 4 * 72.0, y2)])
+        for i in range(9):
+            t = 4.0 if i % 2 == 0 else 2.2
+            pdf.path([(x + i * 36.0, y2 - t), (x + i * 36.0, y2 + t)])
+        pdf.text(x + 2 * 72.0, y2 + 11, "4 in  (must be exactly 4 inches)", 7, align="center")
+
+    pdf = _FitPdf()
+    # ---------------------------------------------------------------- page 1: annotated template
+    pdf.page()
+    status = "DRAFT dimensions (scaled from the report image)" if not CFG.DIMENSIONS_CONFIRMED else "dimensions confirmed"
+    pdf.text(36, 30, "TPMS panel - 1:1 fit template (front view, as seen from the driver's seat)", 12, bold=True)
+    pdf.text(36, 44, f"{status}  -  generated {TODAY} from {NAME}.kicad_pcb  -  print at 100% / Actual size, "
+                     "NOT 'Fit to page'", 7.5)
+    # light 10 mm grid inside the trapezoid
+    pdf.stroke(0.25, (0.82, 0.82, 0.82))
+    half_top, half_bot = (x1 - x0) / 2, bottom_w / 2
+
+    def half_width(y):
+        return half_top + (half_bot - half_top) * (y - y0) / (y1 - y0)
+
+    for gy in range(10, int(y1), 10):
+        pdf.path([P(-half_width(gy), gy), P(half_width(gy), gy)])
+    for gx in range(-int(half_top) // 10 * 10, int(half_top) + 1, 10):
+        ymax = y1 if abs(gx) <= half_bot else (half_top - abs(gx)) * (y1 - y0) / (half_top - half_bot)
+        if ymax > 1:
+            pdf.path([P(gx, y0), P(gx, ymax)])
+    # parts behind the panel (red dashed), labelled beside their outline
+    red = (0.75, 0.1, 0.1)
+    for ref, geoms in back.items():
+        draw(pdf, geoms, 0.6, (0.85, 0.12, 0.12), dash=(3, 2))
+        xs = [v for g in geoms for v in ([p[0] for p in g[1]] if g[0] == "poly" else [g[1][0] - g[2], g[1][0] + g[2]])]
+        ys = [v for g in geoms for v in ([p[1] for p in g[1]] if g[0] == "poly" else [g[1][1] - g[2], g[1][1] + g[2]])]
+        bx0, bx1, by0, by1 = min(xs), max(xs), min(ys), max(ys)
+        cx, cy = (bx0 + bx1) / 2, (by0 + by1) / 2
+        name, depth, where = behind[ref]
+        ax, ay, align = {"inside-bottom": (cx, by1 - 4.6, "center"), "below": (cx, by1 + 3.2, "center"),
+                         "left": (bx0 - 1.5, cy - 0.4, "right"), "right": (bx1 + 1.5, cy - 0.4, "left")}[where]
+        pdf.text(*P(ax, ay), name, 6, rgb=red, align=align)
+        pdf.text(*P(ax, ay + 2.6), f"{depth} behind", 5.5, rgb=red, align=align)
+    # front parts (blue)
+    blue = (0.0, 0.32, 0.78)
+    for ref, geoms in front.items():
+        draw(pdf, geoms, 0.6, blue)
+    draw(pdf, usb_nut, 0.5, blue, dash=(2, 2))
+    draw(pdf, silk, 0.4, (0.45, 0.45, 0.45))
+    for s, (x, y), align in labels:
+        pdf.text(*P(x, y + 1.2), s, 7, rgb=(0.4, 0.4, 0.4), align=align)
+    for (x, y), d, ref in holes:
+        if ref == "U2":
+            pdf.stroke(0.4, blue)
+            pdf.circle(*P(x, y), d / 2 * MM_PT)
+    u2 = _mm(fps["U2"].GetPosition())
+    u2_top = min(p[1] for g in front["U2"] if g[0] == "poly" for p in g[1])
+    pdf.text(*P(u2[0], u2_top + 4.3), "DISPLAY NHD-2.7 module 82 × 47.5 mm", 7, rgb=blue, align="center")
+    pdf.text(*P(u2[0], u2_top + 7.4), "glass ~7 mm in front of the board", 6, rgb=blue, align="center")
+    shaft = [g[1] for g in front.get("SW1", []) if g[0] == "circle"]
+    if shaft:
+        sx, sy = shaft[0]
+        pdf.stroke(0.6, blue, dash=(4, 2))
+        pdf.circle(*P(sx, sy), CFG.KNOB_DIAMETER / 2 * MM_PT)
+        pdf.stroke(0.35, blue)
+        cross(pdf, sx, sy, 2.5)
+        pdf.text(*P(sx, sy + CFG.KNOB_DIAMETER / 2 + 4), f"knob Ø{CFG.KNOB_DIAMETER:g} (shaft ~20 mm tall)", 6,
+                 rgb=blue, align="center")
+    for g in usb_cut:
+        cx, cy = g[1]
+        pdf.text(*P(cx, cy - CFG.USB_NUT_DIAMETER / 2 - 2.0), f"USB socket: cut Ø{2 * g[2]:g}, nut Ø{CFG.USB_NUT_DIAMETER:g}",
+                 6, rgb=blue, align="center")
+    cut_layer(pdf)
+    # origin marker and dimensions
+    pdf.stroke(0.4, (0, 0, 0))
+    cross(pdf, 0, 0, 2.5)
+    pdf.text(*P(1.5, 4.5), "0,0", 6)
+    dim = (0.25, 0.25, 0.25)
+    pdf.stroke(0.4, dim)
+    yt = P(0, y0)[1] - 12
+    pdf.path([(P(x0, 0)[0], yt), (P(x1, 0)[0], yt)])
+    for xx in (x0, x1):
+        pdf.path([(P(xx, 0)[0], yt - 3), (P(xx, 0)[0], yt + 3)])
+    pdf.text(ox, yt - 3, f"{x1 - x0:.1f} mm (top edge)", 7, align="center")
+    yb = P(0, y1)[1] + 12
+    pdf.path([(P(-half_bot, 0)[0], yb), (P(half_bot, 0)[0], yb)])
+    for xx in (-half_bot, half_bot):
+        pdf.path([(P(xx, 0)[0], yb - 3), (P(xx, 0)[0], yb + 3)])
+    pdf.text(ox, yb + 9, f"{bottom_w:.1f} mm (bottom edge)", 7, align="center")
+    xl = P(x0, 0)[0] - 12
+    pdf.path([(xl, P(0, y0)[1]), (xl, P(0, y1)[1])])
+    for yy in (y0, y1):
+        pdf.path([(xl - 3, P(0, yy)[1]), (xl + 3, P(0, yy)[1])])
+    pdf.text(xl - 3, (P(0, y0)[1] + P(0, y1)[1]) / 2, f"{y1 - y0:.1f} mm (height)", 7, align="center", rot=90)
+    if notch:
+        nx = max(p[0] for p in notch[0])
+        ny = sum(p[1] for p in notch[0]) / len(notch[0])
+        pdf.text(*P(nx + 3, ny + 1), f"notch R{CFG.NOTCH_R:g}, centre {CFG.NOTCH_Y:g} mm below top", 6)
+    # notes, legend, scale bars (everything stays >= 18 pt from the paper edge for printer margins)
+    scale_bars(pdf, 36, 482)
+    legend = [((0, 0, 0), None, "thick black = cut line (board edge, USB holes); small circles = M3 holes"),
+              (blue, None, "blue = front parts: display, LEDs, knob (dashed), USB nut (dashed)"),
+              ((0.85, 0.12, 0.12), (3, 2), "red dashed = tall parts behind the panel (depth noted)"),
+              ((0.45, 0.45, 0.45), None, "grey = silkscreen; light grid = 10 mm")]
+    ly = 476
+    for rgb, dash, s in legend:
+        pdf.stroke(1.0 if rgb == (0, 0, 0) else 0.7, rgb, dash)
+        pdf.path([(330, ly - 2.5), (352, ly - 2.5)])
+        pdf.text(358, ly, s, 7)
+        ly += 11
+    feats = [("display module centre", u2), ("knob / encoder shaft", shaft[0] if shaft else None)]
+    names = dict(zip(("D1", "D2", "D3", "D4"), CFG.LED_LABELS))
+    for r in ("D1", "D2", "D3", "D4"):
+        c = [g[1] for g in front.get(r, []) if g[0] == "circle"]
+        if c:
+            feats.append((f"LED {names[r]}", c[0]))
+    feats += [(f"USB socket {i + 1}", g[1]) for i, g in enumerate(usb_cut)]
+    feats += [(f"mount hole {ref}", (x, y)) for (x, y), d, ref in sorted(holes, key=lambda h: h[2])
+              if ref.startswith("H")]
+    ty = 527
+    pdf.text(330, ty, "Feature positions, mm from top-centre (x right, y down, front view):", 7, bold=True)
+    def num(v):
+        return f"{v:+.2f}".rstrip("0").rstrip(".")
+
+    for i, (name, xy) in enumerate(f for f in feats if f[1]):
+        col, row = divmod(i, 7)
+        pdf.text(330 + col * 150, ty + 11 + row * 8.5, f"{name}: ({num(xy[0])}, {num(xy[1]).lstrip('+')})", 6.5)
+    notes = ["How to use: print at 100% / Actual size and check both bars with a ruler.",
+             "Cut along the thick black lines and hold it in the dash from the driver's side.",
+             "Then measure the real opening and send the numbers.",
+             "Sticks out in front: display ~7 mm, LEDs ~9 mm, knob ~22 mm.",
+             "Behind: up to ~16 mm, plus the 315 MHz antenna, which leaves",
+             "through the top edge at the CC1101 SMA connector."]
+    for i, s in enumerate(notes):
+        pdf.text(36, 536 + i * 9.5, s, 6.5)
+    # ---------------------------------------------------------------- page 2: clean outline for tracing
+    pdf.page()
+    pdf.text(36, 30, "TPMS panel - 1:1 outline only (trace onto cardboard or cut)", 12, bold=True)
+    pdf.text(36, 44, f"{status}  -  generated {TODAY}  -  print at 100% / Actual size", 7.5)
+    cut_layer(pdf)
+    pdf.stroke(0.4, (0, 0, 0))
+    cross(pdf, 0, 0, 2.5)
+    scale_bars(pdf, 36, 482)
+    pdf.save(path)
+    log(f"  fit template: {path}")
+    return path
+
+
 # ====================================================================== main
 def remind_dimensions():
     if not CFG.DIMENSIONS_CONFIRMED:
@@ -1623,7 +1969,14 @@ def main():
     ap.add_argument("--no-route", action="store_true", help="place only, skip autorouting")
     ap.add_argument("--no-render", action="store_true", help="skip 3D renders / STEP export")
     ap.add_argument("--passes", type=int, default=100, help="Freerouting max passes")
+    ap.add_argument("--template-only", action="store_true",
+                    help="only write the 1:1 printable fit template from the current board")
     args = ap.parse_args()
+    if args.template_only:
+        os.makedirs(DOCS, exist_ok=True)
+        export_fit_template()
+        remind_dimensions()
+        return
 
     import faulthandler
     faulthandler.dump_traceback_later(3600, exit=True)   # a hidden KiCad dialog would otherwise hang forever

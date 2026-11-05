@@ -15,6 +15,7 @@ A dash panel that receives the car's 315 MHz tyre-pressure (TPMS) sensors and sh
 | [hardware/README.md](hardware/README.md) | Receiver review, MCU choice, pin map, ordering, assembly, firmware notes, how to regenerate |
 | [hardware/docs/design_audit.md](hardware/docs/design_audit.md) | Design audit of the schematic, board and Gerbers |
 | [hardware/production/](hardware/production/) | JLCPCB Gerber/drill files and the BOM |
+| [hardware/docs/tpms_panel_fit_template_1to1.pdf](hardware/docs/tpms_panel_fit_template_1to1.pdf) | 1:1 printable template (US Letter, print at 100 %) to test-fit the panel in the car |
 | [firmware/bringup/](firmware/bringup/README.md) | Bring-up self-test and receiver test that decodes the tyre sensors (PlatformIO, ESP32) |
 | [docs/premortem.md](docs/premortem.md) | How the project could fail and what has been done about it |
 

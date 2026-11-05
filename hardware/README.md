@@ -218,6 +218,7 @@ Requirements:
 ```powershell
 & "$env:LOCALAPPDATA\Programs\KiCad10\bin\python.exe" hardware\scripts\build_tpms_panel.py
 #   --no-route   placement only      --no-render  skip 3D renders / STEP
+#   --template-only   just rewrite the 1:1 fit template PDF from the current board
 ```
 
 One run (about 1.5–2 minutes) does all of the following:
@@ -225,17 +226,21 @@ One run (about 1.5–2 minutes) does all of the following:
 - runs ERC;
 - places, autoroutes, pours and stitches the board. Freerouting sometimes stalls with one or two connections left, so the script retries with a reshuffled routing order and keeps the best result;
 - runs DRC with schematic parity. If any DRC error remains, the script exits with code 2 and prints "do NOT order these Gerbers";
-- exports Gerbers, drill files, the zip, BOM, PDFs, renders and the STEP model.
+- exports Gerbers, drill files, the zip, BOM, PDFs, renders, the STEP model and the 1:1 fit template.
 
 **Hand edits to `tpms_panel.kicad_pcb` are overwritten** on the next run. Once the dimensions are final you can stop using the script and continue in KiCad.
 
 ## 8. Before ordering: checklist
 
-1. **Send me the real panel dimensions** (outline, notch, USB holes, mounting holes). They are currently scaled from the report image (about ±1–2 mm). I'll then update `panel_config.py`, set `DIMENSIONS_CONFIRMED = True` and rebuild.
-2. Measure the panel-mount USB sockets: the thread/hole diameter and the nut or flange diameter. Ø22 mm holes and a 29 mm nut keep-out are assumed.
-3. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
-4. After the rebuild, check that the build output says DRC 0 errors / 0 warnings and that the zip name no longer contains `DRAFT`.
-5. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.
+1. **Test-fit a paper copy.** Print [docs/tpms_panel_fit_template_1to1.pdf](docs/tpms_panel_fit_template_1to1.pdf) on US Letter at **100 % / Actual size** (not "Fit to page").
+   - Check the 100 mm and 4 in bars with a ruler before trusting the print.
+   - Cut it out and hold it in the dash.
+   - Page 1 shows the front parts and the depth of the parts behind the panel; page 2 is the plain outline for tracing onto cardboard.
+2. **Send me the real panel dimensions** (outline, notch, USB holes, mounting holes). They are currently scaled from the report image (about ±1–2 mm). I'll then update `panel_config.py`, set `DIMENSIONS_CONFIRMED = True` and rebuild, which also regenerates the template.
+3. Measure the panel-mount USB sockets: the thread/hole diameter and the nut or flange diameter. Ø22 mm holes and a 29 mm nut keep-out are assumed.
+4. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
+5. After the rebuild, check that the build output says DRC 0 errors / 0 warnings and that the zip name no longer contains `DRAFT`.
+6. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.
 
 Already confirmed:
 - CC1101 module: an EBYTE E07-M1101D (from your photos). Its pinout and 15 × 30 mm size match U1. It is the 433 MHz build, so expect somewhat lower sensitivity at 315 MHz (see section 1).
@@ -248,5 +253,5 @@ Already confirmed:
 | `tpms_panel.kicad_pro / .kicad_sch / .kicad_pcb` | KiCad 10 project |
 | `lib/` | Custom symbols (`TPMS.kicad_sym`), footprints (`TPMS.pretty`) and simple 3D models |
 | `production/` | Gerber zip for JLCPCB, Gerber/drill folder, BOM |
-| `docs/` | Schematic PDF, front-layer PDF, renders, STEP model, design audit (`design_audit.md`) |
+| `docs/` | Schematic PDF, front-layer PDF, renders, STEP model, 1:1 printable fit template, design audit (`design_audit.md`) |
 | `build/` | Intermediate files: netlist, DSN/SES, Freerouting log, ERC/DRC reports (created by the build; not in git) |
