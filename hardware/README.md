@@ -83,7 +83,7 @@ Both DOIT variants are sold: **0.9 in (22.86 mm)** and **1.0 in (25.4 mm)** row 
   - The original 4-button layout (UP/OK/DOWN/BACK in a column on the right) is still available: set `INPUT_STYLE = "buttons"` in `scripts/panel_config.py` and rebuild.
 - **Back:**
   - ESP32 DevKit (on sockets).
-  - CC1101 module, with the SMA pointing at the top edge.
+  - CC1101 module on the left, with its SMA connector pointing down so the antenna can go straight back into the console pocket.
   - 12 V ACC input: PTC fuse, ±22 V TVS (SMAJ22CA) and SS34 reverse diode, then a TSR 1-2450 5 V switcher, then an AMS1117 3.3 V LDO with a copper heatsink pour (feeds the OLED and radio).
   - Buzzer driver, optional MX-05V socket, optional CC1101 breakout, I²C/GPIO expansion header.
 - **PCB:** 2 layers, 1.6 mm, 1 oz copper, GND pour on both sides with stitching vias, tented vias. Rules: 0.25 mm signal / 0.6 mm power tracks, 0.2 mm clearance, 0.6/0.3 mm vias. DRC also enforces JLCPCB's silkscreen limits (text ≥ 1.0 mm high, ≥ 0.15 mm stroke), via ring ≥ 0.15 mm and hole-to-hole ≥ 0.45 mm.
@@ -142,9 +142,11 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
 4. Before fitting the display, trim the ESP32 socket pins that come through to the front **to ≤ 1 mm**, because they sit under the display.
    - The display's own back carries parts up to ~2.1 mm tall (bezel tabs, FPC connector), and its flex cable runs over the lower socket row.
    - With 3 mm spacers this leaves about 0.9 mm of clearance.
-5. The CC1101 module plugs in components-up (facing away from the PCB) with its SMA toward the top edge.
-   - Connect a 315 MHz antenna. A straight antenna sticks out past the top edge of the panel, so plan for it (or use a right-angle SMA antenna or an SMA extension cable).
-   - The ESP32's micro-USB plug points toward the CC1101 module and has about 34 mm of free run before it reaches it. Use a cable with a short plug body or a 90° micro-USB cable, or flash over Wi-Fi (OTA) once the first firmware is in.
+5. The CC1101 module plugs in components-up (facing away from the PCB) with its SMA pointing **down**.
+   - In the car, the panel's top edge sits directly under the HVAC controls, so nothing can leave through it. That's why the module was moved off the top-left corner.
+   - Fit a **90° SMA adapter** (male–female) on the module and point the 315 MHz antenna straight back into the console pocket.
+   - Or use an SMA extension cable (RG316/RG174, 0.3–1 m) to put the antenna somewhere better; see the antenna notes in section 8.
+   - The ESP32's micro-USB plug points left toward J2. It has about 60 mm of free run, or about 35 mm if J2 is fitted. A short-bodied or 90° micro-USB cable helps, or flash over Wi-Fi (OTA) once the first firmware is in.
 6. **JP1 stays open.** Close it only if you rework the NHD module to jumper option #1 (R4 open, R5 closed) so its OLED boost converter runs from 5 V.
    - At full brightness the OLED draws up to 345 mA (375 mA max) from the 3.3 V LDO, about 0.65 W of heat in U4. The board has a copper pour on U4's tab for this.
    - With option #1, the boost draws ~200 mA from 5 V instead and U4 stays cool. Consider it if the panel will sit in a hot dashboard with a mostly-lit screen.
@@ -162,7 +164,7 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
 10. **For the car (vibration):**
     - Use machined round-pin gold sockets for the DevKit, or solder it in.
     - Put a dab of RTV on the socketed modules.
-    - Mount the antenna on an SMA extension instead of hanging it on the module.
+    - Don't hang a heavy antenna on the module. Use a short stubby antenna on the 90° adapter, or an extension cable with the antenna fixed to the console.
     - Crimp ferrules on the J1 wires.
 
 ## 6. Firmware starting points
@@ -236,11 +238,32 @@ One run (about 1.5–2 minutes) does all of the following:
    - Check the 100 mm and 4 in bars with a ruler before trusting the print.
    - Cut it out and hold it in the dash.
    - Page 1 shows the front parts and the depth of the parts behind the panel; page 2 is the plain outline for tracing onto cardboard.
-2. **Send me the real panel dimensions** (outline, notch, USB holes, mounting holes). They are currently scaled from the report image (about ±1–2 mm). I'll then update `panel_config.py`, set `DIMENSIONS_CONFIRMED = True` and rebuild, which also regenerates the template.
+2. **Send me the real measurements.** The outline and holes are currently scaled from the report image (about ±1–2 mm). I'll then update `panel_config.py`, set `DIMENSIONS_CONFIRMED = True` and rebuild, which also regenerates the template. Measure in the console opening under the HVAC controls (see "In-car fit" below):
+   - **Width** across the top, just under the lowest point of the HVAC knob rings, and across the bottom where the panel's bottom edge will sit.
+   - **Height** from the lowest point of the HVAC bezel to the pocket's lower lip, and the angle of the sides (or the width halfway down).
+   - **The notch** on the right edge: does it clear something in the car? If not, it can go.
+   - **Depth behind the panel:** from the opening face to the strip with the 12 V socket / USB / AUX (top 30–40 mm of the panel), and to the pocket's back wall lower down. The ESP32 needs about 16 mm and the radio about 16 mm. The antenna on its 90° adapter points straight back from the radio, so it needs about 25 mm plus its own length; with no room for that, use an extension cable.
+   - **Shifter clearance:** with the shifter in P, the gap from the shift knob to the panel face at the right USB socket.
+   - **How it will be held:** where screws or brackets can go. The four M3 holes are placeholders and can move.
 3. Measure the panel-mount USB sockets: the thread/hole diameter and the nut or flange diameter. Ø22 mm holes and a 29 mm nut keep-out are assumed.
 4. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
 5. After the rebuild, check that the build output says DRC 0 errors / 0 warnings and that the zip name no longer contains `DRAFT`.
-6. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.
+6. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k. Also buy a 90° SMA adapter (male–female) and a 315 MHz antenna: a short stubby, or a whip on an SMA extension cable.
+
+### In-car fit (review of the 2026-11-09 template photos)
+
+- **Outline:** the printed template matches the console opening under the HVAC controls. The slanted sides follow the carbon-look trims, the top edge sits under the HVAC bezel, and the bottom clears the pocket lip. Only the exact numbers above are still needed.
+- **The panel covers the car's 12 V socket, USB, AUX and card slot** (the strip at the top of the pocket). Options:
+  - Wire one front USB socket as a panel-mount extension of the car's USB port.
+  - Plug a 12 V → USB charger into the 12 V socket for the other front USB socket.
+  - Power the panel from the 12 V socket (it should be ACC-switched; check that it reads 0 V with the key off), through a right-angle 12 V plug or a fused tap of its wiring.
+- **Antenna:** the old top-left position pointed the SMA connector straight into the HVAC unit, so no antenna or cable could be attached. The radio now sits mid-left with the SMA pointing down; a 90° adapter sends the antenna straight back into the pocket.
+  - The console trim is plastic (the carbon look is only a finish), so it doesn't block 315 MHz.
+  - Start with a short 315 MHz antenna on the adapter and check each wheel's signal strength with the [bring-up firmware](../firmware/bringup/README.md).
+  - If a rear wheel is weaker than about −95 dBm, move the antenna out of the pocket on an extension cable, e.g. up behind the dash or along the console side under plastic. Keep it away from the steel floor tunnel and from the USB socket bodies.
+- **Shifter:** in P, the shift knob sits in front of the lower-right part of the panel. A cable plugged into the **right** USB socket may hit it.
+  - Check the gap; use a 90° USB cable, or I can move that socket up and left.
+  - The display, LEDs and knob stay clear of the shifter.
 
 Already confirmed:
 - CC1101 module: an EBYTE E07-M1101D (from your photos). Its pinout and 15 × 30 mm size match U1. It is the 433 MHz build, so expect somewhat lower sensitivity at 315 MHz (see section 1).

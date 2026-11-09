@@ -81,25 +81,28 @@ PLACEMENT = {
     "R2": ("B", LED_POSITIONS[1][0] + 8.5, LED_POSITIONS[1][1], 0),
     "R3": ("B", LED_POSITIONS[2][0] - 8.5, LED_POSITIONS[2][1], 0),
     "R4": ("B", LED_POSITIONS[3][0] + 8.5, LED_POSITIONS[3][1], 0),
-    # back: CC1101 radio, top-left (SMA pointing to the top edge) + alternative header + decoupling
-    "U1": ("B", -68.2, 28.0, 180),
-    "J2": ("B", -67.4, 48.5, 90),
-    "C6": ("B", -56.5, 30.5, 90),
-    "C7": ("B", -56.5, 36.0, 90),
+    # back: CC1101 radio on the left, SMA pointing DOWN (rot 0). In the car the top edge sits right under the
+    # HVAC controls, so nothing can leave through it; the SMA end (y ~85) leaves room for a 90 deg adapter or
+    # extension cable that goes straight back into the console pocket. Decoupling between radio and J4.
+    "U1": ("B", -64.0, 59.25, 0),
+    "C6": ("B", -54.0, 46.6, 90),
+    "C7": ("B", -54.0, 51.4, 90),
+    # back: alternative CC1101 header, top-left (optional, DNP)
+    "J2": ("B", -70.0, 31.0, 90),
     # back: optional MX-05V superregenerative receiver socket + level divider, top-right
     "J3": ("B", 58.0, 14.0, 90),
     "R9": ("B", 58.0, 23.0, 0),
     "R10": ("B", 58.0, 26.5, 0),
-    # back: expansion header + I2C pull-ups, lower left
-    "J4": ("B", -58.0, 87.0, 90),
+    # back: expansion header (vertical) right of the radio, where the console pocket is deep; I2C pull-ups
+    "J4": ("B", -50.0, 55.0, 0),
     "R13": ("B", -42.0, 81.0, 0),
     "R14": ("B", -42.0, 84.5, 0),
-    # back: buzzer driver
-    "BZ1": ("B", -62.0, 72.0, 0),
-    "Q1": ("B", -49.0, 70.0, 0),
-    "R11": ("B", -49.0, 64.5, 0),
-    "R12": ("B", -49.0, 75.5, 0),
-    "D7": ("B", -49.0, 80.0, 0),
+    # back: buzzer driver, top-left (only ~10 mm tall)
+    "BZ1": ("B", -70.0, 16.5, 0),
+    "R11": ("B", -56.0, 11.0, 0),
+    "Q1": ("B", -56.0, 16.5, 0),
+    "R12": ("B", -56.0, 22.0, 0),
+    "D7": ("B", -56.0, 26.5, 0),
     # back: power input 12 V -> 5 V -> 3.3 V (screw terminal wire entry faces the bottom edge)
     "J1": ("B", -12.0, 122.6, 0),
     "F1": ("B", -12.0, 112.0, 0),

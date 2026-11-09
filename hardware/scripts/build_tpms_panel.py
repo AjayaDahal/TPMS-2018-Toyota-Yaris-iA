@@ -1093,10 +1093,10 @@ def add_panel_graphics(board, fps):
     add_text(board, f"ESP32 + CC1101 315 MHz  -  A. Dahal  {TODAY}", -40.0, 7.2, B, size=1.1, thick=0.18)
     add_text(board, "12V IN (ACC)", -20.5, 123.6, B, size=1.0, thick=0.15, justify="right")
     add_text(board, "OPTIONAL MX-05V RX", 58.0, 9.6, B, size=1.0, thick=0.15)
-    add_text(board, "EXPANSION", -58.0, 82.6, B, size=1.0, thick=0.15)
-    add_text(board, "CC1101 ALT", -67.4, 57.3, B, size=1.0, thick=0.15)
+    add_text(board, "EXPANSION", -46.5, 66.5, B, size=1.0, thick=0.15)
+    add_text(board, "CC1101 ALT", -70.0, 39.0, B, size=1.0, thick=0.15)
     add_text(board, "JP1 close = 5V to OLED BC_VDD", 19.0, 5.3, B, size=1.0, thick=0.15)
-    add_text(board, "JLCJLCJLCJLC", -40.0, 66.0, B, size=1.0, thick=0.15)   # JLCPCB order-number location
+    add_text(board, "JLCJLCJLCJLC", -36.0, 74.0, B, size=1.0, thick=0.15)   # JLCPCB order-number location
 
     # pin labels next to connector pads (back side): below a horizontal row, beside a vertical one
     labels = {
@@ -1118,9 +1118,11 @@ def add_panel_graphics(board, fps):
             else:
                 add_text(board, lab[num], x + 2.3, y, B, size=1.0, thick=0.15, justify="left")
     move_ref(fps["J1"], -20.5, 121.4, "right")
-    move_ref(fps["J2"], -55.8, 48.5, "left")
+    move_ref(fps["J2"], -58.0, 31.0, "left")
     move_ref(fps["J3"], 52.4, 14.0, "right")
-    move_ref(fps["J4"], -66.5, 82.6)
+    move_ref(fps["J4"], -50.0, 44.0)
+    move_ref(fps["C6"], -54.0, 43.2)
+    move_ref(fps["C7"], -54.0, 54.8)
 
 
 def add_keepouts(board, fps):
@@ -1760,7 +1762,7 @@ def export_fit_template(path=None):
     labels = [(t.GetText(), _mm(t.GetPosition()), just.get(t.GetHorizJustify(), "center"))
               for t in board.GetDrawings() if isinstance(t, pcbnew.PCB_TEXT) and t.GetLayerName() == "F.Silkscreen"]
     behind = {  # ref: (label, approximate depth behind the panel, where to put the label)
-        "A1": ("ESP32 DevKit on sockets", "~14 mm", "inside-bottom"), "U1": ("CC1101 + SMA", "~16 mm", "right"),
+        "A1": ("ESP32 DevKit on sockets", "~14 mm", "inside-bottom"), "U1": ("CC1101 radio", "~16 mm", "right"),
         "J1": ("12 V terminal", "~10 mm", "left"), "U3": ("5 V regulator", "~10 mm", "left"),
         "BZ1": ("buzzer", "~10 mm", "below"), "C1": ("47 µF cap", "~8 mm", "right")}
     back = {r: layer_geoms(fps[r].GraphicalItems(), "B.Fab") for r in behind if r in fps}
@@ -1851,6 +1853,13 @@ def export_fit_template(path=None):
                          "left": (bx0 - 1.5, cy - 0.4, "right"), "right": (bx1 + 1.5, cy - 0.4, "left")}[where]
         pdf.text(*P(ax, ay), name, 6, rgb=red, align=align)
         pdf.text(*P(ax, ay + 2.6), f"{depth} behind", 5.5, rgb=red, align=align)
+        if ref == "U1":   # antenna connector end: 90 deg adapter, antenna goes straight back into the pocket
+            pdf.text(*P(ax, ay + 5.2), "SMA points down; antenna", 5.5, rgb=red, align=align)
+            pdf.text(*P(ax, ay + 7.8), "goes straight back", 5.5, rgb=red, align=align)
+            pdf.stroke(0.6, (0.85, 0.12, 0.12), dash=(2, 1.5))
+            pdf.circle(*P(cx, by1 + 4.5), 4.5 * MM_PT)
+            pdf.stroke(0.35, (0.85, 0.12, 0.12))
+            cross(pdf, cx, by1 + 4.5, 1.5)
     # front parts (blue)
     blue = (0.0, 0.32, 0.78)
     for ref, geoms in front.items():
@@ -1939,8 +1948,8 @@ def export_fit_template(path=None):
              "Cut along the thick black lines and hold it in the dash from the driver's side.",
              "Then measure the real opening and send the numbers.",
              "Sticks out in front: display ~7 mm, LEDs ~9 mm, knob ~22 mm.",
-             "Behind: up to ~16 mm, plus the 315 MHz antenna, which leaves",
-             "through the top edge at the CC1101 SMA connector."]
+             "Behind: up to ~16 mm; the CC1101 antenna connector points down and the",
+             "antenna goes straight back into the pocket (90 deg SMA adapter or cable)."]
     for i, s in enumerate(notes):
         pdf.text(36, 536 + i * 9.5, s, 6.5)
     # ---------------------------------------------------------------- page 2: clean outline for tracing

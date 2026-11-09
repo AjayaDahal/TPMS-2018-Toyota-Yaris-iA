@@ -20,5 +20,5 @@ logs/
 *.pdb
 
 # Personal files kept out of the public repo
-hardware/git_ignore_me/
+git_ignore*/
 Dahal_Ajaya_Grad Project ECE 6723 Embedded System_Final.pdf

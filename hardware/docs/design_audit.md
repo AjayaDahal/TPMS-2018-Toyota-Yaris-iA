@@ -96,7 +96,7 @@ Smaller changes in the same pass:
 - **Gerbers**:
   - 14 files, each identified by its X2 file function (copper L1/L2, masks, legends, paste, profile).
   - The outline is closed and measures 191 × 129 mm.
-  - All 270 plated holes and 2 plated slots have pads on both layers.
+  - All 274 plated holes and 2 plated slots have pads on both layers (re-checked after the 2026-11-09 relayout).
   - None of the 8 non-plated holes has copper on it.
 
 ## For you to check (mechanical)
@@ -104,8 +104,8 @@ Smaller changes in the same pass:
 1. **Display stack-up.**
    - The ESP32 socket pins come through under the display, and the display's back has parts up to ~2.1 mm tall.
    - Trim those pins to ≤ 1 mm and use M2 × 3 mm spacers. That leaves ≈ 0.9 mm of clearance.
-2. **ESP32 USB cable.** The micro-USB plug has ~34 mm of straight room before it reaches the CC1101 module. Use a short-bodied or 90° cable, or update over the air.
-3. **Antenna.** The SMA ends ~2 mm inside the top edge, so the antenna sticks out past the panel. Plan the dash space, or use a right-angle antenna or an SMA extension cable.
+2. **ESP32 USB cable.** The micro-USB plug has about 60 mm of straight room, or about 35 mm if J2 is fitted. Use a short-bodied or 90° cable, or update over the air.
+3. **Antenna.** Since 2026-11-09 the CC1101 sits mid-left with its SMA pointing down. The car photos showed the top edge sits right under the HVAC controls, so the old upward-pointing SMA had no room. Use a 90° SMA adapter so the antenna points straight back into the console pocket, or an SMA extension cable.
 4. **Depth behind the panel.** Allow about 17 mm behind the PCB for the DevKit on its sockets and the CC1101 with its SMA, plus the antenna.
 5. **Front appearance.** The through-hole joints of back-side parts show on the front face: the CC1101 socket, J1, U3, the buzzer, and the holes for the unpopulated J2/J3/J4.
 
