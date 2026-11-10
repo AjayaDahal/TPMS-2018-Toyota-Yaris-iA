@@ -17744,7 +17744,7 @@
 				)
 			)
 		)
-		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)"
+		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, M25-class thread (measured 25.2 mm), ~30 cm (buy 2)"
 			(at 266.7 236.22 0)
 			(hide yes)
 			(effects
@@ -17814,7 +17814,7 @@
 				)
 			)
 		)
-		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)"
+		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, M25-class thread (measured 25.2 mm), ~30 cm (buy 2)"
 			(at 281.94 236.22 0)
 			(hide yes)
 			(effects

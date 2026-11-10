@@ -50,12 +50,15 @@ BUTTON_X = 50.0                               # right-hand button column
 BUTTON_YS = (24.5, 40.0, 55.5, 71.0)
 BUTTON_LABELS = ("UP", "OK", "DOWN", "BACK")
 USB_HOLE_CENTERS = ((-40.4, 103.0), (40.4, 103.0))
-USB_HOLE_DIAMETER = 22.0                      # cut-out for the panel-mount USB passthrough sockets: thread + ~0.5 mm
-USB_NUT_DIAMETER = 29.0                       # nut / flange on the front (drawn on the fit template)
-USB_COPPER_KEEPOUT_DIAMETER = 31.0            # no tracks or vias (front: no copper at all) inside this circle,
-                                              # so the holes can be step-drilled up to ~30 mm for bigger sockets
-USB_PARTS_KEEPOUT_DIAMETER = 32.0             # courtyard on BOTH sides: no parts under the socket's flange / hex
-                                              # nut (photo estimate ~28 mm across corners), checked by DRC
+USB_THREAD_DIAMETER = 25.16                   # measured with a caliper (2026-11-09): M25-class thread
+USB_HOLE_DIAMETER = 25.8                      # cut-out for the panel-mount USB passthroughs: thread + ~0.6 mm
+                                              # (JLCPCB routes holes to +-0.2 mm)
+USB_NUT_DIAMETER = 36.0                       # hex nut across corners (typical M25 nut: 30-32 AF, 35-37 AC);
+                                              # drawn on the fit template; no front copper inside it
+USB_COPPER_KEEPOUT_DIAMETER = 31.0            # no tracks or vias inside this circle, so the holes could still be
+                                              # drilled out to ~30 mm
+USB_PARTS_KEEPOUT_DIAMETER = 38.0             # courtyard on BOTH sides: no parts under the flange / hex nut
+                                              # (checked by DRC); fits a nut up to ~37 mm across corners
 MOUNT_HOLES = ((-88.0, 5.5), (88.0, 5.5), (-57.0, 123.0), (57.0, 123.0))
 MOUNT_HOLE_DIAMETER = 3.2                     # M3
 
@@ -109,27 +112,29 @@ PLACEMENT = {
     "R9": ("B", 58.0, 23.0, 0),
     "R10": ("B", 58.0, 26.5, 0),
     # back: expansion header (vertical) right of the radio, where the console pocket is deep; I2C pull-ups
+    # above the left USB nut's parts-free circle
     "J4": ("B", -50.0, 55.0, 0),
-    "R13": ("B", -42.0, 81.0, 0),
-    "R14": ("B", -42.0, 84.5, 0),
+    "R13": ("B", -42.0, 77.0, 0),
+    "R14": ("B", -42.0, 80.5, 0),
     # back: buzzer driver, top-left (only ~10 mm tall)
     "BZ1": ("B", -70.0, 16.5, 0),
     "R11": ("B", -56.0, 11.0, 0),
     "Q1": ("B", -56.0, 16.5, 0),
     "R12": ("B", -56.0, 22.0, 0),
     "D7": ("B", -56.0, 26.5, 0),
-    # back: power input 12 V -> 5 V -> 3.3 V (screw terminal wire entry faces the bottom edge)
+    # back: power input 12 V -> 5 V -> 3.3 V (screw terminal wire entry faces the bottom edge). U3, C3 and C5
+    # stay outside the USB nuts' 38 mm parts-free circles.
     "J1": ("B", -12.0, 121.6, 0),
     "F1": ("B", -12.0, 112.0, 0),
     "D6": ("B", -2.0, 112.0, 0),
     "D5": ("B", 8.0, 112.0, 0),
     "C1": ("B", 8.0, 121.5, 0),
     "C2": ("B", 17.0, 121.5, 0),
-    "U3": ("B", 17.5, 104.0, 0),
-    "C3": ("B", 22.5, 113.5, 0),
+    "U3": ("B", 14.5, 104.0, 0),
+    "C3": ("B", 19.0, 113.5, 0),
     "U4": ("B", -15.0, 100.0, 0),
     "C4": ("B", -5.0, 101.5, 90),
-    "C5": ("B", -21.6, 100.0, 90),     # between U4 and the left USB socket's nut keep-out
+    "C5": ("B", -17.0, 93.6, 0),       # output tantalum, just above U4's tab
 }
 
 if INPUT_STYLE == "encoder":

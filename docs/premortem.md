@@ -45,7 +45,7 @@ Imagine it's a year from now and the panel is sitting in a drawer. These are the
 | 18 | Doesn't fit the console opening once built | Low–Medium | Board doesn't sit flush | The template matched the opening under the HVAC controls, and a caliper span agrees. The board is 1 mm smaller than the opening on the sides and bottom so it can't be too big. Gaps are closed by a 3D-printed bezel/chassis, which can also space the board forward if the 12 V/USB/AUX strip behind it is in the way | Outline accepted; chassis later |
 | 19 | The shift knob (in P) hits a cable in the right USB socket | Medium | Cable touches the knob in P | Measure the gap; use a 90° USB cable, or move that socket up and left | Check |
 | 20 | Losing the car's 12 V socket / USB / AUX behind the panel, or the plugs keep the panel from sitting flush | Medium | Panel stands off at the top | Two USB passthroughs bring the car's USB and a 12 V charger to the front. The car's ports face the panel, so use 90° USB-A adapters and a flush 12 V charger, and leave slack. The 8 mm side slot is free for an extra cable. The 3D-printed chassis can space the panel forward if needed | Plan set; check depth |
-| 21 | The passthrough sockets don't fit the Ø22 mm holes, or their nut hits a part | Low–Medium | Thread won't go through, or the nut doesn't sit flat | The photo suggests a ~20 mm thread and a ~28 mm hex. No parts within Ø32 mm on either side (DRC-enforced); copper-free to Ø30 for drilling out. Measure the thread with the caliper before ordering | Measure |
+| 21 | The passthrough sockets don't fit the holes, or their nut hits a part | Low | Thread won't go through, or the nut doesn't sit flat | The thread was measured at 25.16 mm (M25 class), so the holes are Ø25.8 mm. The Ø38 mm parts-free circle on both sides fits a typical M25 nut (35–37 mm across corners); the nearest part (U3) is at 19.8 mm. DRC-enforced. Ease with a round file if a thread binds | Holes resized |
 | 22 | USB cables add noise at 315 MHz | Low | Noise floor rises when a phone is connected/charging | Route the cables away from the antenna; clip-on ferrites near the plugs; compare the bring-up firmware's noise floor with and without a phone | Check at bring-up |
 
 ## Firmware rules that prevent several of these
@@ -59,7 +59,7 @@ Imagine it's a year from now and the panel is sitting in a drawer. These are the
 ## Next steps, in order
 
 1. **Optional quick check now:** run `rtl_433 -f 315M` on your RTL-SDR while driving. It should print `Schrader-EG53MA4` lines for all four tyres. Note their IDs, and wake each wheel with the OEC-T5 to see which ID belongs to which wheel.
-2. Check that the USB sockets fit Ø22 mm, then order the PCB (`tpms_panel_gerbers_jlcpcb.zip`).
+2. Order the PCB (`tpms_panel_gerbers_jlcpcb.zip`). The USB holes already match the measured thread.
 3. Assemble and run the bring-up firmware: self-test, then the sensor list with signal strength per wheel.
 4. Build learn mode, the wheel layout, alarms and burn-in protection.
 5. Install: fused ACC tap, antenna placement, vibration-proofing.

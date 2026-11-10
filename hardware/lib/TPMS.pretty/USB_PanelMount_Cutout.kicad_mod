@@ -2,10 +2,10 @@
 	(version 20260206)
 	(generator "tpms_build")
 	(layer "F.Cu")
-	(descr "Round 22 mm cut-out for a panel-mount USB passthrough socket (flange on one side, nut on the other); both courtyards are 32 mm so no parts sit under the flange or nut")
+	(descr "Round 25.8 mm cut-out for a panel-mount USB passthrough socket (flange on one side, nut on the other); both courtyards are 38 mm so no parts sit under the flange or nut")
 	(tags "TPMS")
 	(property "Reference" "REF**"
-		(at 0 -16 0)
+		(at 0 -19.5 0)
 		(layer "F.Fab")
 		(uuid "555fc700-1686-5df6-a789-ac91fc324703")
 		(effects
@@ -16,7 +16,7 @@
 		)
 	)
 	(property "Value" "USB_PANEL_CUTOUT"
-		(at 0 16 0)
+		(at 0 19.5 0)
 		(layer "F.Fab")
 		(uuid "537ee68d-f924-5172-9eb3-7e7259de6e68")
 		(effects
@@ -42,7 +42,7 @@
 	(duplicate_pad_numbers_are_jumpers no)
 	(fp_circle
 		(center 0 0)
-		(end 11 0)
+		(end 12.9 0)
 		(stroke
 			(width 0.1)
 			(type solid)
@@ -53,7 +53,7 @@
 	)
 	(fp_circle
 		(center 0 0)
-		(end 14.5 0)
+		(end 18 0)
 		(stroke
 			(width 0.1)
 			(type solid)
@@ -64,7 +64,7 @@
 	)
 	(fp_circle
 		(center 0 0)
-		(end 14.5 0)
+		(end 18 0)
 		(stroke
 			(width 0.1)
 			(type solid)
@@ -75,7 +75,7 @@
 	)
 	(fp_circle
 		(center 0 0)
-		(end 16 0)
+		(end 19 0)
 		(stroke
 			(width 0.05)
 			(type solid)
@@ -86,7 +86,7 @@
 	)
 	(fp_circle
 		(center 0 0)
-		(end 16 0)
+		(end 19 0)
 		(stroke
 			(width 0.05)
 			(type solid)

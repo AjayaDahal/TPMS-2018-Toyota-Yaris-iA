@@ -95,7 +95,7 @@ Smaller changes in the same pass:
 - **Gerbers**:
   - 14 files, each identified by its X2 file function (copper L1/L2, masks, legends, paste, profile).
   - The outline is closed and measures 189 × 128 mm, including the 8 mm cable slot (end radius 4.000 mm). This was re-checked after the 2026-11-09 outline update.
-  - All 259 plated holes and 2 plated slots have pads on both layers.
+  - All 255 plated holes and 2 plated slots have pads on both layers. The two USB cut-outs are Ø25.8 mm (radius 12.900 mm in the Edge.Cuts Gerber), after the passthrough thread measured 25.16 mm.
   - None of the 8 non-plated holes has copper on it.
 
 ## For you to check (mechanical)

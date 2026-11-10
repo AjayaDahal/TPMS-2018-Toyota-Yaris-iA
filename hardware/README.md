@@ -2,7 +2,7 @@
 
 > **Outline accepted from the in-car paper fit (2026-11-09).** The 1:1 template matched the console opening under the HVAC controls, so the board was built to that outline, shrunk by 1 mm on the left, right and bottom edges so it can't come out too big.
 > Any small gaps can be closed later with a 3D-printed bezel or chassis.
-> `production/tpms_panel_gerbers_jlcpcb.zip` is the order file. Before ordering, check that your USB passthrough sockets' thread suits a Ø22 mm hole (section 8).
+> `production/tpms_panel_gerbers_jlcpcb.zip` is the order file. The USB holes are Ø25.8 mm, sized for your passthrough sockets' measured 25.16 mm (M25-class) thread.
 > The latest design audit is in [docs/design_audit.md](docs/design_audit.md).
 
 This is the hardware for the 315 MHz TPMS display described in the project report
@@ -75,7 +75,10 @@ Both DOIT variants are sold: **0.9 in (22.86 mm)** and **1.0 in (25.4 mm)** row 
 - **Outline:**
   - Trapezoid, 189 mm wide at the top, 121 mm at the bottom and 128 mm tall. That is the console opening the paper template matched in the car (191 × 123 × 129 mm), minus 1 mm on the left, right and bottom edges.
   - **USB cable slot** in the right edge: 8 mm wide, 8 mm deep, centred 34 mm below the top. The cable from the car's own USB port, which ends up behind the panel, comes out through it.
-  - Two Ø22 mm cut-outs for panel-mount USB sockets, plus 4× M3 holes. The copper is cleared to Ø31 mm around each USB hole, so the holes can be step-drilled up to Ø30 mm if your sockets need it. The mounting holes are placeholders; move or delete them in `panel_config.py`.
+  - Two Ø25.8 mm cut-outs for the panel-mount USB passthroughs (measured thread 25.16 mm, M25 class), plus 4× M3 holes.
+    - No parts within Ø38 mm on either side of each hole, so an M25 nut (typically 35–37 mm across corners) sits flat. DRC checks this.
+    - No tracks within Ø31 mm, so a hole could still be drilled out to Ø30 mm.
+    - The mounting holes are placeholders; move or delete them in `panel_config.py`.
   - The shape started as a scale-up of Figure 3.6 (using the 82 mm-wide display as the reference). It was then checked in the car with the 1:1 paper template, and a caliper span along the left trim agreed with it.
 - **Front:**
   - NHD-2.7-12864WDW3 OLED (SSD1322, 4-wire SPI).
@@ -164,8 +167,10 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
    - The car's ports face the panel. If a straight USB plug or the charger doesn't leave room for the panel to sit flush, use **90° USB-A adapters** (male–female) so the plugs lie flat. Leave some slack so the panel doesn't lever on the car's port.
    - The extension cables are USB 3.0, so they run as USB 2.0 on the car's USB 2.0 port; that's fine.
    - Route both cables down and away from the CC1101 antenna. With a phone connected and charging, the bring-up firmware's noise floor should stay near −100 dBm; if it rises, add clip-on ferrites to the cables near the plugs.
-   - Mounting: the holes are Ø22 mm, which should fit a ~20 mm (M20/PG13.5-class) thread. Nothing is placed within a Ø32 mm circle on either side of the board, so a nut or flange up to 32 mm sits flat.
-   - If your thread is larger, drill the hole out (copper-free up to Ø30 mm), or change `USB_HOLE_DIAMETER` and rebuild before ordering.
+   - Mounting: the thread measures 25.16 mm (M25 class), so the holes are **Ø25.8 mm** (0.6 mm clearance, enough for JLCPCB's ±0.2 mm routing tolerance).
+     - Nothing is placed within a Ø38 mm circle on either side, so the nut and flange sit flat.
+     - The nearest part is U3 at 19.8 mm from the hole centre, so even a 39 mm nut (across corners) would fit.
+   - If the thread binds, ease the hole with a round file (copper-free up to Ø30 mm).
    - The slot in the right edge stays free for an extra cable, such as the antenna extension or the 12 V feed.
 9. **First power-up:**
    - Before plugging in the DevKit, CC1101 and display, power the bare board and measure 5 V and 3V3 on the J4 pads.
@@ -246,13 +251,12 @@ One run (about 1.5–2 minutes) does all of the following:
 
 The outline is settled (see "In-car fit" below). What's left before ordering:
 
-1. **USB passthrough sockets:** with your caliper, measure the **thread diameter** (the part that goes through the panel).
-   - The hole should be about **0.5 mm larger** than the thread. Ø22 mm suits a 20–21.5 mm thread; the photo suggests about 20 mm.
-   - If it's different, send me the number (or change `USB_HOLE_DIAMETER` in `panel_config.py`) and rebuild before ordering. Drilling the board out afterwards also works; it's copper-free up to Ø30 mm.
-   - The flange/nut can be up to Ø32 mm (the parts-free zone on both sides).
+1. **USB passthrough sockets: done.** The thread measures **25.16 mm** (caliper, 2026-11-09), so the holes are **Ø25.8 mm** with a Ø38 mm parts-free circle on both sides.
+   - Optional: measure the hex nut across its corners. Up to 37 mm fits the parts-free circle as designed, and up to ~39 mm still clears the nearest part (U3).
 2. **Optional last check:** print the updated [docs/tpms_panel_fit_template_1to1.pdf](docs/tpms_panel_fit_template_1to1.pdf) at **100 % / Actual size** (check the 100 mm and 4 in bars with a ruler), cut it out and hold it in the console once more.
    - The grey dashed line is the opening it was matched to; the cut line is 1 mm inside it.
    - Feed the car's USB cable through the slot on the right to check the slot position.
+   - Push a socket's thread through one of the paper USB holes to check the size.
 3. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
 4. Check that the last build said DRC 0 errors / 0 warnings, then upload `production/tpms_panel_gerbers_jlcpcb.zip`.
 5. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.

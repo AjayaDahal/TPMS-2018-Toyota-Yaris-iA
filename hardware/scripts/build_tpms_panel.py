@@ -175,14 +175,15 @@ def build_models():
     w.box(-31.7, 31.7, -14.8, 17.9, 6.9, 6.95, (0.02, 0.02, 0.03), shininess=0.9)
     w.save(os.path.join(MODELDIR, "NHD-2.7-12864WDW3.wrl"))
 
-    # Panel-mount USB-A socket with front hex nut (fits the cut-out footprint)
+    # Panel-mount USB-A passthrough (M25-class thread): round front collar, hex nut behind the board
     w = Wrl()
-    w.prism(0, 0, 14.4, 6, 0.0, 3.0, SILVER, a0=math.pi / 6)
-    w.prism(0, 0, 10.0, 32, 3.0, 8.0, (0.3, 0.3, 0.32))
+    tr = getattr(CFG, "USB_THREAD_DIAMETER", CFG.USB_HOLE_DIAMETER - 0.6) / 2
+    w.prism(0, 0, tr + 1.5, 32, 0.0, 3.0, (0.12, 0.12, 0.13))                        # front collar
+    w.prism(0, 0, tr - 0.5, 32, 3.0, 8.0, (0.3, 0.3, 0.32))                          # front body
     w.box(-6.3, 6.3, -2.9, 2.9, 8.0, 8.05, BLACK)
     w.box(-5.6, 5.6, -2.3, -0.6, 8.05, 8.1, USB_BLUE)
-    w.prism(0, 0, 9.6, 32, -24.0, -1.6, (0.3, 0.3, 0.32))
-    w.prism(0, 0, 12.5, 6, -4.6, -1.6, SILVER, a0=math.pi / 6)
+    w.prism(0, 0, tr, 32, -24.0, -1.6, (0.3, 0.3, 0.32))                             # thread / body
+    w.prism(0, 0, CFG.USB_NUT_DIAMETER / 2, 6, -6.6, -1.6, (0.12, 0.12, 0.13), a0=math.pi / 6)  # hex nut
     w.save(os.path.join(MODELDIR, "USB_PanelMount.wrl"))
 
     # Knob for the EC11 encoder (shaft at (7.5, 2.5) in the KiCad EC11E footprint)
@@ -1452,6 +1453,14 @@ def add_stitching_vias(board, zones, pitch=10.0, avoid=()):
     board.GetBoardPolygonOutlines(outline, False)
     outline.Deflate(MM(2.0), pcbnew.CORNER_STRATEGY_ALLOW_ACUTE_CORNERS, MM(0.05))
     rule_areas = [board.GetArea(i) for i in range(board.GetAreaCount()) if board.GetArea(i).GetIsRuleArea()]
+
+    def outline_segs(z):
+        ol = z.Outline().Outline(0)
+        pts = [(pcbnew.ToMM(ol.CPoint(i).x), pcbnew.ToMM(ol.CPoint(i).y)) for i in range(ol.PointCount())]
+        return [(a[0], a[1], b[0], b[1]) for a, b in zip(pts, pts[1:] + pts[:1])]
+
+    # the via's whole copper ring (not just its centre) has to stay out of keep-outs and avoided zones
+    keep_segs = [s for z in list(rule_areas) + list(avoid) for s in outline_segs(z)]
     tracks = []
     for t in board.GetTracks():
         w = t.GetWidth(pcbnew.F_Cu) if t.Type() == pcbnew.PCB_VIA_T else t.GetWidth()
@@ -1478,6 +1487,8 @@ def add_stitching_vias(board, zones, pitch=10.0, avoid=()):
                 ok = not any(z.Outline().Contains(v) for z in rule_areas)
             if ok:
                 ok = not any(z.Outline().Contains(v) for z in avoid)
+            if ok:
+                ok = all(_seg_dist(bx, by, *s) > via_d / 2 + clr for s in keep_segs)
             if ok:
                 ok = not any(b[0] <= bx <= b[2] and b[1] <= by <= b[3] for b in boxes)
             if ok:

@@ -14,7 +14,7 @@ D6,1,SMAJ22CA,D_SMA,Littelfuse SMAJ22CA,"Bidirectional TVS 22 V, SMA: 24.4 V min
 D7,1,1N4148W,D_SOD-123,1N4148W,Flyback diode,yes
 F1,1,0.75A,Fuse_1812_4532Metric,Bourns MF-MSMF075/24X-2,"PTC fuse 1812, 0.75 A hold (0.49 A at 70 C), 24 V",yes
 H1 H2 H3 H4,4,M3,MountingHole_3.2mm_M3,,M3 mounting hole,board feature (no part)
-H5 H6,2,USB_CUTOUT,USB_PanelMount_Cutout,"USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)","Cut-out for a panel-mount USB passthrough: front socket, male plug behind goes to the car's USB port / a 12 V USB charger",board cut-out; part bought separately
+H5 H6,2,USB_CUTOUT,USB_PanelMount_Cutout,"USB 3.0 panel-mount passthrough cable, female socket to male plug, M25-class thread (measured 25.2 mm), ~30 cm (buy 2)","Cut-out for a panel-mount USB passthrough: front socket, male plug behind goes to the car's USB port / a 12 V USB charger",board cut-out; part bought separately
 J1,1,12V_IN,"TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal","Phoenix MKDS 1,5/2-5,08 (1715721)","Screw terminal, 12 V ACC input",yes
 J2,1,CC1101_ALT,PinHeader_1x08_P2.54mm_Vertical,1x8 2.54 mm pin header,Breakout for CC1101 modules with other pinouts,optional
 J3,1,MX-05V(opt),PinSocket_1x04_P2.54mm_Vertical,1x4 2.54 mm female header,Optional MX-05V / XY-MK-5V 315 MHz receiver,optional
