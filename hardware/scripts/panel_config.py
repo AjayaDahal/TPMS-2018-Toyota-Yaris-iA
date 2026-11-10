@@ -4,20 +4,32 @@ All values are in millimetres. Coordinate system: x to the right, y downwards, o
 top-centre of the panel, looking at the FRONT (display side) of the board.
 
 The outline and front-panel feature positions were scaled from Figure 3.6 of the project report,
-using the NHD-2.7-12864WDW3 display module (82.0 x 47.5 mm) as the size reference. Replace them
-with measured dimensions when available and re-run build_tpms_panel.py.
+using the NHD-2.7-12864WDW3 display module (82.0 x 47.5 mm) as the size reference, and then checked in
+the car with the 1:1 paper template (2026-11-09 photos: the template fits the console opening under the
+HVAC controls, and a caliper span along the left trim agrees with it).
 """
 
-# Set to True only after the real panel dimensions (outline, notch, USB holes, mounting holes) have been
-# entered below. While False, the build prints a reminder and names the Gerber zip "..._DRAFT_...".
-DIMENSIONS_CONFIRMED = False
+# Set to True once the outline has been checked in the car. While False, the build prints a reminder and
+# names the Gerber zip "..._DRAFT_...". Accepted 2026-11-09 from the in-car paper fit (see FIT_CLEARANCE).
+DIMENSIONS_CONFIRMED = True
 
 # ---------------------------------------------------------------- outline (trapezoid)
-TOP_WIDTH = 191.0
-BOTTOM_WIDTH = 123.0
-HEIGHT = 129.0
-NOTCH_Y = 34.0          # semicircular notch on the right edge: centre distance from top edge
-NOTCH_R = 4.0
+# Console opening as matched by the paper template.
+OPENING_TOP_WIDTH = 191.0
+OPENING_BOTTOM_WIDTH = 123.0
+OPENING_HEIGHT = 129.0
+# The board is this much smaller on the left, right and bottom edges (the top edge butts against the HVAC
+# unit), so it can't end up too big. A small gap is easy to cover with a 3D-printed bezel or foam tape;
+# an oversized board is not.
+FIT_CLEARANCE = 1.0
+TOP_WIDTH = OPENING_TOP_WIDTH - 2 * FIT_CLEARANCE
+BOTTOM_WIDTH = OPENING_BOTTOM_WIDTH - 2 * FIT_CLEARANCE
+HEIGHT = OPENING_HEIGHT - FIT_CLEARANCE
+# Cable slot in the right edge: the cable from the car's own USB port (behind the panel, at the top of
+# the console pocket) comes out through it. U-shaped, perpendicular to the edge.
+NOTCH_Y = 34.0          # slot centre, distance below the top edge
+NOTCH_R = 4.0           # half the slot width (8 mm wide: cables up to ~7 mm)
+NOTCH_DEPTH = 8.0       # how far the slot reaches into the board
 CORNER_RADIUS = 0.0     # 0 = sharp corners (as in the report render)
 
 # ---------------------------------------------------------------- front-panel features
@@ -38,9 +50,10 @@ BUTTON_X = 50.0                               # right-hand button column
 BUTTON_YS = (24.5, 40.0, 55.5, 71.0)
 BUTTON_LABELS = ("UP", "OK", "DOWN", "BACK")
 USB_HOLE_CENTERS = ((-40.4, 103.0), (40.4, 103.0))
-USB_HOLE_DIAMETER = 22.0                      # cut-out for panel-mount USB sockets (measure yours!)
-USB_NUT_DIAMETER = 29.0                       # front copper keep-out under the nut
-USB_BACK_KEEPOUT_DIAMETER = 26.0              # back-side keep-out around connector body
+USB_HOLE_DIAMETER = 22.0                      # cut-out for panel-mount USB sockets (check your sockets)
+USB_NUT_DIAMETER = 29.0                       # nut / flange on the front (drawn on the fit template)
+USB_COPPER_KEEPOUT_DIAMETER = 31.0            # no tracks or vias (front: no copper at all) inside this circle,
+                                              # so the holes can be step-drilled up to ~30 mm for bigger sockets
 MOUNT_HOLES = ((-88.0, 5.5), (88.0, 5.5), (-57.0, 123.0), (57.0, 123.0))
 MOUNT_HOLE_DIAMETER = 3.2                     # M3
 
@@ -104,7 +117,7 @@ PLACEMENT = {
     "R12": ("B", -56.0, 22.0, 0),
     "D7": ("B", -56.0, 26.5, 0),
     # back: power input 12 V -> 5 V -> 3.3 V (screw terminal wire entry faces the bottom edge)
-    "J1": ("B", -12.0, 122.6, 0),
+    "J1": ("B", -12.0, 121.6, 0),
     "F1": ("B", -12.0, 112.0, 0),
     "D6": ("B", -2.0, 112.0, 0),
     "D5": ("B", 8.0, 112.0, 0),

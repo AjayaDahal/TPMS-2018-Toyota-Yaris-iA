@@ -809,21 +809,27 @@ def P(x, y):
 
 
 def outline_geometry():
+    """Trapezoid with a U-shaped cable slot in the right edge, perpendicular to the edge.
+    Returns (polyline up to the slot's end arc, (arc start, mid, end), polyline after the arc)."""
     tw, bw, h = CFG.TOP_WIDTH / 2, CFG.BOTTOM_WIDTH / 2, CFG.HEIGHT
     tl, tr, br, bl = (-tw, 0.0), (tw, 0.0), (bw, h), (-bw, h)
     ux, uy = br[0] - tr[0], br[1] - tr[1]
     ln = math.hypot(ux, uy)
     ux, uy = ux / ln, uy / ln
-    t = CFG.NOTCH_Y / h
-    cx, cy = tr[0] + t * (br[0] - tr[0]), CFG.NOTCH_Y
+    cx, cy = edge_x(CFG.NOTCH_Y, 1), CFG.NOTCH_Y
     r = CFG.NOTCH_R
+    straight = max(getattr(CFG, "NOTCH_DEPTH", r) - r, 0.0)
     nx, ny = -uy, ux                     # inward normal of the right edge
     if nx > 0:
         nx, ny = -nx, -ny
     a = (cx - r * ux, cy - r * uy)
     b = (cx + r * ux, cy + r * uy)
-    m = (cx + r * nx, cy + r * ny)
-    return [tl, tr, a], (a, m, b), [b, br, bl, tl]
+    a_in = (a[0] + straight * nx, a[1] + straight * ny)
+    b_in = (b[0] + straight * nx, b[1] + straight * ny)
+    m = (cx + (straight + r) * nx, cy + (straight + r) * ny)
+    inner_a = [a_in] if straight > 0 else []
+    inner_b = [b_in] if straight > 0 else []
+    return [tl, tr, a] + inner_a, (a_in, m, b_in), inner_b + [b, br, bl, tl]
 
 
 def edge_x(y, side):
@@ -1091,12 +1097,14 @@ def add_panel_graphics(board, fps):
 
     add_text(board, "TPMS MONITOR PANEL  v1.0", -40.0, 4.0, B, size=1.8, thick=0.3)
     add_text(board, f"ESP32 + CC1101 315 MHz  -  A. Dahal  {TODAY}", -40.0, 7.2, B, size=1.1, thick=0.18)
-    add_text(board, "12V IN (ACC)", -20.5, 123.6, B, size=1.0, thick=0.15, justify="right")
+    add_text(board, "12V IN (ACC)", -20.5, 122.6, B, size=1.0, thick=0.15, justify="right")
     add_text(board, "OPTIONAL MX-05V RX", 58.0, 9.6, B, size=1.0, thick=0.15)
     add_text(board, "EXPANSION", -46.5, 66.5, B, size=1.0, thick=0.15)
     add_text(board, "CC1101 ALT", -70.0, 39.0, B, size=1.0, thick=0.15)
     add_text(board, "JP1 close = 5V to OLED BC_VDD", 19.0, 5.3, B, size=1.0, thick=0.15)
     add_text(board, "JLCJLCJLCJLC", -36.0, 74.0, B, size=1.0, thick=0.15)   # JLCPCB order-number location
+    slot_end = outline_geometry()[1][1]                                     # innermost point of the cable slot
+    add_text(board, "USB CABLE", slot_end[0] - 1.5, slot_end[1], B, size=1.0, thick=0.15, justify="right")
 
     # pin labels next to connector pads (back side): below a horizontal row, beside a vertical one
     labels = {
@@ -1117,7 +1125,7 @@ def add_panel_graphics(board, fps):
                 add_text(board, lab[num], x, y + 4.0, B, size=1.0, thick=0.15, rot=90)
             else:
                 add_text(board, lab[num], x + 2.3, y, B, size=1.0, thick=0.15, justify="left")
-    move_ref(fps["J1"], -20.5, 121.4, "right")
+    move_ref(fps["J1"], -20.5, 120.4, "right")
     move_ref(fps["J2"], -58.0, 31.0, "left")
     move_ref(fps["J3"], 52.4, 14.0, "right")
     move_ref(fps["J4"], -50.0, 44.0)
@@ -1138,10 +1146,13 @@ def add_keepouts(board, fps):
     y0, y1 = min(ys) - 3.0, max(ys) + 3.0
     add_rule_area(board, [(x_in, y0), (x_out, y0), (x_out, y1), (x_in, y1)], (pcbnew.F_Cu, pcbnew.B_Cu),
                   "ESP32_ANTENNA_KEEPOUT")
-    # panel-mount USB sockets: nothing under the front nut, no tracks next to the back body
+    # panel-mount USB sockets: nothing under the front nut, no tracks next to the back body; the cleared
+    # circle also lets the holes be step-drilled bigger if the sockets need it
+    keep = CFG.USB_COPPER_KEEPOUT_DIAMETER
     for i, (cx, cy) in enumerate(CFG.USB_HOLE_CENTERS):
-        add_rule_area(board, circle_pts(cx, cy, CFG.USB_NUT_DIAMETER / 2), (pcbnew.F_Cu,), f"USB{i + 1}_NUT_F")
-        add_rule_area(board, circle_pts(cx, cy, CFG.USB_BACK_KEEPOUT_DIAMETER / 2), (pcbnew.B_Cu,),
+        add_rule_area(board, circle_pts(cx, cy, max(CFG.USB_NUT_DIAMETER, keep) / 2), (pcbnew.F_Cu,),
+                      f"USB{i + 1}_NUT_F")
+        add_rule_area(board, circle_pts(cx, cy, keep / 2), (pcbnew.B_Cu,),
                       f"USB{i + 1}_BODY_B", pour=True)
     return xs
 
@@ -1823,7 +1834,9 @@ def export_fit_template(path=None):
     pdf = _FitPdf()
     # ---------------------------------------------------------------- page 1: annotated template
     pdf.page()
-    status = "DRAFT dimensions (scaled from the report image)" if not CFG.DIMENSIONS_CONFIRMED else "dimensions confirmed"
+    status = ("DRAFT dimensions (scaled from the report image)" if not CFG.DIMENSIONS_CONFIRMED else
+              f"outline accepted from the in-car fit, board {getattr(CFG, 'FIT_CLEARANCE', 0):g} mm smaller "
+              "on sides and bottom")
     pdf.text(36, 30, "TPMS panel - 1:1 fit template (front view, as seen from the driver's seat)", 12, bold=True)
     pdf.text(36, 44, f"{status}  -  generated {TODAY} from {NAME}.kicad_pcb  -  print at 100% / Actual size, "
                      "NOT 'Fit to page'", 7.5)
@@ -1887,8 +1900,14 @@ def export_fit_template(path=None):
                  rgb=blue, align="center")
     for g in usb_cut:
         cx, cy = g[1]
-        pdf.text(*P(cx, cy - CFG.USB_NUT_DIAMETER / 2 - 2.0), f"USB socket: cut Ø{2 * g[2]:g}, nut Ø{CFG.USB_NUT_DIAMETER:g}",
+        pdf.text(*P(cx, cy - CFG.USB_NUT_DIAMETER / 2 - 2.0),
+                 f"USB: cut Ø{2 * g[2]:g} (max Ø{CFG.USB_COPPER_KEEPOUT_DIAMETER - 1:g}), nut Ø{CFG.USB_NUT_DIAMETER:g}",
                  6, rgb=blue, align="center")
+    # the car opening as matched by the paper template; the board sits FIT_CLEARANCE inside it
+    otw, obw = getattr(CFG, "OPENING_TOP_WIDTH", x1 - x0) / 2, getattr(CFG, "OPENING_BOTTOM_WIDTH", bottom_w) / 2
+    oh = getattr(CFG, "OPENING_HEIGHT", y1 - y0)
+    pdf.stroke(0.5, (0.45, 0.45, 0.45), dash=(4, 2))
+    pdf.path([P(-otw, 0), P(otw, 0), P(obw, oh), P(-obw, oh)], close=True)
     cut_layer(pdf)
     # origin marker and dimensions
     pdf.stroke(0.4, (0, 0, 0))
@@ -1912,16 +1931,20 @@ def export_fit_template(path=None):
         pdf.path([(xl - 3, P(0, yy)[1]), (xl + 3, P(0, yy)[1])])
     pdf.text(xl - 3, (P(0, y0)[1] + P(0, y1)[1]) / 2, f"{y1 - y0:.1f} mm (height)", 7, align="center", rot=90)
     if notch:
-        nx = max(p[0] for p in notch[0])
-        ny = sum(p[1] for p in notch[0]) / len(notch[0])
-        pdf.text(*P(nx + 3, ny + 1), f"notch R{CFG.NOTCH_R:g}, centre {CFG.NOTCH_Y:g} mm below top", 6)
+        lx = edge_x(CFG.NOTCH_Y, 1) + 3
+        pdf.text(*P(lx, CFG.NOTCH_Y - 0.6), "USB cable slot (car USB port)", 6)
+        pdf.text(*P(lx, CFG.NOTCH_Y + 2.2),
+                 f"{2 * CFG.NOTCH_R:g} wide × {getattr(CFG, 'NOTCH_DEPTH', CFG.NOTCH_R):g} deep, "
+                 f"centre {CFG.NOTCH_Y:g} mm below top", 6)
     # notes, legend, scale bars (everything stays >= 18 pt from the paper edge for printer margins)
     scale_bars(pdf, 36, 482)
     legend = [((0, 0, 0), None, "thick black = cut line (board edge, USB holes); small circles = M3 holes"),
+              ((0.45, 0.45, 0.45), (4, 2), f"grey dashed = car opening (paper fit); the board is "
+                                           f"{getattr(CFG, 'FIT_CLEARANCE', 0):g} mm inside it"),
               (blue, None, "blue = front parts: display, LEDs, knob (dashed), USB nut (dashed)"),
               ((0.85, 0.12, 0.12), (3, 2), "red dashed = tall parts behind the panel (depth noted)"),
               ((0.45, 0.45, 0.45), None, "grey = silkscreen; light grid = 10 mm")]
-    ly = 476
+    ly = 473
     for rgb, dash, s in legend:
         pdf.stroke(1.0 if rgb == (0, 0, 0) else 0.7, rgb, dash)
         pdf.path([(330, ly - 2.5), (352, ly - 2.5)])
@@ -1946,7 +1969,7 @@ def export_fit_template(path=None):
         pdf.text(330 + col * 150, ty + 11 + row * 8.5, f"{name}: ({num(xy[0])}, {num(xy[1]).lstrip('+')})", 6.5)
     notes = ["How to use: print at 100% / Actual size and check both bars with a ruler.",
              "Cut along the thick black lines and hold it in the dash from the driver's side.",
-             "Then measure the real opening and send the numbers.",
+             "Grey dashed = the opening it was matched to in the car (2026-11-09).",
              "Sticks out in front: display ~7 mm, LEDs ~9 mm, knob ~22 mm.",
              "Behind: up to ~16 mm; the CC1101 antenna connector points down and the",
              "antenna goes straight back into the pocket (90 deg SMA adapter or cable)."]

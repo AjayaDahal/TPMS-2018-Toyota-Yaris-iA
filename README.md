@@ -21,5 +21,5 @@ A dash panel that receives the car's 315 MHz tyre-pressure (TPMS) sensors and sh
 
 > **Sensors:** the Yaris iA's own TPMS is indirect (ABS-based, no wheel sensors). Four GM/Schrader EG53MA4 sensors were added to the tyres, and this panel is their receiver.
 
-> **Status: not ready to order.** The panel dimensions are still scaled from the report image. The Gerber zip is named
-> `..._DRAFT_dims_unconfirmed.zip` until the real dimensions are entered.
+> **Status: ready to order once you've checked that your panel-mount USB sockets fit a Ø22 mm hole.**
+> The outline was accepted from the in-car paper fit (board 1 mm smaller than the opening on the sides and bottom). The order file is `hardware/production/tpms_panel_gerbers_jlcpcb.zip`.

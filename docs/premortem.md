@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-05, revised the same day.
 
-**Scope:** everything except the panel dimensions, which are still to come.
+**Scope:** everything, including the outline, which was accepted from the in-car paper fit on 2026-11-09.
 
 ## The setup
 
@@ -42,9 +42,9 @@ Imagine it's a year from now and the panel is sitting in a drawer. These are the
 | 15 | AM radio buzz from the 5 V switcher | Low | Noise on AM | Add TRACO's EMC input filter to the 12 V lead | Documented |
 | 16 | Expecting the two front USB sockets to charge phones | ? | — | They are **not powered** by this board (U3 is 1 A). To charge, wire them to a separate 12 V → 5 V/3 A car USB charger module | Decide |
 | 17 | A substitute part doesn't fit | Low | — | Avoid: R-78E (28 V max), a passive buzzer, blue/white LEDs on 220 Ω, a WROVER or 38-pin DevKit | Documented |
-| 18 | Doesn't fit the console opening once built | Medium | Paper template doesn't sit flush | The 2026-11-09 template photos match the opening under the HVAC controls. Still needed: the exact width, height, notch purpose, depth behind (12 V/USB/AUX strip at the top) and how it's held. See the checklist in hardware/README section 8 | Waiting for measurements |
+| 18 | Doesn't fit the console opening once built | Low–Medium | Board doesn't sit flush | The template matched the opening under the HVAC controls, and a caliper span agrees. The board is 1 mm smaller than the opening on the sides and bottom so it can't be too big. Gaps are closed by a 3D-printed bezel/chassis, which can also space the board forward if the 12 V/USB/AUX strip behind it is in the way | Outline accepted; chassis later |
 | 19 | The shift knob (in P) hits a cable in the right USB socket | Medium | Cable touches the knob in P | Measure the gap; use a 90° USB cable, or move that socket up and left | Check |
-| 20 | Losing the car's 12 V socket / USB / AUX behind the panel | Certain unless planned | — | Use the front USB sockets as extensions (car USB + a 12 V → USB charger). The 12 V socket can power the panel (ACC; verify 0 V with the key off) | Decide |
+| 20 | Losing the car's 12 V socket / USB / AUX behind the panel | Certain unless planned | — | The car's USB cable comes out through the 8 mm slot in the right edge. The front USB sockets can serve as extensions (car USB + a 12 V → USB charger). The 12 V socket can power the panel (ACC; verify 0 V with the key off) | Slot added |
 
 ## Firmware rules that prevent several of these
 
@@ -57,7 +57,7 @@ Imagine it's a year from now and the panel is sitting in a drawer. These are the
 ## Next steps, in order
 
 1. **Optional quick check now:** run `rtl_433 -f 315M` on your RTL-SDR while driving. It should print `Schrader-EG53MA4` lines for all four tyres. Note their IDs, and wake each wheel with the OEC-T5 to see which ID belongs to which wheel.
-2. Send the panel dimensions, rebuild, and order the PCB.
+2. Check that the USB sockets fit Ø22 mm, then order the PCB (`tpms_panel_gerbers_jlcpcb.zip`).
 3. Assemble and run the bring-up firmware: self-test, then the sensor list with signal strength per wheel.
 4. Build learn mode, the wheel layout, alarms and burn-in protection.
 5. Install: fused ACC tap, antenna placement, vibration-proofing.
