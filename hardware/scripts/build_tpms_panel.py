@@ -450,18 +450,22 @@ def build_footprints():
     f.model("${KIPRJMOD}/lib/3d/NHD-2.7-12864WDW3.wrl")
     f.save()
 
-    # ---- panel-mount USB socket cut-out
+    # ---- panel-mount USB passthrough socket cut-out
     r = CFG.USB_HOLE_DIAMETER / 2
     rn = CFG.USB_NUT_DIAMETER / 2
+    rk = max(rn + 0.25, getattr(CFG, "USB_PARTS_KEEPOUT_DIAMETER", 0) / 2)
     f = Fp("USB_PanelMount_Cutout",
-           f"Round {CFG.USB_HOLE_DIAMETER:g} mm cut-out for a panel-mount USB socket with front nut",
+           f"Round {CFG.USB_HOLE_DIAMETER:g} mm cut-out for a panel-mount USB passthrough socket (flange on one side, "
+           f"nut on the other); both courtyards are {2 * rk:g} mm so no parts sit under the flange or nut",
            attr="board_only exclude_from_pos_files exclude_from_bom")
     f.prop("Reference", "REF**", 0, -rn - 1.5, "F.Fab")
     f.prop("Value", "USB_PANEL_CUTOUT", 0, rn + 1.5, "F.Fab")
     f.prop("Footprint", "", 0, 0, "F.Fab", hide=True)
     f.circle(0, 0, r, "Edge.Cuts", 0.1)
     f.circle(0, 0, rn, "F.Fab", 0.1)
-    f.circle(0, 0, rn + 0.25, "F.CrtYd", 0.05)
+    f.circle(0, 0, rn, "B.Fab", 0.1)
+    f.circle(0, 0, rk, "F.CrtYd", 0.05)
+    f.circle(0, 0, rk, "B.CrtYd", 0.05)
     f.model("${KIPRJMOD}/lib/3d/USB_PanelMount.wrl")
     f.save()
 
@@ -1593,7 +1597,10 @@ def write_bom():
             descs = list(dict.fromkeys(p["desc"] for p in parts))
             desc = descs[0] if len(descs) == 1 else os.path.commonprefix(descs).strip() + "s"
             board_only = all(re.match(r"^(H|JP)\d", r) for r in refs)
-            populate = "board feature (no part)" if board_only else ("optional" if dnp else "yes")
+            if board_only:
+                populate = "board cut-out; part bought separately" if parts[0]["mpn"] else "board feature (no part)"
+            else:
+                populate = "optional" if dnp else "yes"
             w.writerow([" ".join(refs), len(refs), " / ".join(values), fp.split(":")[-1], parts[0]["mpn"], desc,
                         populate])
     log(f"  BOM: {path}")
@@ -1901,7 +1908,7 @@ def export_fit_template(path=None):
     for g in usb_cut:
         cx, cy = g[1]
         pdf.text(*P(cx, cy - CFG.USB_NUT_DIAMETER / 2 - 2.0),
-                 f"USB: cut Ø{2 * g[2]:g} (max Ø{CFG.USB_COPPER_KEEPOUT_DIAMETER - 1:g}), nut Ø{CFG.USB_NUT_DIAMETER:g}",
+                 f"USB passthrough: hole Ø{2 * g[2]:g} (max Ø{CFG.USB_COPPER_KEEPOUT_DIAMETER - 1:g})",
                  6, rgb=blue, align="center")
     # the car opening as matched by the paper template; the board sits FIT_CLEARANCE inside it
     otw, obw = getattr(CFG, "OPENING_TOP_WIDTH", x1 - x0) / 2, getattr(CFG, "OPENING_BOTTOM_WIDTH", bottom_w) / 2

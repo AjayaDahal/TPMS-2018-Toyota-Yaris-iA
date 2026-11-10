@@ -17744,6 +17744,15 @@
 				)
 			)
 		)
+		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)"
+			(at 266.7 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(instances
 			(project "tpms_panel"
 				(path "/5b67aa2f-581d-5253-835e-2e066d384fa3"
@@ -17797,6 +17806,15 @@
 			)
 		)
 		(property "Description" "Mounting Hole without connection"
+			(at 281.94 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)"
 			(at 281.94 236.22 0)
 			(hide yes)
 			(effects

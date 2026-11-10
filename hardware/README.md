@@ -2,7 +2,7 @@
 
 > **Outline accepted from the in-car paper fit (2026-11-09).** The 1:1 template matched the console opening under the HVAC controls, so the board was built to that outline, shrunk by 1 mm on the left, right and bottom edges so it can't come out too big.
 > Any small gaps can be closed later with a 3D-printed bezel or chassis.
-> `production/tpms_panel_gerbers_jlcpcb.zip` is the order file. Before ordering, check that your USB sockets fit a Ø22 mm hole (section 8).
+> `production/tpms_panel_gerbers_jlcpcb.zip` is the order file. Before ordering, check that your USB passthrough sockets' thread suits a Ø22 mm hole (section 8).
 > The latest design audit is in [docs/design_audit.md](docs/design_audit.md).
 
 This is the hardware for the 315 MHz TPMS display described in the project report
@@ -156,10 +156,17 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
    - **Never wire it to constant 12 V.** The panel draws about 1 W, which flattens a car battery in roughly two weeks.
    - On the bench, the ESP32's USB alone powers everything. A laptop port (500 mA) can brown out when the screen is bright and Wi-Fi is on, so use a powered hub or a 12 V supply if it resets.
    - Most DevKits have a VBUS diode, so 12 V and USB can be connected together. If yours doesn't, use one or the other.
-8. The panel-mount USB sockets are not wired to the board.
-   - The holes are Ø22 mm. If your sockets need a bigger hole, drill it out (up to Ø30 mm is copper-free), or change `USB_HOLE_DIAMETER` and rebuild before ordering.
-   - If they should charge phones, feed them from a separate 12 V → 5 V/3 A car USB charger module; U3 can't power them.
-   - The car's own USB cable leaves through the slot in the right edge.
+8. **USB passthroughs:** the two holes take panel-mount USB passthrough cables, with a female socket in front and a male plug behind. They aren't wired to the board.
+   - Plug one male end into the car's own USB port behind the panel; the front socket then works like the car's port (phone charging, CarPlay/Android Auto if your head unit has them).
+   - Plug the other into a 12 V → USB charger in the car's 12 V socket behind the panel.
+     - Use a low-profile ("flush") charger, because a long one sticks out toward the back of the panel.
+     - The board's U3 can't power phones, so the charger is needed.
+   - The car's ports face the panel. If a straight USB plug or the charger doesn't leave room for the panel to sit flush, use **90° USB-A adapters** (male–female) so the plugs lie flat. Leave some slack so the panel doesn't lever on the car's port.
+   - The extension cables are USB 3.0, so they run as USB 2.0 on the car's USB 2.0 port; that's fine.
+   - Route both cables down and away from the CC1101 antenna. With a phone connected and charging, the bring-up firmware's noise floor should stay near −100 dBm; if it rises, add clip-on ferrites to the cables near the plugs.
+   - Mounting: the holes are Ø22 mm, which should fit a ~20 mm (M20/PG13.5-class) thread. Nothing is placed within a Ø32 mm circle on either side of the board, so a nut or flange up to 32 mm sits flat.
+   - If your thread is larger, drill the hole out (copper-free up to Ø30 mm), or change `USB_HOLE_DIAMETER` and rebuild before ordering.
+   - The slot in the right edge stays free for an extra cable, such as the antenna extension or the 12 V feed.
 9. **First power-up:**
    - Before plugging in the DevKit, CC1101 and display, power the bare board and measure 5 V and 3V3 on the J4 pads.
    - The CC1101's 2×4 header and the DevKit are symmetric, so a module rotated 180° gets reversed power. Check the "1"/"SMA" and "USB"/"ANTENNA" silkscreen first.
@@ -239,15 +246,18 @@ One run (about 1.5–2 minutes) does all of the following:
 
 The outline is settled (see "In-car fit" below). What's left before ordering:
 
-1. **USB sockets:** check that your panel-mount sockets fit a **Ø22 mm** hole with a nut up to **Ø29 mm**.
-   - If they need a different hole, change `USB_HOLE_DIAMETER` in `panel_config.py` and rebuild before ordering.
-   - Or drill the board out afterwards: it is copper-free up to Ø30 mm around each hole.
+1. **USB passthrough sockets:** with your caliper, measure the **thread diameter** (the part that goes through the panel).
+   - The hole should be about **0.5 mm larger** than the thread. Ø22 mm suits a 20–21.5 mm thread; the photo suggests about 20 mm.
+   - If it's different, send me the number (or change `USB_HOLE_DIAMETER` in `panel_config.py`) and rebuild before ordering. Drilling the board out afterwards also works; it's copper-free up to Ø30 mm.
+   - The flange/nut can be up to Ø32 mm (the parts-free zone on both sides).
 2. **Optional last check:** print the updated [docs/tpms_panel_fit_template_1to1.pdf](docs/tpms_panel_fit_template_1to1.pdf) at **100 % / Actual size** (check the 100 mm and 4 in bars with a ruler), cut it out and hold it in the console once more.
    - The grey dashed line is the opening it was matched to; the cut line is 1 mm inside it.
    - Feed the car's USB cable through the slot on the right to check the slot position.
 3. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
 4. Check that the last build said DRC 0 errors / 0 warnings, then upload `production/tpms_panel_gerbers_jlcpcb.zip`.
-5. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k. Also buy a 90° SMA adapter (male–female) and a 315 MHz antenna: a short stubby, or a whip on an SMA extension cable.
+5. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.
+   - Also buy a 90° SMA adapter (male–female) and a 315 MHz antenna: a short stubby, or a whip on an SMA extension cable.
+   - For the USB passthroughs: two 90° USB-A adapters (male–female), and a flush 12 V USB charger if you use the 12 V socket.
 
 ### In-car fit (2026-11-09 template photos)
 
@@ -255,13 +265,12 @@ The outline is settled (see "In-car fit" below). What's left before ordering:
   - A caliper span of 117.3 mm along the left trim agrees with the template.
   - No exact measurement set was possible, so the board is the template outline shrunk by **1 mm on the left, right and bottom** (`FIT_CLEARANCE`) and can't be too big.
   - Small gaps can be closed with a 3D-printed bezel/chassis. That printed frame can also hold the board, since the M3 holes are only placeholders.
-- **Cable slot (right edge):** the car's own USB port sits behind the panel, at the top of the pocket. Its cable comes out through the 8 mm slot, centred 34 mm below the top. The slot is 8 mm wide and 8 mm deep; for a thicker cable or plug, widen `NOTCH_R` / `NOTCH_DEPTH`.
+- **Cable slot (right edge):** 8 mm wide × 8 mm deep, centred 34 mm below the top, level with the car's USB / 12 V strip behind the panel. A cable from there can come out at the side of the panel. With the USB passthroughs it's free for an extra cable; for a thicker cable or plug, widen `NOTCH_R` / `NOTCH_DEPTH`.
 - **Depth behind the panel:** the deepest parts are about 16 mm (ESP32 on its sockets, CC1101). The 12 V / USB / AUX strip at the top of the pocket is where it's tightest. If the panel can't sit flush there, the 3D-printed chassis can space it forward.
-- **The panel covers the car's 12 V socket, USB, AUX and card slot** (the strip at the top of the pocket). Options:
-  - Route the car's USB cable out through the slot.
-  - Wire a front USB socket as a panel-mount extension of the car's USB port.
-  - Plug a 12 V → USB charger into the 12 V socket for the other front USB socket.
-  - Power the panel from the 12 V socket (it should be ACC-switched; check that it reads 0 V with the key off), through a right-angle 12 V plug or a fused tap of its wiring.
+- **The panel covers the car's 12 V socket, USB, AUX and card slot** (the strip at the top of the pocket). The plan:
+  - **Two USB passthrough cables** in the panel's USB holes: one plugs into the car's USB port, the other into a flush 12 V USB charger in the 12 V socket. Use 90° adapters if the plugs need the room; see assembly step 8.
+  - The slot in the right edge is free for an extra cable.
+  - Power the panel from the 12 V socket's wiring with a fused tap, or from an ACC fuse with an add-a-fuse. The socket should be ACC-switched; check that it reads 0 V with the key off.
 - **Antenna:** the old top-left position pointed the SMA connector straight into the HVAC unit, so no antenna or cable could be attached. The radio now sits mid-left with the SMA pointing down; a 90° adapter sends the antenna straight back into the pocket.
   - The console trim is plastic (the carbon look is only a finish), so it doesn't block 315 MHz.
   - Start with a short 315 MHz antenna on the adapter and check each wheel's signal strength with the [bring-up firmware](../firmware/bringup/README.md).

@@ -50,10 +50,12 @@ BUTTON_X = 50.0                               # right-hand button column
 BUTTON_YS = (24.5, 40.0, 55.5, 71.0)
 BUTTON_LABELS = ("UP", "OK", "DOWN", "BACK")
 USB_HOLE_CENTERS = ((-40.4, 103.0), (40.4, 103.0))
-USB_HOLE_DIAMETER = 22.0                      # cut-out for panel-mount USB sockets (check your sockets)
+USB_HOLE_DIAMETER = 22.0                      # cut-out for the panel-mount USB passthrough sockets: thread + ~0.5 mm
 USB_NUT_DIAMETER = 29.0                       # nut / flange on the front (drawn on the fit template)
 USB_COPPER_KEEPOUT_DIAMETER = 31.0            # no tracks or vias (front: no copper at all) inside this circle,
                                               # so the holes can be step-drilled up to ~30 mm for bigger sockets
+USB_PARTS_KEEPOUT_DIAMETER = 32.0             # courtyard on BOTH sides: no parts under the socket's flange / hex
+                                              # nut (photo estimate ~28 mm across corners), checked by DRC
 MOUNT_HOLES = ((-88.0, 5.5), (88.0, 5.5), (-57.0, 123.0), (57.0, 123.0))
 MOUNT_HOLE_DIAMETER = 3.2                     # M3
 
@@ -127,7 +129,7 @@ PLACEMENT = {
     "C3": ("B", 22.5, 113.5, 0),
     "U4": ("B", -15.0, 100.0, 0),
     "C4": ("B", -5.0, 101.5, 90),
-    "C5": ("B", -23.5, 100.0, 90),
+    "C5": ("B", -21.6, 100.0, 90),     # between U4 and the left USB socket's nut keep-out
 }
 
 if INPUT_STYLE == "encoder":

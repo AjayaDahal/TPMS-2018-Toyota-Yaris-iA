@@ -198,8 +198,11 @@ for i, (ref, val, fp) in enumerate((
         ("H3", "M3", "MountingHole:MountingHole_3.2mm_M3"), ("H4", "M3", "MountingHole:MountingHole_3.2mm_M3"),
         ("H5", "USB_CUTOUT", "TPMS:USB_PanelMount_Cutout"),
         ("H6", "USB_CUTOUT", "TPMS:USB_PanelMount_Cutout"))):
-    PARTS.append(part(ref, "Mechanical:MountingHole", val, fp, (205.74 + 15.24 * i, 236.22), {}, "",
-                      "Panel-mount USB socket cut-out" if "USB" in val else "M3 mounting hole"))
+    PARTS.append(part(ref, "Mechanical:MountingHole", val, fp, (205.74 + 15.24 * i, 236.22), {},
+                      "USB 3.0 panel-mount passthrough cable, female socket to male plug, ~30 cm (buy 2)"
+                      if "USB" in val else "",
+                      "Cut-out for a panel-mount USB passthrough: front socket, male plug behind goes to the car's "
+                      "USB port / a 12 V USB charger" if "USB" in val else "M3 mounting hole"))
 
 # PWR_FLAGs: (net, x, y)
 PWR_FLAGS = (("+12V", 40.64, 73.66), ("GND", 53.34, 73.66))
