@@ -41,7 +41,7 @@ LIBDIR = os.path.join(HW, "lib")
 FPLIB = os.path.join(LIBDIR, "TPMS.pretty")
 SYMLIB = os.path.join(LIBDIR, "TPMS.kicad_sym")
 MODELDIR = os.path.join(LIBDIR, "3d")
-PROD = os.path.join(HW, "production")
+PROD = os.path.normpath(os.path.join(HW, "..", "03-manufacturing", "production"))
 DOCS = os.path.join(HW, "docs")
 BUILD = os.path.join(HW, "build")
 

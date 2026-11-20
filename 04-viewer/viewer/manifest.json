@@ -1,0 +1,1283 @@
+{
+  "vehicle": "TPMS Monitor Panel",
+  "subtitle": "2018 Toyota Yaris iA \u00b7 315 MHz CC1101 + ESP32 + 2.7\" OLED Dash Panel",
+  "dims_mm": [
+    189.0,
+    128.0,
+    27.1
+  ],
+  "items": [
+    {
+      "name": "led_00",
+      "label": "Tyre LED (FL)",
+      "url": "parts/led_00.stl",
+      "subsystem": "ui",
+      "color": [
+        0.94,
+        0.3,
+        0.06
+      ],
+      "dims_mm": [
+        5.4,
+        5.8,
+        14.1
+      ],
+      "explode_mm": [
+        0,
+        0,
+        22
+      ]
+    },
+    {
+      "name": "led_01",
+      "label": "Tyre LED (RL)",
+      "url": "parts/led_01.stl",
+      "subsystem": "ui",
+      "color": [
+        0.94,
+        0.3,
+        0.06
+      ],
+      "dims_mm": [
+        5.4,
+        5.8,
+        14.1
+      ],
+      "explode_mm": [
+        0,
+        0,
+        22
+      ]
+    },
+    {
+      "name": "led_02",
+      "label": "Tyre LED (RR)",
+      "url": "parts/led_02.stl",
+      "subsystem": "ui",
+      "color": [
+        0.94,
+        0.3,
+        0.06
+      ],
+      "dims_mm": [
+        5.4,
+        5.8,
+        14.1
+      ],
+      "explode_mm": [
+        0,
+        0,
+        22
+      ]
+    },
+    {
+      "name": "led_03",
+      "label": "Tyre LED (FR)",
+      "url": "parts/led_03.stl",
+      "subsystem": "ui",
+      "color": [
+        0.94,
+        0.3,
+        0.06
+      ],
+      "dims_mm": [
+        5.4,
+        5.8,
+        14.1
+      ],
+      "explode_mm": [
+        0,
+        0,
+        22
+      ]
+    },
+    {
+      "name": "smd_comp_04",
+      "label": "Rear SMD / THT Part #4",
+      "url": "parts/smd_comp_04.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        1.8
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "rear_module_05",
+      "label": "Rear Connector / Module #5",
+      "url": "parts/rear_module_05.stl",
+      "subsystem": "rf_mcu",
+      "color": [
+        0.18,
+        0.45,
+        0.78
+      ],
+      "dims_mm": [
+        10.9,
+        9.8,
+        17.3
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -24
+      ]
+    },
+    {
+      "name": "smd_comp_06",
+      "label": "Rear SMD / THT Part #6",
+      "url": "parts/smd_comp_06.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_07",
+      "label": "Rear SMD / THT Part #7",
+      "url": "parts/smd_comp_07.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_08",
+      "label": "Rear SMD / THT Part #8",
+      "url": "parts/smd_comp_08.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_09",
+      "label": "Rear SMD / THT Part #9",
+      "url": "parts/smd_comp_09.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_10",
+      "label": "Rear SMD / THT Part #10",
+      "url": "parts/smd_comp_10.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_11",
+      "label": "Rear SMD / THT Part #11",
+      "url": "parts/smd_comp_11.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.8,
+        1.6,
+        1.3
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_12",
+      "label": "Rear SMD / THT Part #12",
+      "url": "parts/smd_comp_12.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        2.5,
+        3.0,
+        1.2
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_13",
+      "label": "Rear SMD / THT Part #13",
+      "url": "parts/smd_comp_13.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_14",
+      "label": "Rear SMD / THT Part #14",
+      "url": "parts/smd_comp_14.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_15",
+      "label": "Rear SMD / THT Part #15",
+      "url": "parts/smd_comp_15.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        10.2,
+        2.5,
+        11.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_16",
+      "label": "Rear SMD / THT Part #16",
+      "url": "parts/smd_comp_16.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        7.0,
+        6.5,
+        1.7
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_17",
+      "label": "Rear SMD / THT Part #17",
+      "url": "parts/smd_comp_17.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        20.3,
+        2.5,
+        11.5
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_18",
+      "label": "Rear SMD / THT Part #18",
+      "url": "parts/smd_comp_18.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_19",
+      "label": "Rear SMD / THT Part #19",
+      "url": "parts/smd_comp_19.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_20",
+      "label": "Rear SMD / THT Part #20",
+      "url": "parts/smd_comp_20.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_21",
+      "label": "Rear SMD / THT Part #21",
+      "url": "parts/smd_comp_21.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_22",
+      "label": "Rear SMD / THT Part #22",
+      "url": "parts/smd_comp_22.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_23",
+      "label": "Rear SMD / THT Part #23",
+      "url": "parts/smd_comp_23.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_24",
+      "label": "Rear SMD / THT Part #24",
+      "url": "parts/smd_comp_24.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_25",
+      "label": "Rear SMD / THT Part #25",
+      "url": "parts/smd_comp_25.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "rear_module_26",
+      "label": "Rear Connector / Module #26",
+      "url": "parts/rear_module_26.stl",
+      "subsystem": "rf_mcu",
+      "color": [
+        0.18,
+        0.45,
+        0.78
+      ],
+      "dims_mm": [
+        11.7,
+        7.6,
+        14.2
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -24
+      ]
+    },
+    {
+      "name": "smd_comp_27",
+      "label": "Rear SMD / THT Part #27",
+      "url": "parts/smd_comp_27.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        5.0,
+        2.7,
+        2.2
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_28",
+      "label": "Rear SMD / THT Part #28",
+      "url": "parts/smd_comp_28.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_29",
+      "label": "Rear SMD / THT Part #29",
+      "url": "parts/smd_comp_29.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_30",
+      "label": "Rear SMD / THT Part #30",
+      "url": "parts/smd_comp_30.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_31",
+      "label": "Rear SMD / THT Part #31",
+      "url": "parts/smd_comp_31.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_32",
+      "label": "Rear SMD / THT Part #32",
+      "url": "parts/smd_comp_32.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        2.5,
+        17.8,
+        11.5
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_33",
+      "label": "Rear SMD / THT Part #33",
+      "url": "parts/smd_comp_33.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        5.0,
+        2.7,
+        2.2
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "rear_module_34",
+      "label": "Rear Connector / Module #34",
+      "url": "parts/rear_module_34.stl",
+      "subsystem": "rf_mcu",
+      "color": [
+        0.18,
+        0.45,
+        0.78
+      ],
+      "dims_mm": [
+        12.0,
+        12.0,
+        12.5
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -24
+      ]
+    },
+    {
+      "name": "smd_comp_35",
+      "label": "Rear SMD / THT Part #35",
+      "url": "parts/smd_comp_35.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        7.8,
+        6.6,
+        7.7
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_36",
+      "label": "Rear SMD / THT Part #36",
+      "url": "parts/smd_comp_36.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_37",
+      "label": "Rear SMD / THT Part #37",
+      "url": "parts/smd_comp_37.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_38",
+      "label": "Rear SMD / THT Part #38",
+      "url": "parts/smd_comp_38.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_39",
+      "label": "Rear SMD / THT Part #39",
+      "url": "parts/smd_comp_39.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_40",
+      "label": "Rear SMD / THT Part #40",
+      "url": "parts/smd_comp_40.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        3.2,
+        1.6,
+        0.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "smd_comp_41",
+      "label": "Rear SMD / THT Part #41",
+      "url": "parts/smd_comp_41.stl",
+      "subsystem": "power_io",
+      "color": [
+        0.45,
+        0.48,
+        0.54
+      ],
+      "dims_mm": [
+        1.6,
+        3.2,
+        1.6
+      ],
+      "explode_mm": [
+        0,
+        0,
+        -14
+      ]
+    },
+    {
+      "name": "pcb_board",
+      "label": "PCB Substrate (189\u00d7128\u00d71.6 mm FR-4)",
+      "url": "parts/pcb_board.stl",
+      "subsystem": "pcb",
+      "color": [
+        0.08,
+        0.36,
+        0.22
+      ],
+      "dims_mm": [
+        189.0,
+        128.0,
+        1.5
+      ],
+      "explode_mm": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "bom": [
+    {
+      "designators": "A1",
+      "qty": "1",
+      "value": "ESP32_DevKit_V1",
+      "footprint": "ESP32_DOIT_DevKit_V1_30pin",
+      "part": "DOIT ESP32 DEVKIT V1 30-pin + 2x 1x15 2.54 mm female header",
+      "description": "ESP32 dev board (0.9 in or 1.0 in row spacing)",
+      "populate": "yes"
+    },
+    {
+      "designators": "BZ1",
+      "qty": "1",
+      "value": "Buzzer_5V",
+      "footprint": "Buzzer_12x9.5RM7.6",
+      "part": "12 mm 5 V active magnetic buzzer, 7.6 mm pitch",
+      "description": "Low-pressure alarm",
+      "populate": "yes"
+    },
+    {
+      "designators": "C1",
+      "qty": "1",
+      "value": "47u/50V",
+      "footprint": "CP_Elec_6.3x7.7",
+      "part": "Panasonic EEE-FK1H470XP",
+      "description": "Aluminium electrolytic 47 uF 50 V, 6.3 mm (U3 needs 22 uF / 50 V at its input above 30-32 V)",
+      "populate": "yes"
+    },
+    {
+      "designators": "C2",
+      "qty": "1",
+      "value": "1u/50V",
+      "footprint": "C_1206_3216Metric",
+      "part": "",
+      "description": "MLCC X7R 1206",
+      "populate": "yes"
+    },
+    {
+      "designators": "C3",
+      "qty": "1",
+      "value": "22u/10V",
+      "footprint": "C_1206_3216Metric",
+      "part": "",
+      "description": "MLCC X5R 1206",
+      "populate": "yes"
+    },
+    {
+      "designators": "C4 C6 C8",
+      "qty": "3",
+      "value": "10u/25V",
+      "footprint": "C_1206_3216Metric",
+      "part": "",
+      "description": "MLCC X5R 1206",
+      "populate": "yes"
+    },
+    {
+      "designators": "C5",
+      "qty": "1",
+      "value": "22u/10V Ta",
+      "footprint": "CP_EIA-3216-18_Kemet-A_HandSolder",
+      "part": "KEMET T491A226K010AT",
+      "description": "Tantalum 22 uF 10 V case A: AMS1117 output, as its datasheet specifies for stability",
+      "populate": "yes"
+    },
+    {
+      "designators": "C7 C9 C12",
+      "qty": "3",
+      "value": "100n",
+      "footprint": "C_1206_3216Metric",
+      "part": "",
+      "description": "MLCC X7R 1206",
+      "populate": "yes"
+    },
+    {
+      "designators": "C10 C11",
+      "qty": "2",
+      "value": "10n",
+      "footprint": "C_1206_3216Metric",
+      "part": "",
+      "description": "MLCC X7R 1206",
+      "populate": "yes"
+    },
+    {
+      "designators": "D1 D2 D3 D4",
+      "qty": "4",
+      "value": "LED_FL / LED_FR / LED_RL / LED_RR",
+      "footprint": "LED_D5.0mm",
+      "part": "5 mm LED",
+      "description": "Tyre status LEDs",
+      "populate": "yes"
+    },
+    {
+      "designators": "D5",
+      "qty": "1",
+      "value": "SS34",
+      "footprint": "D_SMA",
+      "part": "SS34",
+      "description": "Schottky 40 V 3 A, reverse-polarity protection",
+      "populate": "yes"
+    },
+    {
+      "designators": "D6",
+      "qty": "1",
+      "value": "SMAJ22CA",
+      "footprint": "D_SMA",
+      "part": "Littelfuse SMAJ22CA",
+      "description": "Bidirectional TVS 22 V, SMA: 24.4 V min breakdown (24 V jump start), 35.5 V clamp (< 36 V of U3)",
+      "populate": "yes"
+    },
+    {
+      "designators": "D7",
+      "qty": "1",
+      "value": "1N4148W",
+      "footprint": "D_SOD-123",
+      "part": "1N4148W",
+      "description": "Flyback diode",
+      "populate": "yes"
+    },
+    {
+      "designators": "F1",
+      "qty": "1",
+      "value": "0.75A",
+      "footprint": "Fuse_1812_4532Metric",
+      "part": "Bourns MF-MSMF075/24X-2",
+      "description": "PTC fuse 1812, 0.75 A hold (0.49 A at 70 C), 24 V",
+      "populate": "yes"
+    },
+    {
+      "designators": "H1 H2 H3 H4",
+      "qty": "4",
+      "value": "M3",
+      "footprint": "MountingHole_3.2mm_M3",
+      "part": "",
+      "description": "M3 mounting hole",
+      "populate": "board feature (no part)"
+    },
+    {
+      "designators": "H5 H6",
+      "qty": "2",
+      "value": "USB_CUTOUT",
+      "footprint": "USB_PanelMount_Cutout",
+      "part": "USB 3.0 panel-mount passthrough cable, female socket to male plug, M25-class thread (measured 25.2 mm), ~30 cm (buy 2)",
+      "description": "Cut-out for a panel-mount USB passthrough: front socket, male plug behind goes to the car's USB port / a 12 V USB charger",
+      "populate": "board cut-out; part bought separately"
+    },
+    {
+      "designators": "J1",
+      "qty": "1",
+      "value": "12V_IN",
+      "footprint": "TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal",
+      "part": "Phoenix MKDS 1,5/2-5,08 (1715721)",
+      "description": "Screw terminal, 12 V ACC input",
+      "populate": "yes"
+    },
+    {
+      "designators": "J2",
+      "qty": "1",
+      "value": "CC1101_ALT",
+      "footprint": "PinHeader_1x08_P2.54mm_Vertical",
+      "part": "1x8 2.54 mm pin header",
+      "description": "Breakout for CC1101 modules with other pinouts",
+      "populate": "optional"
+    },
+    {
+      "designators": "J3",
+      "qty": "1",
+      "value": "MX-05V(opt)",
+      "footprint": "PinSocket_1x04_P2.54mm_Vertical",
+      "part": "1x4 2.54 mm female header",
+      "description": "Optional MX-05V / XY-MK-5V 315 MHz receiver",
+      "populate": "optional"
+    },
+    {
+      "designators": "J4",
+      "qty": "1",
+      "value": "EXPANSION",
+      "footprint": "PinHeader_1x07_P2.54mm_Vertical",
+      "part": "1x7 2.54 mm pin header",
+      "description": "Future expansion: I2C + spare GPIO",
+      "populate": "optional"
+    },
+    {
+      "designators": "JP1",
+      "qty": "1",
+      "value": "BC_VDD_5V",
+      "footprint": "SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm",
+      "part": "",
+      "description": "Close for display jumper option #1",
+      "populate": "board feature (no part)"
+    },
+    {
+      "designators": "Q1",
+      "qty": "1",
+      "value": "MMBT3904",
+      "footprint": "SOT-23",
+      "part": "MMBT3904",
+      "description": "Buzzer driver",
+      "populate": "yes"
+    },
+    {
+      "designators": "R1 R2 R3 R4",
+      "qty": "4",
+      "value": "220",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "yes"
+    },
+    {
+      "designators": "R5 R6 R7 R12 R15 R16",
+      "qty": "6",
+      "value": "10k",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "yes"
+    },
+    {
+      "designators": "R9",
+      "qty": "1",
+      "value": "1k",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "optional"
+    },
+    {
+      "designators": "R10",
+      "qty": "1",
+      "value": "10k",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "optional"
+    },
+    {
+      "designators": "R11",
+      "qty": "1",
+      "value": "1k",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "yes"
+    },
+    {
+      "designators": "R13 R14",
+      "qty": "2",
+      "value": "4k7",
+      "footprint": "R_1206_3216Metric",
+      "part": "",
+      "description": "1206 1%",
+      "populate": "yes"
+    },
+    {
+      "designators": "SW1",
+      "qty": "1",
+      "value": "EC11_Encoder_SW",
+      "footprint": "RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm",
+      "part": "EC11 rotary encoder with push switch (ALPS EC11E-switch type), 20 mm D-shaft + 20-25 mm knob",
+      "description": "Menu knob: rotate = up/down, push = OK",
+      "populate": "yes"
+    },
+    {
+      "designators": "U1",
+      "qty": "1",
+      "value": "CC1101_315MHz",
+      "footprint": "CC1101_E07-M1101D_Socket",
+      "part": "EBYTE E07-M1101D-SMA (CC1101; 433 MHz-tuned build works at 315 MHz with some loss) + 2x4 2.54 mm female header + 315 MHz antenna",
+      "description": "Sub-GHz transceiver used as OOK receiver",
+      "populate": "yes"
+    },
+    {
+      "designators": "U2",
+      "qty": "1",
+      "value": "NHD-2.7-12864WDW3",
+      "footprint": "NHD-2.7-12864WDW3",
+      "part": "Newhaven NHD-2.7-12864WDW3 + 1x20 2.54 mm header + 4x M2 screws/nuts + 4x M2 x 3 mm spacers",
+      "description": "2.7 in 128x64 OLED, 4-wire SPI",
+      "populate": "yes"
+    },
+    {
+      "designators": "U3",
+      "qty": "1",
+      "value": "TSR_1-2450",
+      "footprint": "Converter_DCDC_TRACO_TSR-1_THT",
+      "part": "TRACO TSR 1-2450 (6.5-36 V in; alt. Mornsun K7805-1000R3, 8-36 V)",
+      "description": "5 V 1 A switching regulator, 7805 pinout, needs >= 36 V input rating",
+      "populate": "yes"
+    },
+    {
+      "designators": "U4",
+      "qty": "1",
+      "value": "AMS1117-3.3",
+      "footprint": "SOT-223-3_TabPin2",
+      "part": "AMS1117-3.3",
+      "description": "3.3 V 1 A LDO (display + radio)",
+      "populate": "yes"
+    }
+  ],
+  "studio_renders": [
+    {
+      "file": "media/render_back.png",
+      "title": "Render Back",
+      "kind": "PNG"
+    },
+    {
+      "file": "media/render_front.png",
+      "title": "Render Front",
+      "kind": "PNG"
+    },
+    {
+      "file": "media/render_iso.png",
+      "title": "Render Iso",
+      "kind": "PNG"
+    }
+  ],
+  "hardware": {
+    "mcu": "ESP32 DevKit V1 (30-pin DOIT)",
+    "rf_primary": "CC1101 (EBYTE E07-M1101D-SMA, 315 MHz OOK)",
+    "rf_alt": "MX-05V superregenerative socket (J3)",
+    "display": "Newhaven NHD-2.7-12864WDW3 (128\u00d764 OLED, SSD1322, 4-wire SPI)",
+    "ui": "4\u00d7 5 mm Tyre LEDs (FL/FR/RL/RR) + EC11 Rotary Encoder + 5 V Buzzer",
+    "power": "12 V ACC \u2192 PTC 0.75A + SS34 + SMAJ22CA TVS \u2192 TRACO TSR 1-2450 (5V) \u2192 AMS1117-3.3 (3.3V)",
+    "sensors": "4\u00d7 GM / Schrader EG53MA4 315 MHz wheel sensors",
+    "usb_holes": "2\u00d7 \u00d825.8 mm panel-mount USB 3.0 passthrough cutouts",
+    "status": "READY TO ORDER (JLCPCB Gerbers + 1:1 car fit verified)"
+  },
+  "firmware": {
+    "framework": "PlatformIO (ESP32 Arduino / bringup)",
+    "path": "02-firmware/bringup/",
+    "modes": "Hardware self-test (LEDs, OLED, encoder, buzzer, SPI) + 315 MHz GM/Schrader OOK TPMS decoder"
+  },
+  "downloads": [
+    {
+      "label": "JLCPCB Gerbers & Drill (.zip)",
+      "href": "../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip",
+      "badge": "ZIP"
+    },
+    {
+      "label": "BOM CSV",
+      "href": "../../03-manufacturing/production/tpms_panel_bom.csv",
+      "badge": "CSV"
+    },
+    {
+      "label": "3-D STEP Assembly",
+      "href": "../../01-hardware/docs/tpms_panel.step",
+      "badge": "STEP"
+    },
+    {
+      "label": "1:1 Car Fit Template (US Letter)",
+      "href": "../../01-hardware/docs/tpms_panel_fit_template_1to1.pdf",
+      "badge": "PDF"
+    },
+    {
+      "label": "Schematic PDF",
+      "href": "../../01-hardware/docs/tpms_panel_schematic.pdf",
+      "badge": "PDF"
+    },
+    {
+      "label": "PCB Front Layout PDF",
+      "href": "../../01-hardware/docs/tpms_panel_pcb_front.pdf",
+      "badge": "PDF"
+    },
+    {
+      "label": "ECE 6723 Project Report",
+      "href": "../../00-project-management/TPMS_project_report_ECE6723.pdf",
+      "badge": "PDF"
+    }
+  ]
+}

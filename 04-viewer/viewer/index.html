@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TPMS Panel (2018 Yaris iA) · 315 MHz ESP32 + OLED Viewer</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="wordmark"><i></i>TPMS<span>–</span>PANEL <b>Yaris iA</b></div>
+      <div class="titlebar" id="hdr-summary">2018 Toyota Yaris iA · 315 MHz CC1101 + ESP32 + 2.7" OLED Dash Receiver · Ready to Order</div>
+      <div class="hdr-actions">
+        <a href="../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip" download>Download Gerbers</a>
+      </div>
+    </header>
+    <main>
+      <div id="stage" aria-label="TPMS Panel 3D viewer">
+        <div id="scene"></div>
+        <canvas id="overlay"></canvas>
+        <div class="stage-title">
+          <small id="eyebrow">TPMS MONITOR PANEL / 2018 TOYOTA YARIS iA</small>
+          <h1 id="stage-title">315 MHz Dash TPMS Receiver PCB</h1>
+        </div>
+        <div id="dimension">189.0 × 128.0 × 27.1 mm · Ready to Order</div>
+        <div id="inspect-hud" hidden></div>
+        <div id="tip" hidden></div>
+        <div id="stage-foot">
+          <span id="view-label">Isometric</span>
+          <span>Drag to orbit · Scroll to zoom · Click any 3-D component to inspect · Esc to clear</span>
+        </div>
+        <div id="media" hidden>
+          <button id="media-close" class="hud-btn primary">✕ Return to 3-D PCB</button>
+          <img id="studio-img" alt="KiCad 3-D PCB Render" hidden />
+          <div id="caption"></div>
+        </div>
+      </div>
+      <aside>
+        <div class="aside-head">
+          <div>
+            <small>TPMS PANEL / JLCPCB READY</small>
+            <h2>Engineering Inspector</h2>
+          </div>
+          <button id="collapse" aria-expanded="true">Hide</button>
+        </div>
+        <div id="controls">
+          <nav aria-label="Inspector tabs" id="tabs"></nav>
+
+          <section id="model">
+            <h3>Camera view</h3>
+            <div class="buttons" id="views"></div>
+            <h3>Color mode</h3>
+            <div class="buttons" id="colors"></div>
+            <h3>Look inside &amp; overlays</h3>
+            <label class="range">
+              Explode PCB assembly <output id="amount">0%</output>
+              <input type="range" id="explode" min="0" max="100" value="0" />
+            </label>
+            <div class="switches">
+              <label><input type="checkbox" id="xray" /> X-ray PCB</label>
+              <label><input type="checkbox" id="section" /> Section cut</label>
+              <label><input type="checkbox" id="spin" /> Turntable</label>
+              <label><input type="checkbox" id="show-all-btn" checked /> All parts visible</label>
+            </div>
+            <button class="reset" id="reset">Reset view &amp; restore hidden parts</button>
+          </section>
+
+          <section id="parts" hidden>
+            <h3>BOM Components (<span id="part-count">0</span>)</h3>
+            <input type="search" id="filter" placeholder="Filter by ESP32, CC1101, OLED, LED, U3..." />
+            <div id="bom-list"></div>
+            <div id="detail" class="card">Click any 3-D solid in the viewport or inspect BOM rows above.</div>
+          </section>
+
+          <section id="hardware" hidden>
+            <h3>Electrical Architecture &amp; Protection</h3>
+            <dl id="hw-dl"></dl>
+          </section>
+
+          <section id="mfg" hidden>
+            <h3>JLCPCB Gerbers, Fit Template &amp; Docs</h3>
+            <div id="dl-list"></div>
+          </section>
+
+          <section id="studio" hidden>
+            <h3>KiCad 10 Ray-Traced PCB Renders</h3>
+            <div id="studio-list"></div>
+            <button class="reset" id="back-3d">← Return to Interactive 3-D</button>
+          </section>
+
+          <section id="firmware" hidden>
+            <h3>ESP32 Bring-Up &amp; 315 MHz Decoder</h3>
+            <dl id="fw-dl"></dl>
+            <div class="card muted">Build &amp; flash with PlatformIO from 02-firmware/bringup/. Runs LED/OLED/encoder/buzzer self-test followed by live GM/Schrader EG53MA4 315 MHz OOK packet decoding.</div>
+          </section>
+        </div>
+      </aside>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
