@@ -1,0 +1,186 @@
+(footprint "CC1101_2x4_Socket"
+	(version 20260206)
+	(generator "tpms_build")
+	(layer "F.Cu")
+	(descr "CC1101 module (E07-M1101D / V2.0, 15 x 30 mm) on a 2x4 2.54 mm socket: 1 GND, 2 VCC, 3 GDO0, 4 CSN, 5 SCK, 6 MOSI, 7 MISO, 8 GDO2. The module and its SMA extend toward -y; low parts may sit under it.")
+	(tags "TPMS2")
+	(property "Reference" "REF**"
+		(at 3.8 3.2 0)
+		(layer "F.SilkS")
+		(uuid "e47833da-b4ae-5d41-96f0-a78078839977")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CC1101_315MHz"
+		(at 3.8 -20 0)
+		(layer "F.Fab")
+		(uuid "fbe1b8cf-c44c-5e39-aa8a-98eb2b636f17")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ea174d40-0f3e-594e-bec5-edd78204cc6d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(pad "1" thru_hole rect
+		(at 0 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "9ba93702-eb70-59ca-afdb-2b2704a231dd")
+	)
+	(pad "2" thru_hole circle
+		(at 0 -2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "cf5611e5-794a-5936-82a8-b5ba4179cea2")
+	)
+	(pad "3" thru_hole circle
+		(at 2.54 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "4517d02a-dcf6-50a9-bd77-362cefd7f365")
+	)
+	(pad "4" thru_hole circle
+		(at 2.54 -2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "94ee9496-2f23-5a76-82f6-8e975b4baa5a")
+	)
+	(pad "5" thru_hole circle
+		(at 5.08 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "e52bdffd-2d8f-5497-b4bf-35036383861f")
+	)
+	(pad "6" thru_hole circle
+		(at 5.08 -2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "ee36d985-9442-5009-a4ec-2325aec8c30d")
+	)
+	(pad "7" thru_hole circle
+		(at 7.62 0)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "3b7fede5-019d-5d82-9053-e68df5cb9085")
+	)
+	(pad "8" thru_hole circle
+		(at 7.62 -2.54)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "0c9bff46-6960-58e6-af14-033acaba7e82")
+	)
+	(fp_rect
+		(start -1.27 -3.81)
+		(end 8.89 1.27)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "91e054c6-03a0-584a-8164-d8de25550dbb")
+	)
+	(fp_rect
+		(start -1.52 -4.06)
+		(end 9.14 1.52)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "36b80915-f3f3-5744-aa3c-d2f4601e9005")
+	)
+	(fp_rect
+		(start -3.7 -28.4)
+		(end 11.3 1.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "4c5fc60e-839d-55ad-a3b9-20f391a30067")
+	)
+	(fp_rect
+		(start 0.6 -39.4)
+		(end 7 -28.4)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "9b583daf-9c2f-5ee2-bbb2-bdc903a76bc3")
+	)
+	(fp_text user "SMA"
+		(at 3.8 -34 0)
+		(layer "F.Fab")
+		(uuid "7cb1b0ff-58e6-56ee-aa77-1e727d620513")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "1"
+		(at -2.1 0 0)
+		(layer "F.SilkS")
+		(uuid "cf33cfae-7048-5d2e-ba86-284af7923345")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify right)
+		)
+	)
+	(model "${KIPRJMOD}/lib/3d/CC1101_Module.wrl"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+	(embedded_fonts no)
+)

@@ -1,0 +1,78 @@
+# 11 · Carrier PCB (v2, 100 × 100 mm, 6-layer)
+
+**Scope:** the board behind the Pi in the [printed enclosure](10-enclosure-and-thermal.md). It carries:
+- the ESP32 DevKit and the CC1101 module on sockets;
+- the 12 V protection;
+- two TPS54560B bucks: 5.17 V / 5 A for the Pi and the TS-7, 5.17 V / 1 A for the ESP32 side;
+- the INA226 power monitors, the blinker optos, the output drivers and the connectors.
+
+Order notes, hand assembly, bring-up and rework are in the [carrier README](../01-hardware/v2/carrier/README.md).
+
+**Maturity:** generated and checked, not yet built:
+- the schematic and layout come from [carrier_design.py](../01-hardware/v2/carrier/carrier_design.py) and [carrier_layout.py](../01-hardware/v2/carrier/carrier_layout.py), via [build_carrier.py](../01-hardware/v2/carrier/build_carrier.py) (KiCad 10 + Freerouting);
+- the Gerbers, JLCPCB BOM and CPL are in [03-manufacturing/v2_carrier](../03-manufacturing/v2_carrier/).
+
+**Verdict: Watch, ready to order.** The board passes all its automated checks:
+- ERC and DRC with zero errors, zero warnings, nothing unconnected and an exact schematic match (parity);
+- the netlist matches the firmware's pin map;
+- the high-current paths are wide copper laid by design rather than left to the autorouter;
+- JLCPCB's own footprints confirm the CPL rotations.
+
+What's left is what only a built board can show: heat at 5 A, AM-band noise, the radio noise floor, and the fit of your exact DevKit. Each has a rework path on the board.
+
+## What was verified
+
+| Check | Evidence | Result |
+|---|---|---|
+| Schematic | Generated from `carrier_design.py` (222 parts, 126 nets); KiCad ERC | 0 errors, 0 warnings |
+| Pin map | `python 01-hardware/v2/check_pinmap.py` reads the KiCad netlist (rule R10): every ESP32 GPIO lands on the net `pins_v2.h` names; its self-test catches a swapped pair | OK |
+| Layout rules | KiCad DRC with the JLCPCB-safe rules in the project: 0.2 mm signal tracks and 0.3–0.35 mm power branches, 0.15 mm minimum track and clearance; vias 0.45/0.2 mm (signals), 0.5/0.25 mm (power and GND fan-out), 0.6/0.3 mm (GND stitching) and 0.8/0.4 mm (power-pour stitching), all at JLCPCB's standard via price; 0.35 mm copper to edge; hole to hole 0.25 mm between vias (JLCPCB: 0.2) and 0.45 mm wherever a pad hole is involved (JLCPCB's pad-hole minimum, a custom rule in `tpms_v2_carrier.kicad_dru`), and the via placer keeps 0.5 mm; 0.5 mm pour pull-back | 0 errors, 0 warnings, 0 unconnected; parity with the schematic exact |
+| Fit in the enclosure | Placement checks in the generator, from [enclosure_report.json](../01-hardware/enclosure/enclosure_report.json): every courtyard on the board, nothing over 16 mm, ≤ 6 mm in the fan zone, ≤ 5 mm in the antenna-pigtail zone, no parts on the SMA strip, no pins in the 10 mm corners, no copper under the ESP32 antenna | 0 problems |
+| High current | 47 copper straps on L1, laid before routing and each checked for 0.25 mm clearance: the high-current chain at 0.8–2 mm (J1 → fuse → FET → π filter → shunt → 12 V bus → both bucks; input caps, switch nodes, output caps, shunts, J5's three 5 V pins), and the Kelvin sense lines and boxed-in branches at 0.2–0.3 mm. Then 1 oz power pours on L1 and L6 stitched together, a solid GND plane on L2 right under the parts, and GND pours in the gaps on every other layer, stitched every 3 mm. Every GND pad has its own via (149, plus 6 in each PowerPAD) | By construction; checked by DRC |
+| Current sense | The four INA226 sense resistors tap their shunt pads directly (Kelvin straps), so no strap copper is inside the 10 mΩ measurement | By construction |
+| JLCPCB process | Read from JLCPCB's capability pages: Economic PCBA takes 2, 4 and 6 layers at 0.8–1.6 mm, standard stack-up only, single-sided, 0.4 mm minimum IC pitch (this board: 0.5 mm), no edge rails or fiducials needed. "Epoxy Filled & Capped" vias are the default on 6 layers (for the PowerPAD vias). Silk ≥ 1.0 mm high, 0.15 mm lines, 0.15 mm from pads. Drilling: 0.2 mm between via holes, 0.45 mm between pad holes, 0.2 mm via hole to track; a 0.2–0.25 mm via hole costs extra only with a pad under 0.45 mm | Matches the board |
+| Assembly files | BOM of 57 lines and 173 placements, all LCSC numbers (16 extended); CPL rotations fitted to JLCPCB's own EasyEDA footprints (polarized parts matched by pin name) | Worst fit 0.30 mm; 0 issues |
+
+## Findings
+
+| # | Severity | Finding | Fix | Status |
+|---|---|---|---|---|
+| PCB-01 | High | The "frozen" design was prose | Generated schematic + netlist check against `pins_v2.h` (above) | **Fixed** |
+| PCB-02 | Medium | No way to reflash the ESP32 once the box is closed | The DevKit's USB end faces the board's open lower-left area: a 90° micro-USB lead to a Pi USB port fits with the lid off, and the Pi can flash it. Plus a Wi-Fi OTA service mode in firmware ([ESP-01](02-esp32-controller.md)) | Board: fixed. Firmware: open |
+| PCB-03 | Medium | Test pads on L6 couldn't be reached | 23 signal and rail pads plus 2 GND pads, all on the parts side (L1) | **Fixed** |
+| PCB-04 | Medium | 16 mm height budget for socketed modules | Checked by the generator per part; the DevKit and CC1101 on sockets reach ~15.5 mm. Measure the real sockets at enclosure time (G6) | Fixed (design); measure (G6) |
+| PCB-05 | Medium | 30-pin DevKit clones differ in row spacing | The footprint carries both rows (0.9" and 1.0", marked on the silkscreen). Measure yours and solder the matching socket | **Fixed** (you choose the row) |
+| PCB-06 | Low | Assembly route undecided | JLCPCB Economic PCBA for every SMD part; you hand-solder only sockets, terminals and the fan header | **Fixed** |
+| PCB-07 | Low | Only one solid plane: the router needed L4 for signals, so the plan's second plane became a signal layer | L2, the solid plane, sits right under the parts and the bucks' hot loops; GND pours fill every gap on L3–L6 and are stitched to it every 3 mm. Nothing on the board is faster than a 4 MHz SPI | Accepted |
+| PCB-08 | Info | 6 layers is more than needed | It costs the same under the promo, gives the router four signal layers, and puts the solid plane right under the bucks for EMI | — |
+| PCB-09 | Medium | **The autorouter alone couldn't finish the board.** Freerouting thrashed for an hour with wide outer-layer power classes and 172 GND pads to connect | Power is laid as checked straps first, every GND pad gets its own via into the planes, and the autorouter only does what's left at normal widths, on the signal layers only. The route is cached against the placement | **Fixed** |
+| PCB-10 | Medium | **INA226 readings off by ~10 %**: the router may tap a sense resistor anywhere along a 2 mm strap, and a few mm of strap is about 10 % of a 10 mΩ shunt | Kelvin straps from each shunt pad to its filter resistor; U101's VBUS moved to the shunt's input side so it doesn't cross them | **Fixed** |
+| PCB-11 | Medium | **Back-feed on the bench.** A DevKit powered from USB with the carrier off drove the CC1101's SPI pins through 33 Ω (tens of mA into its clamp diodes), and the GPS through 330 Ω | 1 kΩ in series with SPI MOSI, SCK and CS (still < 20 ns edges at 4 MHz) and with the GPS UART; SS14 on the DevKit's VIN; the DevKit's 3.3 V not joined to the board's | **Fixed** |
+| PCB-12 | Medium | **A module plugged in turned round.** The 2×4 CC1101 socket is symmetric, and a DevKit fits either way | Silkscreen `ESP32 ANTENNA END` and `CC1101: SMA END`, pin-1 marks on both sockets; bring-up step 4 | **Fixed** (label) |
+| PCB-13 | Medium | **The 441 / 485 kHz switchers' harmonics fall in the AM band** (530–1700 kHz) | π filter, a solid GND plane right under the bucks and tight hot loops; if bench test B5 hears it, RT (R206 / R306) → 43 kΩ moves either buck to ~2.2 MHz, above the band, for ~0.5 W more heat at 3 A | Open (B5), rework ready |
+| PCB-14 | Low | The DNP 0 Ω bypass across Q101 blocked the only corridor for the 12 V strap | Removed. If Q101 ever dies open, bridge its tab to pin 3 with a wire | **Fixed** |
+| PCB-15 | Low | Freerouting reports 156 "violations" and a few GND "incompletes" that KiCad does not: a fan-out via next to its own GND pad counts for it even on the same net | The builder subtracts the pre-existing count, and KiCad's DRC is the gate | Accepted (tool quirk) |
+| PCB-16 | Medium | **Clearance errors at both TPS54560Bs.** KiCad's TI PowerPAD-8 footprint carries its own 0.2 mm clearance, which Freerouting ignores, so it routed 0.15 mm from those pads | The builder clears footprint-level clearance overrides, so one rule set (0.15 mm minimum, fine for ≤ 50 V under solder mask) governs both the router and the DRC | **Fixed** |
+| PCB-17 | Low | **Drills too close:** GND stitching vias landed beside fan-out vias (4 hole-to-hole warnings), and the router put two I2C vias 0.44 mm apart against a blanket 0.45 mm rule | The via placer keeps 0.5 mm from drill edge to drill edge, any net. The rule now matches JLCPCB's page: 0.2 mm between via holes (0.25 mm here), 0.45 mm wherever a pad hole is involved | **Fixed** |
+| PCB-18 | Medium | **Four pins left unconnected after routing:** the 5V_PI sense branch (R214) and the Pi buck's feedback tap (R203), both boxed in by straps; an ESP32 series resistor (R401) whose ESP32 pad faced away from its pin; and the piezo's PTC (F601), walled off from 12V_PROT by U101 and the shunt's Kelvin lines | Straps for both branches (the feedback taps the shunt's input pad, the Kelvin point the INA226 also uses); every cut-point resistor turned so its ESP32 pad faces its pin; F601 fed from 12V_BUS (after the shunt, so the INA226 at 0x40 also sees a shorted pod cable) by a strap down a free corridor | **Fixed** |
+| PCB-19 | Medium | **The autorouter leaves one to three connections behind, a different set each run**, in the crowded spots: the I2C to the TMP75, which sat alone beyond the ESP32 antenna keep-out and could only be reached through a 1.8 mm gap, and the SPI resistors in the DevKit's pin field | The TMP75 moved beside the Pi buck and U202, on the I2C bus (a better spot to watch the board's hottest part, too). The build now re-routes any leftover connection on the routed board (tested: a cut I2C track came back; one bad run went from 12 left to 2), and it runs up to four Freerouting attempts until one leaves nothing unconnected by KiCad's count instead of trusting Freerouting's own number. The route cache now keys on a fingerprint of the board (parts, pads, nets, straps, rules) instead of KiCad's DSN text, which lists pins in a different order on every run: until now every rebuild re-routed and got a different route. A clean route, once found, stays. KiCad's DRC still gates the order | **Fixed** |
+
+## Premortem: the carrier board failed. Why?
+
+| # | How it fails | Likely | Impact | Prevention / detection | Status |
+|---|---|---|---|---|---|
+| PCB-P1 | A net is swapped between the spec and the board | Low | Respin | Scripted schematic; netlist checked against `pins_v2.h` (R10); DRC parity | **Fixed** |
+| PCB-P2 | A footprint is wrong: the parts don't fit, or JLCPCB places a diode backwards | Medium | Respin or rework | Standard KiCad footprints; the three custom ones (DevKit sockets, CC1101 socket, LTV-357T) checked against the datasheets and JLCPCB's footprints; CPL fitted to JLCPCB's pads by pin name. Check the polarized parts in JLCPCB's preview, and print the 1:1 assembly drawing and lay the sockets and terminals on it | Fixed (design) + You (preview, 1:1) |
+| PCB-P3 | Cold THT joints on the plane connections fail after months of vibration | Medium | Intermittent faults | Thermal reliefs on every plane connection; ENIG; a 60–80 W iron; a dab of RTV on the sockets | Fixed (design) + You |
+| PCB-P4 | 5 A overheats the copper | Low | Brown-outs | 2 mm straps on 1 oz outer copper, plus pours on L1 and L6 | **Fixed** |
+| PCB-P5 | The Pi buck or the diode runs hot in a closed box in summer | Medium | Shutdown, then the Pi resets | ~1.7 W at 3 A; the diode and the IC sit on GND and switch-node copper with 6 PowerPAD vias into the L2 plane and the GND pours. Measure on the bench (README step 5) and in T1 | Open (bench, T1) |
+| PCB-P6 | A buck doesn't work on the first boards | Low | No 5 V | Every value is a 0603 you can swap. If you can't fix it, remove the 0 Ω links and wire a 5 V module to J11 / J12 | Rework path |
+| PCB-P7 | The CC1101 hears the bucks and the Pi more than the tyres | Medium | Rear wheels drop out | Module at the board edge over the planes; its own 3V3_RF behind a ferrite; antenna out on RG316. Bench test B6 | Open (B6) |
+| PCB-P8 | JLCPCB substitutes or lacks a part at order time | Low | Delay | LCSC numbers on every line; stock checked at design time; recheck at checkout | You (checkout) |
+| PCB-P9 | The ESP32 needs a firmware fix after install | High without a path | Box out of the dash | USB reachable with the lid off (PCB-02) + OTA mode | Board fixed; firmware open |
+
+## Before you move on
+
+- Order: the [carrier README](../01-hardware/v2/carrier/README.md#order-it-at-jlcpcb) walks through the JLCPCB form. Check the polarized parts in the placement preview.
+- When the boards arrive: hand-solder the sockets and terminals, then run the bring-up steps before anything goes near the car.
+- Bench tests B4 (Pi 5 V under load), B5 (AM radio) and B6 (radio noise floor) now run on the real board.

@@ -30,6 +30,7 @@ class CC1101 {
   void writeReg(uint8_t addr, uint8_t value);
   uint8_t readReg(uint8_t addr);
   uint8_t readStatus(uint8_t addr);
+  uint8_t readStatusStable(uint8_t addr);   // read until two reads agree (RSSI, MARCSTATE: errata SWRZ020)
   void strobe(uint8_t cmd);
 
  private:

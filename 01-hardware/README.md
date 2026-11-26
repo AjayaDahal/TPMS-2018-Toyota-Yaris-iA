@@ -1,7 +1,7 @@
 # TPMS Monitor Panel: KiCad project
 
 > **v2 (blind-spot cameras + 7" touch display + 100 × 100 mm 6-layer carrier):** the electrical design, the pin map and the printed enclosure are done; the carrier PCB is **not ready to order yet**. The open gates are in [PREMORTEM_v2.md](../00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb).
-> - [enclosure/](enclosure/README.md): parametric 3D-printed bezel, housing, lid and alert pod for the display, the Pi 4 and the carrier PCB, with 38 fit checks and the PCB keep-outs.
+> - [enclosure/](enclosure/README.md): parametric 3D-printed bezel, housing, lid and alert pod for the SunFounder TS-7 display, the Pi 4 and the carrier PCB, with 43 fit checks and the PCB keep-outs.
 > - [v2/check_pinmap.py](v2/check_pinmap.py): audit of [pins_v2.h](../02-firmware/v2/include/pins_v2.h). Run it as is, and with `--selftest`.
 > - [scripts/make_v2_fit_template.py](scripts/make_v2_fit_template.py): writes [docs/v2_fit_template_1to1.pdf](docs/v2_fit_template_1to1.pdf), the 1:1 display, enclosure and PCB-zone mock-up for the car.
 >
@@ -9,7 +9,7 @@
 
 > **Outline accepted from the in-car paper fit (2026-11-09).** The 1:1 template matched the console opening under the HVAC controls, so the board was built to that outline, shrunk by 1 mm on the left, right and bottom edges so it can't come out too big.
 > Any small gaps can be closed later with a 3D-printed bezel or chassis.
-> `production/tpms_panel_gerbers_jlcpcb.zip` is the order file. The USB holes are Ø25.8 mm, sized for your passthrough sockets' measured 25.16 mm (M25-class) thread.
+> [`03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`](../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip) is the order file. The USB holes are Ø25.8 mm, sized for your passthrough sockets' measured 25.16 mm (M25-class) thread.
 > The latest design audit is in [docs/design_audit.md](docs/design_audit.md).
 
 This is the hardware for the 315 MHz TPMS display described in the project report
@@ -84,7 +84,7 @@ Both DOIT variants are sold: **0.9 in (22.86 mm)** and **1.0 in (25.4 mm)** row 
   - **USB cable slot** in the right edge: 8 mm wide, 8 mm deep, centred 34 mm below the top. The cable from the car's own USB port, which ends up behind the panel, comes out through it.
   - Two Ø25.8 mm cut-outs for the panel-mount USB passthroughs (measured thread 25.16 mm, M25 class), plus 4× M3 holes.
     - No parts within Ø38 mm on either side of each hole, so an M25 nut (typically 35–37 mm across corners) sits flat. DRC checks this.
-    - No tracks within Ø31 mm, so a hole could still be drilled out to Ø30 mm.
+    - No tracks within Ø31 mm, so a hole could still be drilled out to Ø30 mm; past Ø26.6 mm that exposes the back GND pour (ground only, harmless, but seal it).
     - The mounting holes are placeholders; move or delete them in `panel_config.py`.
   - The shape started as a scale-up of Figure 3.6 (using the 82 mm-wide display as the reference). It was then checked in the car with the 1:1 paper template, and a caliper span along the left trim agreed with it.
 - **Front:**
@@ -125,7 +125,7 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
 
 ## 4. Ordering at JLCPCB
 
-1. Upload **`production/tpms_panel_gerbers_jlcpcb.zip`**. It contains Gerbers, separate PTH/NPTH Excellon drill files and drill maps.
+1. Upload **[`03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`](../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip)**. It contains Gerbers, separate PTH/NPTH Excellon drill files and drill maps.
    - If `DIMENSIONS_CONFIRMED` is ever set back to `False`, the build names the zip `..._DRAFT_dims_unconfirmed.zip` instead. Don't order a DRAFT zip.
 2. Options:
    - 2 layers, 1.6 mm, 1 oz.
@@ -134,7 +134,7 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
    - "Remove order number": **Specify a location**. The `JLCJLCJLCJLC` marker is already on the back silkscreen, so the front stays clean.
 3. The board is larger than 100×100 mm, so the low-cost promo price doesn't apply.
 
-`production/tpms_panel_bom.csv` lists every part with suggested part numbers. Lines marked "optional" are only needed for the MX-05V test, the alternative CC1101 wiring, or future expansion.
+[`03-manufacturing/production/tpms_panel_bom.csv`](../03-manufacturing/production/tpms_panel_bom.csv) lists every part with suggested part numbers. Lines marked "optional" are only needed for the MX-05V test, the alternative CC1101 wiring, or future expansion.
 
 ## 5. Assembly notes
 
@@ -177,7 +177,7 @@ IO12 (boot-strapping pin), IO0, TX0/RX0 and EN are deliberately left unused.
    - Mounting: the thread measures 25.16 mm (M25 class), so the holes are **Ø25.8 mm** (0.6 mm clearance, enough for JLCPCB's ±0.2 mm routing tolerance).
      - Nothing is placed within a Ø38 mm circle on either side, so the nut and flange sit flat.
      - The nearest part is U3 at 19.8 mm from the hole centre, so even a 39 mm nut (across corners) would fit.
-   - If the thread binds, ease the hole with a round file (copper-free up to Ø30 mm).
+   - If the thread binds, ease the hole with a round file: up to Ø26.4 mm. The back GND pour reaches Ø26.6 mm, so filing further exposes copper.
    - The slot in the right edge stays free for an extra cable, such as the antenna extension or the 12 V feed.
 9. **First power-up:**
    - Before plugging in the DevKit, CC1101 and display, power the bare board and measure 5 V and 3V3 on the J4 pads.
@@ -201,8 +201,10 @@ These values are calculated from the CC1101 datasheet formulas for a 26 MHz crys
 | Register | Value | Meaning |
 |---|---|---|
 | FREQ2/1/0 | 0x0C / 0x1D / 0x8A | 315.000 MHz (793 994 × 26 MHz / 2¹⁶) |
-| MDMCFG4 / MDMCFG3 | 0x88 / 0x4B | RX bandwidth 203 kHz, data rate ≈ 8.2 kBd |
+| MDMCFG4 / MDMCFG3 | 0x88 / 0x4B (bring-up: 0x89 / 0x4B) | RX bandwidth 203 kHz, data rate ≈ 8.2 kBd (bring-up: 16.4 kBd demodulator filter) |
 | MDMCFG2 | 0x30 | ASK/OOK, no sync word |
+| FOCCFG | 0x14 | Frequency offset compensation off: FOC_LIMIT must be 0 for ASK/OOK (datasheet) |
+| FREND1 | 0xB6 | Front-end RX setting for filters wider than 101 kHz (TI DN022) |
 | PKTCTRL0 | 0x32 | Asynchronous serial mode |
 | IOCFG0 / IOCFG2 | 0x0D / 0x0E | GDO0 = serial data out (to IO34), GDO2 = carrier sense (to IO35) |
 
@@ -222,10 +224,11 @@ Libraries such as SmartRC-CC1101-Driver-Lib or RadioLib work on the ESP32.
 Encoder: count A/B with the ESP32 PCNT peripheral (e.g. the ESP32Encoder library); an EC11 gives 4 counts per detent, so divide by 4 for one menu step per click. Use a short press for OK and a long press (~0.6 s) for BACK.
 
 Things to watch in firmware:
-- **GDO0 clock at power-up:** until IOCFG0 is written, the CC1101 outputs a 135 kHz clock on GDO0 (its reset default, CLK_XOSC/192). Configure the radio first, then attach the IO34 edge interrupt; otherwise the interrupt floods the CPU.
+- **GDO0 clock at power-up:** until IOCFG0 is written, the CC1101 outputs a 135 kHz clock on GDO0 (its reset default, CLK_XOSC/192). Configure the radio first, then attach the IO34 edge interrupt; otherwise the interrupt floods the CPU. The bring-up firmware never attaches it when no CC1101 answers.
 - **Shared SPI bus:** the CC1101 and the OLED share SCK/MOSI. Keep the CC1101 transactions at ≤ 6.5 MHz (its burst-access limit) and the SSD1322 at ≤ 10 MHz. The CC1101 releases MISO when CSn is high, as long as IOCFG1 stays at its default (0x2E, high impedance).
 - **Power loss:** ACC power can drop at any moment. Save learned sensor IDs with NVS (Preferences), and only when they change.
-- **Input-only pins:** IO34/35/36/39 have no internal pull-ups. IO36 floats when the optional MX-05V parts are not fitted, so don't enable an interrupt on it then.
+- **Input-only pins:** IO34/35/36/39 have no internal pull-ups. IO36 floats when the optional MX-05V parts are not fitted, so don't enable an interrupt on it then. The bring-up firmware's MX-05V mode is compiled in only with `build_flags = -Wall -DTPMS_MX05V` in `platformio.ini`.
+- **Noise between frames:** the CC1101's asynchronous output toggles on noise at full gain, and a burst only ends after 2.5 ms of silence. If the 10 s `edges` counter climbs while no sensor is sending, gate the capture on carrier sense (GDO2, with a carrier-sense threshold in AGCCTRL1) before the real application: see [audit RF-01](../05-Audit-Subsystems/13-tpms-radio.md).
 
 ## 7. Changing dimensions / regenerating
 
@@ -240,7 +243,7 @@ Requirements:
 - Freerouting 2.5 jar. Set the `FREEROUTING_JAR` environment variable if it isn't in `%LOCALAPPDATA%\Programs\freerouting`.
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\KiCad10\bin\python.exe" hardware\scripts\build_tpms_panel.py
+& "$env:LOCALAPPDATA\Programs\KiCad10\bin\python.exe" 01-hardware\scripts\build_tpms_panel.py
 #   --no-route   placement only      --no-render  skip 3D renders / STEP
 #   --template-only   just rewrite the 1:1 fit template PDF from the current board
 ```
@@ -265,7 +268,7 @@ The outline is settled (see "In-car fit" below). What's left before ordering:
    - Feed the car's USB cable through the slot on the right to check the slot position.
    - Push a socket's thread through one of the paper USB holes to check the size.
 3. Confirm your ESP32 board is a DOIT 30-pin with an ESP32-WROOM-32 (not WROVER), and whether its rows are 0.9 in or 1.0 in apart. Both widths fit; a 38-pin DevKitC needs a different footprint.
-4. Check that the last build said DRC 0 errors / 0 warnings, then upload `production/tpms_panel_gerbers_jlcpcb.zip`.
+4. Check that the last build said DRC 0 errors / 0 warnings, then upload `03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`. Before uploading a rebuilt zip, check that the build finished routing with 0 DRC errors: the script writes the zip before it reports the DRC result ([audit V1-03](../05-Audit-Subsystems/14-v1-panel.md)).
 5. Buy the parts the audit changed: C1 47 µF/50 V (EEE-FK1H470XP), C5 22 µF tantalum case A, D6 SMAJ22CA, R9 1 k.
    - Also buy a 90° SMA adapter (male–female) and a 315 MHz antenna: a short stubby, or a whip on an SMA extension cable.
    - For the USB passthroughs: two 90° USB-A adapters (male–female), and a flush 12 V USB charger if you use the 12 V socket.
@@ -277,7 +280,7 @@ The outline is settled (see "In-car fit" below). What's left before ordering:
   - No exact measurement set was possible, so the board is the template outline shrunk by **1 mm on the left, right and bottom** (`FIT_CLEARANCE`) and can't be too big.
   - Small gaps can be closed with a 3D-printed bezel/chassis. That printed frame can also hold the board, since the M3 holes are only placeholders.
 - **Cable slot (right edge):** 8 mm wide × 8 mm deep, centred 34 mm below the top, level with the car's USB / 12 V strip behind the panel. A cable from there can come out at the side of the panel. With the USB passthroughs it's free for an extra cable; for a thicker cable or plug, widen `NOTCH_R` / `NOTCH_DEPTH`.
-- **Depth behind the panel:** the deepest parts are about 16 mm (ESP32 on its sockets, CC1101). The 12 V / USB / AUX strip at the top of the pocket is where it's tightest. If the panel can't sit flush there, the 3D-printed chassis can space it forward.
+- **Depth behind the panel:** the deepest parts are about 16–17 mm (ESP32 on its sockets, CC1101). The 12 V / USB / AUX strip at the top of the pocket is where it's tightest. If the panel can't sit flush there, the 3D-printed chassis can space it forward.
 - **The panel covers the car's 12 V socket, USB, AUX and card slot** (the strip at the top of the pocket). The plan:
   - **Two USB passthrough cables** in the panel's USB holes: one plugs into the car's USB port, the other into a flush 12 V USB charger in the 12 V socket. Use 90° adapters if the plugs need the room; see assembly step 8.
   - The slot in the right edge is free for an extra cable.
@@ -300,7 +303,7 @@ Already confirmed:
 |---|---|
 | `tpms_panel.kicad_pro / .kicad_sch / .kicad_pcb` | KiCad 10 project |
 | `lib/` | Custom symbols (`TPMS.kicad_sym`), footprints (`TPMS.pretty`) and simple 3D models |
-| `production/` | Gerber zip for JLCPCB, Gerber/drill folder, BOM |
+| [`../03-manufacturing/production/`](../03-manufacturing/README.md) | Gerber zip for JLCPCB, Gerber/drill folder, BOM (written there by the build) |
 | `docs/` | Schematic PDF, front-layer PDF, renders, STEP model, 1:1 printable fit template, design audit (`design_audit.md`); `v2_fit_template_1to1.pdf` for v2 |
 | `enclosure/` | v2 printed enclosure: `make_enclosure.py` (generator + fit checks), `stl/` (print and viewer parts), `enclosure_report.json` |
 | `v2/` | `check_pinmap.py`: v2 pin-map audit |

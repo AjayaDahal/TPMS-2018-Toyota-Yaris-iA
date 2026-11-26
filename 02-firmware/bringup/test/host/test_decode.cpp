@@ -1,4 +1,4 @@
-// Host unit test for the burst decoders (no ESP32 needed). From firmware/bringup:
+// Host unit test for the burst decoders (no ESP32 needed). From 02-firmware/bringup:
 //   python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp src/eg53ma4.cpp -o test_decode.exe
 // (any C++17 compiler works the same way). Exit code 0 = all tests passed.
 #include <algorithm>
@@ -210,6 +210,24 @@ void testEg53ma4() {
 
   rf::Frame f;
   CHECK(rf::decode(eg53Burst({eg53Message(p)}, 10), f), "EG53MA4 burst not seen by the generic decoder");
+
+  // Real frames start with 40 zero bits. One that lost its first preamble pulses (receiver AGC settling) still
+  // decodes while at least 100 bits are left and they are all zeros before the payload; rtl_433 needs all 120.
+  Bits zeroSync(40, 0);
+  for (int i = 0; i < 80; i++) zeroSync.push_back((p[i / 8] >> (7 - i % 8)) & 1);
+  int shortOk = 0;
+  for (int lost = 1; lost <= 20; lost++) {
+    Bits m(zeroSync.begin() + lost, zeroSync.end());
+    shortOk += eg53ma4::decode(eg53Burst({m}, 10), r, 4) == 1 && r[0].id == 0x123456 && r[0].kPa10 == 2200;
+  }
+  CHECK(shortOk == 20, "EG53MA4: %d of 20 frames missing 1-20 preamble bits decoded", shortOk);
+  Bits tooShort(zeroSync.begin() + 21, zeroSync.end());
+  CHECK(eg53ma4::decode(eg53Burst({tooShort}, 10), r, 4) == 0, "EG53MA4: 99-bit frame accepted");
+  Bits noisyPreamble = zeroSync;
+  noisyPreamble[30] = 1;
+  noisyPreamble.erase(noisyPreamble.begin(), noisyPreamble.begin() + 5);
+  CHECK(eg53ma4::decode(eg53Burst({noisyPreamble}, 10), r, 4) == 0,
+        "EG53MA4: shortened frame with a 1 in its preamble accepted");
 }
 
 }  // namespace

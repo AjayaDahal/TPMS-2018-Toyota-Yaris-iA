@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "TPMS2")(type "KiCad")(uri "${KIPRJMOD}/lib/TPMS2.kicad_sym")(options "")(descr "TPMS v2 carrier symbols"))
+)

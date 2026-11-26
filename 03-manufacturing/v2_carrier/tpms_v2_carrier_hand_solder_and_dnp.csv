@@ -1,0 +1,21 @@
+Designator,What,Buy / fit,Notes
+A1,ESP32_DevKit_30pin,"2x 1x15 2.54 mm female header, 8.5 mm (solder the row that matches your DevKit: 0.9 or 1.0 in)","ESP32 DevKit (30-pin) on two 1x15 sockets. Open: EN, TX0/RX0 (USB), IO2 (its LED), IO12 (strapping pin)"
+A2,CC1101_315MHz,"2x4 2.54 mm female header, 8.5 mm (CC1101 module socket)",CC1101 module (2x4 E07 / V2.0 pinout) on a socket
+J1,12V_IN,"4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08 or KF301-4P)","12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)"
+J5,5V_OUT,"6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08 or 2x KF301-3P)","5V_PI out: 1-2 Pi USB-C pigtail, 3-4 display split lead, 5-6 spare"
+J8,FAN,1x2 2.54 mm right-angle male header (fan lead),"30 mm lid fan (1 = +5 V, 2 = switched -)"
+C204,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor
+C210,DNP 47u/10V,not fitted (rework option),DNP: spare output capacitor
+C304,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor
+C310,DNP 47u/10V,not fitted (rework option),DNP: spare output capacitor
+J10,DNP CC1101_ALT,not fitted (rework option),DNP: breakout for a module with another pinout (wire it here)
+J11,DNP EXT_12V,not fitted (rework option),"DNP: 12 V (protected, after the shunt) for an external 5 V module. Pi rail fallback: module out to J5 5-6, remove R201/R202"
+J12,DNP EXT_5V_ESP,not fitted (rework option),"DNP: ESP rail fallback, an external 5 V module's output (its input from J11); remove R301"
+J9,DNP EXPANSION,not fitted (rework option),DNP: spare I/O and I2C
+R312,DNP 0,not fitted (rework option),DNP: 3V3 from the DevKit's own regulator
+R505,DNP 0,not fitted (rework option),DNP: tie the lamp return to board GND
+R510,DNP 0,not fitted (rework option),DNP: tie the lamp return to board GND
+R907,DNP 1k,not fitted (rework option),DNP: swapped GPS TX/RX
+R908,DNP 1k,not fitted (rework option),
+R909,DNP 0,not fitted (rework option),DNP: GPS compass on the I2C bus
+R910,DNP 0,not fitted (rework option),

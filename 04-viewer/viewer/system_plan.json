@@ -1,6 +1,6 @@
 {
   "project": "2018 Toyota Yaris iA · TPMS + dual-camera blind-spot assist + 7\" touch display",
-  "subtitle": "Mazda2 DJ sedan blueprint · 100 × 100 mm 6-layer ESP32 carrier · Official 7\" Touch Display + Raspberry Pi 4 in one printed enclosure",
+  "subtitle": "Mazda2 DJ sedan blueprint · 100 × 100 mm 6-layer ESP32 carrier · SunFounder TS-7 7\" HDMI display + Raspberry Pi 4 in one printed enclosure",
   "vehicle_blueprint": {
     "model": "2018 Toyota Yaris iA (Mazda2 DJ sedan)",
     "length_mm": 4360,
@@ -14,26 +14,26 @@
     "overhang_rear_mm": 925,
     "ground_clearance_mm": 140,
     "tire_size": "185/60R16 (OD 628 mm)",
-    "console_pocket_mm": "191 top × 123 bottom × 129 high (v1 paper fit); depth not measured: the enclosure needs ≥ 66 mm",
-    "rpi_7in_display_mm": "192.96 × 110.76 × 5.96 (active 154.08 × 85.92, 800 × 480, 250 cd/m², viewing 50° top / 70° bottom)",
-    "display_mount_holes_mm": "4× M3 on 126.2 × 65.65 (frame flange) · 4× M2.5 on 58.0 × 49.0 (Pi standoffs)",
+    "console_pocket_mm": "191 top × 123 bottom × 129 high (v1 paper fit); depth not measured: the enclosure needs ≥ 56 mm",
+    "display_7in_mm": "SunFounder TS-7: board 165.3 × ~124.4 over its ears (SunFounder lists 121.0: measure) × 7.75; glass 164.9 × 100; active 154.21 × 85.92, 1024 × 600 IPS, 250 cd/m², 170°",
+    "display_mount_holes_mm": "4× M3 ear holes ~157.3 × 114.4 (from photos: measure) · Pi 4 on its own posts in the box (M2.5, 58 × 49)",
     "carrier_pcb_mm": "100 × 100 × 1.6, 6 layers (JLCPCB: ENIG only, 0.5 oz inner copper) · 4× M3 on 92 × 92 (enclosure posts)",
-    "enclosure_mm": "205.6 × 127.9 × 71.8 (bezel to lid) · rear box 112 × 120, 60.5 behind the plate"
+    "enclosure_mm": "205.6 × 129 × 70.2 (bezel to lid) · rear box 112 × 124, 50.5 behind the plate · stands 21.8 proud of the trim"
   },
   "mount_options": {
     "console_float": {
       "id": "console_float",
       "name": "Option A: console pocket (recommended)",
-      "summary": "The printed enclosure sits in front of the console opening, upside down (cable edge up) for contrast when you look down at it. Its 205.6 × 127.9 mm bezel covers the 191 / 123 × 129 mm opening without climbing onto the HVAC panel. The 112 × 120 × 61 mm rear box with the Pi 4 and the carrier PCB drops into the pocket: it needs ≥ 66 mm of clear depth, and the car's USB / 12 V strip is behind it (measure with the foam mock-up). Air: chin intake → lid fan → 2 mm gap round the plate.",
-      "dsi_cable": "stock 15-way ribbon: the Pi stays on the display's own standoffs",
-      "ergonomics": "Low and shaded (cooler); you glance down. The amber LEDs at the mirrors and the pod's beep do the alerting."
+      "summary": "The printed enclosure sits in front of the console opening. Its 205.6 × 129 mm bezel spans the opening's full height (its top edge stays under the HVAC panel) and overhangs the 191 / 123 mm sides. The 112 × 124 × 50.5 mm rear box with the Pi 4 and the carrier PCB drops into the pocket: it needs ≥ 56 mm of clear depth, and the car's USB / 12 V strip is behind it (measure with the foam mock-up). The screen sits 8 mm toward the driver and the frame stands ~22 mm proud of the trim: check the shifter in P. Air: slots beside the screen → behind the display → lid fan → 2 mm gap round the plate.",
+      "ergonomics": "Low and shaded (cooler); you glance down. The amber LEDs at the mirrors and the pod's beep do the alerting.",
+      "display_cable": "HDMI flat cable from the TS-7's right edge through the plate to the Pi's HDMI0; touch and 5 V on one split micro-USB lead (5 V from J5, data to a Pi USB port)"
     },
     "dash_top": {
       "id": "dash_top",
       "name": "Option B: dash top on a RAM / AMPS mount",
-      "summary": "The same enclosure on a RAM-B-202U round base, screwed to the AMPS 30 × 38 mm M4 nuts in the box's bottom wall: an eye-level glance. More sun (250 cd/m² washes out) and heat (product brief: 0–50 °C), so take it in on hot days. Keep clear of the passenger airbag door and the windshield view.",
-      "dsi_cable": "stock 15-way ribbon: the Pi stays on the display's own standoffs",
-      "ergonomics": "Fastest glance; worst sun and heat."
+      "summary": "The same enclosure on a RAM-B-202U round base, screwed to the AMPS 30 × 38 mm M4 nuts in the box's bottom wall: an eye-level glance. More sun (250 cd/m² washes out) and heat (the TS-7 is rated −10…+60 °C, storage +70 °C), so take it in on hot days. Keep clear of the passenger airbag door and the windshield view.",
+      "ergonomics": "Fastest glance; worst sun and heat.",
+      "display_cable": "HDMI flat cable from the TS-7's right edge through the plate to the Pi's HDMI0; touch and 5 V on one split micro-USB lead (5 V from J5, data to a Pi USB port)"
     }
   },
   "v1_v2_pinout": [
@@ -106,7 +106,7 @@
     {
       "pin": "IO15",
       "v1": "OLED CS",
-      "v2": "Pololu power-good (open drain, 10 k)",
+      "v2": "Pi rail-up sense: 22 k / 33 k divider on 5V_PI (3.1 V when the rail is up), pulled down",
       "match": "REUSED"
     },
     {
@@ -128,42 +128,42 @@
       "thickness_mm": 0.035,
       "z_mm": 0.8,
       "color": "#d97706",
-      "role": "Parts and signal routing. 5 V / 12 V currents in wide outer pours (inner copper is only 0.5 oz). Thermal reliefs on every through-hole pad"
+      "role": "Parts; the high-current straps (12 V input chain, both bucks, 5 V to J5) laid before routing; signals; power pours and a GND pour in the gaps. Thermal reliefs on every through-hole pad"
     },
     {
       "layer": "L2 (inner 1)",
       "thickness_mm": 0.0152,
       "z_mm": 0.56,
       "color": "#10b981",
-      "role": "Solid ground plane under the whole board: reference for L1, ground under the CC1101 module"
+      "role": "Solid GND plane, pulled back 0.5 mm from the edge: every GND pad has its own via into it, nothing is routed on it"
     },
     {
       "layer": "L3 (inner 2)",
       "thickness_mm": 0.0152,
       "z_mm": 0.16,
       "color": "#ef4444",
-      "role": "Low-current power distribution: 12V_PROT, 5V_ESP, 3V3 (the 5 A path stays on L1/L6)"
+      "role": "Autorouted signals and the small power branches, GND pour in the gaps, stitched to L2"
     },
     {
       "layer": "L4 (inner 3)",
       "thickness_mm": 0.0152,
       "z_mm": -0.16,
       "color": "#059669",
-      "role": "Solid ground plane: shields the L5 signals from L3"
+      "role": "Autorouted signals (the router uses L3, L4 and L5 as needed), GND pour in the gaps, stitched to L2"
     },
     {
       "layer": "L5 (inner 4)",
       "thickness_mm": 0.0152,
       "z_mm": -0.56,
       "color": "#3b82f6",
-      "role": "Slow signals: blinker optos, Pi and GPS UARTs, I2C, SPI to the CC1101"
+      "role": "Autorouted signals (I2C, UARTs, SPI to the CC1101, the blinker inputs: wherever the router put them), GND pour in the gaps, stitched to L2"
     },
     {
       "layer": "L6 (bottom)",
       "thickness_mm": 0.035,
       "z_mm": -0.8,
       "color": "#b45309",
-      "role": "Second high-current pour for 5V_PI / 12 V, stitched to L1; test pads; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm)"
+      "role": "Signals, power pours under the bucks and the 12 V chain (stitched to L1), GND pour; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm)"
     }
   ],
   "wiring_harness": [
@@ -171,40 +171,48 @@
       "id": "cam_l",
       "layer": "cameras",
       "name": "Left mirror camera (USB UVC)",
-      "route": "Lower mirror cap, aimed back along the car's side → service loop through the mirror hinge → door harness → factory door boot (silicone grease) → kick panel → under the console trim → the Pi's USB 2.0 port through the enclosure's window (90° adapter)",
+      "route": "Lower mirror cap, aimed ~39° outward of straight back and ~10° down on a printed wedge (a strip of the car's side at the picture's inner edge) → service loop through the mirror hinge → door harness → factory door boot (silicone grease) → kick panel → under the console trim → the Pi's USB 2.0 port through the enclosure's window (90° adapter)",
       "cable": "The camera's own USB 2.0 lead (~3 m), not cut; or spliced with the pairs twisted and the shield continuous. No JST-GH in the data path",
-      "protection": "O-ring + neutral-cure RTV at the cap, drip loop, butyl on the door's vapour barrier, ferrite at the Pi"
+      "protection": "O-ring + neutral-cure RTV at the cap, drip loop, butyl on the door's vapour barrier, ferrite at the Pi; drill clear of the mirror's LED turn-signal repeater and its wires"
     },
     {
       "id": "cam_r",
       "layer": "cameras",
       "name": "Right mirror camera (USB UVC)",
-      "route": "Lower mirror cap → hinge service loop → passenger door harness → door boot → kick panel → behind the glovebox → the Pi's second USB 2.0 port (90° adapter)",
+      "route": "Lower mirror cap, same ~39° outward / ~10° down wedge → hinge service loop → passenger door harness → door boot → kick panel → behind the glovebox → the Pi's second USB 2.0 port (90° adapter)",
       "cable": "The camera's own USB 2.0 lead (~3.5 m), same rules as the left",
-      "protection": "Same as the left side"
+      "protection": "Same as the left side; drill clear of the mirror's LED turn-signal repeater and its wires"
     },
     {
       "id": "pwr_acc",
       "layer": "power",
       "name": "12 V ACC feed (one fuse tap)",
-      "route": "Driver's interior fuse box: Add-A-Circuit (5 A) on a non-critical ACC fuse, metered first (hot in ACC and ON, dead with the key out; never SRS or engine) → ring terminal on a chassis ground stud → under the dash → J1 Micro-Fit on the carrier, through the lid's cable exit",
+      "route": "Driver's interior fuse box: Add-A-Circuit (5 A) on a non-critical ACC fuse, metered first (hot in ACC and ON, dead with the key out; never SRS or engine) → ring terminal on a chassis ground stud → under the dash → J1 screw terminal on the carrier, through the lid's cable exit",
       "cable": "18 AWG TXL pair, ~1.3 m",
-      "protection": "4 A fuse + SMCJ22CA + P-MOSFET reverse protection + π filter on the board. ACC only: zero draw when parked, by construction"
+      "protection": "4 A fuse + SMCJ24CA + −60 V P-MOSFET reverse protection + π filter on the board. ACC only: zero draw when parked, by construction"
     },
     {
       "id": "pwr_5v",
       "layer": "power",
       "name": "5 V / 5 A to the Pi and the display (inside the enclosure)",
-      "route": "J5 → 90° USB-C pigtail to the Pi; second pair → display adapter 5 V / GND; 2-pin header → lid fan",
+      "route": "J5 (5.08 mm screw terminal, 3 × 5 V / GND) → 90° USB-C pigtail to the Pi; second pair → the display's 5 V on its split micro-USB lead; third pair spare. The lid fan is on J8 (5V_ESP)",
       "cable": "18 AWG silicone, ≤ 20 cm",
-      "protection": "470 µF at the Pi end; Pololu D36V50F5 (5.5 A); pass = vcgencmd get_throttled 0x0 under load"
+      "protection": "470 µF at the Pi end; the carrier's TPS54560B buck at 5.17 V (5 A) with a 10 mΩ shunt and an INA226 on it; pass = vcgencmd get_throttled 0x0 under load"
+    },
+    {
+      "id": "disp_video",
+      "layer": "signals",
+      "name": "Display: HDMI flat cable + split micro-USB lead (enclosure and pocket)",
+      "route": "TS-7 right edge: straight HDMI-A FPC adapter + 90° micro-USB plug → up the bezel's right cavity → the plate's cable slot → the pocket beside the box → the slot above the USB window → flat cable to a straight micro-HDMI adapter in the Pi's HDMI0. The micro-USB lead splits: 5 V + GND → J5 pair 2; D+ / D− + GND → 90° USB-A plug in a blue USB 3.0 port through the window",
+      "cable": "20 cm HDMI flat cable (FPC kit); 4-wire micro-USB lead ~30 cm",
+      "protection": "Red (VBUS) wire cut on the Pi's leg, so the two 5 V sources never meet; strain relief at both plugs; the flat cable kept away from the antenna lead (bench test B6)"
     },
     {
       "id": "blinker_tap",
       "layer": "signals",
       "name": "Left / right turn-signal sense (IO36 / IO39)",
-      "route": "One 12 V lamp feed per side, found with the wiring diagram and a meter (kick panel, or the tail lamps) → solder or T-tap + heat-shrink → twisted pair → the PC817 inputs on the carrier",
-      "cable": "22 AWG pair, ~1.5 m",
+      "route": "Each mirror's LED turn-signal repeater feed, at the mirror connector inside the door (left mirror = left signal), found with the wiring diagram and confirmed with a meter (flashing 12 V with that side's signal and the hazards) → solder + heat-shrink → twisted pair alongside the camera cable through the door boot → the PC817 inputs on the carrier. Fallbacks: the kick-panel feed, or the rear amber WY21W turn bulbs",
+      "cable": "22 AWG pair, ~2.5 m per side (door to console)",
       "protection": "2 × 1.1 kΩ + 1N4148 per input (~6 mA, isolated). Firmware bridges PWM gaps, rejects spikes and recognises hazards"
     },
     {
@@ -219,7 +227,7 @@
       "id": "leds_mirror",
       "layer": "alerts",
       "name": "Left / right amber blind-spot LEDs",
-      "route": "Carrier JST-GH → with the camera cable through each door boot → LED in the inner door sail or mirror housing, facing the driver. Not in the A-pillar trim (curtain airbag)",
+      "route": "Carrier JST-GH → with the camera cable through each door boot → LED in the inner door sail (inside the cabin), facing the driver. Not in the A-pillar trim (curtain airbag), not on the outside of the mirror (an amber light seen from behind isn't allowed: VC 25950(b))",
       "cable": "24 AWG pair, ~2 m per side",
       "protection": "Low-side MOSFET + series resistor; PWM level set by the Pi for night dimming. Steady = vehicle there, flashing = you are signalling towards it"
     },
@@ -273,21 +281,15 @@
     },
     {
       "rail": "5V_PI",
-      "load": "Official 7\" Touch Display (docs: 200 mA at full brightness)",
-      "typ_a": 0.2,
-      "peak_a": 0.3
+      "load": "SunFounder TS-7 display (5 V on its micro-USB from J5 pair 2; 480 mA typical, peak estimated)",
+      "typ_a": 0.48,
+      "peak_a": 0.6
     },
     {
       "rail": "5V_PI",
       "load": "2 × USB mirror cameras",
       "typ_a": 0.5,
       "peak_a": 0.7
-    },
-    {
-      "rail": "5V_PI",
-      "load": "30 mm lid fan",
-      "typ_a": 0.1,
-      "peak_a": 0.12
     },
     {
       "rail": "5V_ESP",
@@ -297,9 +299,15 @@
     },
     {
       "rail": "5V_ESP",
-      "load": "CC1101 (via 3V3), GPS, LM75A, two amber LEDs",
+      "load": "CC1101 (via 3V3), GPS, TMP75, two amber LEDs",
       "typ_a": 0.1,
       "peak_a": 0.17
+    },
+    {
+      "rail": "5V_ESP",
+      "load": "30 mm lid fan",
+      "typ_a": 0.1,
+      "peak_a": 0.12
     },
     {
       "rail": "12V_PROT",
@@ -319,13 +327,13 @@
       "notes": "Check the RAM: needs ≥ 2 GB (free -h). Keep the second one on the bench."
     },
     {
-      "item": "Official 7\" Touch Display (glass, touch, adapter, ribbons, standoffs)",
+      "item": "SunFounder TS-7 7\" HDMI touch display (1024 × 600 IPS)",
       "category": "Display",
       "source": "INVENTORY",
       "qty": 1,
       "inv_stock": 1,
       "cost_usd": 0,
-      "notes": "The inventory lists only the Touch Display Adapter v1.1: confirm the glass, touch panel and both ribbons are there (gate G3)."
+      "notes": "In the inventory (disp-sunfounder-7in). Measure it before printing (enclosure README, Measure first): SunFounder lists 121 mm tall, its photos ~124.4. HDMI video; touch and 5 V (0.48 A) on its micro-USB. The kit's HDMI cables stay in the box."
     },
     {
       "item": "ESP32-WROOM-32 DevKit (30-pin)",
@@ -343,7 +351,7 @@
       "qty": 1,
       "inv_stock": 1,
       "cost_usd": 0,
-      "notes": "Bench and spare. For the car buy a 315 MHz-tuned module with the same pinout (up to ~10 dB better at 315 MHz)."
+      "notes": "Bench and car. Most of the 315 MHz loss is in a 433 MHz antenna, not the module (audit RF-09): use a 315 MHz quarter-wave (~23 cm) antenna; a 315 MHz-tuned module only if an RSSI A/B test shows a gain."
     },
     {
       "item": "u-blox NEO-M8N GPS (Holybro) or 3DR GTPA010",
@@ -379,7 +387,7 @@
       "qty": 2,
       "inv_stock": 4,
       "cost_usd": 0,
-      "notes": "Measure the Pi 4's frame rate with two streams before buying the car cameras (V1)."
+      "notes": "Measure the Pi 4's frame rate with two streams before buying the car cameras (V1). Also the two-camera USB test: both streaming at once, no -28 in dmesg (audit CAM-03)."
     },
     {
       "item": "30 mm 5 V fan (from the black Pi case)",
@@ -442,7 +450,7 @@
       "qty": 5,
       "inv_stock": 0,
       "cost_usd": 2,
-      "notes": "JLCPCB promo price: confirm at checkout (gate G8). 6-layer FR-4 is ENIG only; inner copper 0.5 oz. Plus shipping."
+      "notes": "JLCPCB promo price: confirm at checkout (gate G8). 6 layers, 1.6 mm, ENIG (the only option), epoxy-filled capped vias (the default), standard stack-up. Gerbers, BOM and CPL in 03-manufacturing/v2_carrier. Plus shipping."
     },
     {
       "item": "2 × USB UVC mirror cameras",
@@ -451,7 +459,7 @@
       "qty": 2,
       "inv_stock": 0,
       "cost_usd": 90,
-      "notes": "MJPEG 720p30, Starvis WDR, no IR LEDs, −20…+70 °C, IP67, barrel ≤ 20 mm, ≥ 3 m lead, 90–110° lens. Fallback: AHD + 2-channel USB capture."
+      "notes": "MJPEG 720p30 at full sensor width; HFOV ≥ 95° measured (≥ 2.18 m of wall at 1 m; listings' \"100°\" is usually diagonal); Starvis WDR, no IR LEDs, −20…+70 °C (+85 °C preferred), IP67, barrel ≤ 20 mm, ≥ 3.5 m lead; both stream at once on the Pi 4. Fallback: AHD + 2-channel USB capture."
     },
     {
       "item": "315 MHz CC1101 module (same 2 × 4 pinout)",
@@ -460,52 +468,25 @@
       "qty": 1,
       "inv_stock": 0,
       "cost_usd": 3,
-      "notes": "Tuned for 315 MHz; keep the 433 one as a spare."
+      "notes": "Optional: buy only if the RSSI A/B test favours it; the 315 MHz whip matters more (audit RF-09)."
     },
     {
-      "item": "Pololu D36V50F5 (5 V, 5.5 A, 50 V in)",
+      "item": "Carrier assembly: JLCPCB Economic PCBA on 2 of the 5 boards",
       "category": "Power",
       "source": "BUY",
-      "qty": 1,
+      "qty": 2,
       "inv_stock": 0,
-      "cost_usd": 20,
-      "notes": "Pi rail. EN on by default: the ESP32 can only delay it."
+      "cost_usd": 90,
+      "notes": "Every SMD part: two TPS54560B bucks (5.17 V / 5 A and 1 A), the 12 V protection, two INA226 monitors, the optos, drivers, TMP75 and TCA9534. Setup fee, 16 extended-part fees (~$3 each) and ~$15–20 of parts per board: confirm at checkout. Files in 03-manufacturing/v2_carrier"
     },
     {
-      "item": "TRACO TSR 1-2450 + AMS1117-3.3 + 22 µF tantalum",
-      "category": "Power",
-      "source": "BUY",
-      "qty": 1,
-      "inv_stock": 0,
-      "cost_usd": 8,
-      "notes": "5V_ESP and 3V3 (v1 stability fix kept)."
-    },
-    {
-      "item": "Protection: SMCJ22CA, AOD4185 P-MOSFET, 4 A fuse, SMAJ18A, π filter, BAT54S, 2N7002",
-      "category": "Power",
-      "source": "BUY",
-      "qty": 1,
-      "inv_stock": 0,
-      "cost_usd": 8,
-      "notes": "Load dump, jump start, reverse battery, AM-band noise."
-    },
-    {
-      "item": "2 × PC817 + 1206 resistors + 1N4148 + LM75A",
-      "category": "Signals",
-      "source": "BUY",
-      "qty": 1,
-      "inv_stock": 0,
-      "cost_usd": 3,
-      "notes": "Blinker inputs (~6 mA each) and the board temperature for the hot-start hold."
-    },
-    {
-      "item": "Micro-Fit 3.0 right-angle headers + housings + crimps; JST-GH kit",
+      "item": "Carrier hand-solder parts + JST-GH leads",
       "category": "Harness",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 18,
-      "notes": "Right-angle at the board edges so mated plugs stay under the 16 mm height budget."
+      "cost_usd": 14,
+      "notes": "2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, pod, Pi UART and GPS"
     },
     {
       "item": "12 V active piezo (3–24 V, sharp tone)",
@@ -535,12 +516,30 @@
       "notes": "One tap on a non-critical ACC fuse."
     },
     {
-      "item": "90° USB-C pigtail, 2 × 90° USB-A adapters, 90° Dupont housings",
-      "category": "Enclosure",
+      "item": "HDMI FPC kit: straight HDMI-A male + straight micro-HDMI male adapters + 20 cm flat cable",
+      "category": "Display",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
       "cost_usd": 12,
+      "notes": "Display to the Pi's HDMI0 through the plate's cable slot. Prefer a shielded flat cable: an unshielded one radiates near 315 MHz (bench test B6)."
+    },
+    {
+      "item": "90° micro-USB leads, left- and right-angle (the display's split power / touch lead)",
+      "category": "Display",
+      "source": "BUY",
+      "qty": 2,
+      "inv_stock": 0,
+      "cost_usd": 6,
+      "notes": "Use the one whose cable leaves the TS-7's socket upward. Split it: 5 V + GND → J5 pair 2; D+ / D− + GND → a USB-A plug in the Pi, red wire cut on that leg."
+    },
+    {
+      "item": "90° USB-C pigtail, 3 × 90° USB-A adapters (two cameras + the display's touch leg), 90° Dupont housings",
+      "category": "Enclosure",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 14,
       "notes": "Keep the Pi's plugs inside the enclosure's height budget and the pocket."
     },
     {
@@ -624,7 +623,7 @@
     },
     {
       "id": "col_disp",
-      "text": "Official 7\" Touch Display: glass + touch + adapter board + DSI ribbon + 4 standoffs + jumpers (the inventory lists only the adapter)",
+      "text": "SunFounder TS-7 7\" display (boxed) with its micro-USB cable and 4 brass standoffs + nuts (spares); its two HDMI cables aren't used",
       "where": "Displays shelf"
     },
     {
@@ -691,28 +690,28 @@
     },
     {
       "id": "buy_pwr",
-      "text": "Pololu D36V50F5, TSR 1-2450, AMS1117-3.3 + 22 µF Ta, SMCJ22CA, AOD4185, 4 A fuse, SMAJ18A, π-filter parts, BAT54S, 2N7002",
-      "cost": "~$36"
+      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): both bucks, the protection, INA226s, optos, drivers — every SMD part",
+      "cost": "~$90 (setup, extended-part fees, parts)"
     },
     {
       "id": "buy_sig",
-      "text": "2 × PC817, 1206 resistors, 1N4148, LM75A, 2 amber LEDs + bezels, 12 V active piezo",
-      "cost": "~$9"
+      "text": "2 amber LEDs + bezels, 12 V active piezo (the optos and the temperature sensor are on the board now)",
+      "cost": "~$6"
     },
     {
       "id": "buy_conn",
-      "text": "Micro-Fit 3.0 right-angle headers + housings + crimps, JST-GH kit, Add-A-Circuit (5 A)",
-      "cost": "~$26"
+      "text": "Carrier hand-solder parts (2 × 1×15 + 1 × 2×4 female headers, 5.08 mm screw terminals 4- and 6-pole, 1×2 right-angle header), JST-GH kit or pre-crimped leads, Add-A-Circuit (5 A)",
+      "cost": "~$22"
     },
     {
       "id": "buy_encl",
-      "text": "ASA filament (or MJF PA12 parts), split grommet, VHB, 90° USB-C pigtail, 2 × 90° USB-A adapters, 90° Dupont housings",
-      "cost": "~$45"
+      "text": "ASA filament (or MJF PA12 parts), split grommet, VHB, 90° USB-C pigtail, 3 × 90° USB-A adapters, 90° Dupont housings, HDMI FPC kit (straight HDMI-A + straight micro-HDMI + 20 cm flat cable), 90° micro-USB leads (left + right angle)",
+      "cost": "~$65"
     },
     {
       "id": "buy_inst",
       "text": "Ferrites, butyl tape, neutral-cure RTV, high-endurance microSD",
-      "cost": "~$25"
+      "cost": "~$22"
     },
     {
       "id": "buy_tools",
@@ -721,7 +720,7 @@
     },
     {
       "id": "buy_pcb",
-      "text": "5 × 6-layer 100 × 100 mm carrier PCBs, only after every gate G1–G8 is green",
+      "text": "5 × 6-layer 100 × 100 mm carrier PCBs, 2 of them assembled: Gerbers, BOM and CPL in 03-manufacturing/v2_carrier (order steps in the carrier README)",
       "cost": "$2 + shipping"
     },
     {
@@ -732,19 +731,19 @@
   ],
   "checklist_measure": [
     {
-      "id": "ms_seat",
-      "text": "PI_SEAT: glass front → top of the display's standoffs (enclosure parameter)",
+      "id": "ms_ts7",
+      "text": "TS-7 board: height over the ears (MOD_H; SunFounder says 121, photos ~124.4), height between them (MAIN_H), ear width (EAR_W)",
       "where": "Caliper, bench"
     },
     {
-      "id": "ms_pi",
-      "text": "Pi orientation on the display: ports to the right seen from behind (the enclosure assumes it)",
-      "where": "Bench"
+      "id": "ms_ts7_holes",
+      "text": "TS-7 ear holes: lay it face up on page 1 of the fit template; if holes or outline miss by > 0.5 mm, measure HOLE_IN_X / Y and GLASS_DY",
+      "where": "Fit template, caliper"
     },
     {
-      "id": "ms_m3",
-      "text": "Thread depth of the display's 4 M3 frame holes (screws are M3 × 6 through a 3 mm plate)",
-      "where": "Bench"
+      "id": "ms_ts7_back",
+      "text": "TS-7 back: tallest part (BACK_H, the HDMI socket), the HDMI and micro-USB socket centres (HDMI_Y, USB_Y); your HDMI adapter and 90° micro-USB plug (HDMI_PLUG, USB_PLUG)",
+      "where": "Caliper, bench"
     },
     {
       "id": "ms_btn",
@@ -758,12 +757,12 @@
     },
     {
       "id": "ms_pocket",
-      "text": "Console pocket: clear depth where the box goes (≥ 66 mm), width at the box, position of the car's USB / 12 V strip",
+      "text": "Console pocket: clear depth where the box goes (≥ 56 mm), width at the box, position of the car's USB / 12 V strip",
       "where": "Car, foam mock-up"
     },
     {
       "id": "ms_shift",
-      "text": "Mock-up in place: shifter P-R-N-D-M with your hand on it, HVAC knobs, view from the seat",
+      "text": "Mock-up in place (the unit stands 21.8 mm proud of the trim): shifter P-R-N-D-M with your hand on it, HVAC knobs, view from the seat",
       "where": "Car"
     },
     {
@@ -795,13 +794,13 @@
   "checklist_bench": [
     {
       "id": "b1",
-      "text": "B1: Pololu EN delay (22 kΩ + 100 µF) at 12.6 V and 14.4 V",
-      "where": "Pass: 5 V after 1.3–1.6 s; nothing below ~7.5 V"
+      "text": "B1: Pi buck start delay and threshold on the assembled carrier (12.6 V, 14.4 V, a slow ramp from 6 V)",
+      "where": "Pass: 5 V after 1.2–1.4 s; nothing below 8.0 V"
     },
     {
       "id": "b2",
-      "text": "B2: inhibit through a 2N7002 + 100 Ω from 3.3 V",
-      "where": "Pass: off within ms, ~1.5 s restart"
+      "text": "B2: PI_INHIBIT (GPIO26) high from the firmware's test mode",
+      "where": "Pass: off within ms, ~1.3 s restart"
     },
     {
       "id": "b3",
@@ -810,8 +809,8 @@
     },
     {
       "id": "b4",
-      "text": "B4: Pi + display + cameras + fan, CPU stress 30 min",
-      "where": "Pass: get_throttled 0x0, regulator < 80 °C"
+      "text": "B4: Pi + display (on J5 pair 2) + cameras + fan, CPU stress 30 min",
+      "where": "Pass: get_throttled 0x0, >= 4.95 V at the Pi's GPIO 5 V pin under load, regulator < 80 °C"
     },
     {
       "id": "b5",
@@ -820,13 +819,13 @@
     },
     {
       "id": "b6",
-      "text": "B6: CC1101 noise floor with everything off, then on",
+      "text": "B6: CC1101 noise floor with everything off, then on (display and its HDMI flat cable included)",
       "where": "Pass: rise < 6 dB"
     },
     {
       "id": "b7",
-      "text": "B7: display upside down, image rotated 180°, touch inverted",
-      "where": "Pass: touch lands where you tap; better contrast from above"
+      "text": "B7: TS-7 on HDMI-A-1 at 1024 × 600, power and touch over the split lead, the Pi and the display on one 5 V source: 10 cold starts, the four corners, ddcutil detect",
+      "where": "Pass: picture every start (else video=HDMI-A-1:1024x600@60D in cmdline.txt), touch accurate with the cameras streaming; note whether DDC/CI dimming works (else a dark UI at night)"
     },
     {
       "id": "b8",
@@ -840,7 +839,7 @@
     },
     {
       "id": "t2",
-      "text": "Host tests and audits: test_logic (120 checks), check_pinmap.py (+ --selftest), make_enclosure.py (38 checks), sync_plan.py --check",
+      "text": "Host tests and audits: test_logic (154 checks), check_pinmap.py (+ --selftest), make_enclosure.py (43 checks), sync_plan.py --check",
       "where": "Pass: all green"
     }
   ],
@@ -857,12 +856,12 @@
     },
     {
       "id": "tl_crimp",
-      "text": "Micro-Fit crimper and a fine JST-GH crimper, or pre-crimped JST-GH leads",
+      "text": "A fine JST-GH crimper, or pre-crimped JST-GH leads (power goes to screw terminals: no crimper)",
       "where": "Harness"
     },
     {
       "id": "tl_solder",
-      "text": "Soldering iron with a fine tip and a large tip (6-layer ground pads), flux, heat-shrink, heat gun",
+      "text": "Soldering iron, 60–80 W, with a fine tip and a chisel tip (ground pins tie into the inner plane and pours), flux, heat-shrink, heat gun",
       "where": "Bench"
     },
     {
@@ -877,7 +876,7 @@
     },
     {
       "id": "tl_caliper",
-      "text": "Caliper (template check, PI_SEAT, part sizes)",
+      "text": "Caliper (fit template, TS-7 dimensions, part sizes)",
       "where": "Bench"
     }
   ],
@@ -890,7 +889,7 @@
     {
       "id": "st_02",
       "phase": "Phase 0 · Baseline",
-      "text": "Display + Pi 4 on the bench: Bookworm, touch, brightness; rotate 180° and invert touch (B7)."
+      "text": "TS-7 + Pi 4 on the bench: Bookworm finds it on HDMI-A-1 (1024 × 600); touch over USB; try DDC/CI brightness with ddcutil (B7)."
     },
     {
       "id": "st_02b",
@@ -905,47 +904,47 @@
     {
       "id": "st_04",
       "phase": "Phase 1 · Bench vision",
-      "text": "Breadboard ESP32 + CC1101 + GPS + two blinker switches + piezo; run the v2 logic (120 host checks already pass) against the Pi over the UART protocol."
+      "text": "Breadboard ESP32 + CC1101 + GPS + two blinker switches + piezo; run the v2 logic (154 host checks already pass) against the Pi over the UART protocol."
     },
     {
       "id": "st_05",
       "phase": "Phase 2 · Enclosure",
-      "text": "Print the fit template; tape the 112 × 120 × 61 mm foam block behind the glass outline; check the pocket, shifter and HVAC in the car (G5)."
+      "text": "Print the fit template; tape a 112 × 124 × 51 mm foam block behind the bezel outline; check the pocket depth, the shifter in P and the HVAC knobs in the car (G5)."
     },
     {
       "id": "st_06",
       "phase": "Phase 2 · Enclosure",
-      "text": "Measure PI_SEAT and the parts; regenerate (make_enclosure.py, 38 checks); print the bezel, then the housing, lid and pod in ASA; fit the display and the Pi (G6)."
+      "text": "Measure the TS-7 (fit template page 1) and the plugs; regenerate (make_enclosure.py, 43 checks) and the template; print the bezel and hang the display in it, then the housing, lid and pod in ASA (G6)."
     },
     {
       "id": "st_07",
-      "phase": "Phase 3 · Power path",
-      "text": "Breadboard the power path (fuse, SMCJ22CA, P-MOSFET, π filter, Pololu with the EN delay, TSR) from the ATX / LiPo 12 V: B1–B6 (G4)."
+      "phase": "Phase 3 · Carrier PCB",
+      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 6 layers, 1.6 mm, ENIG, Economic PCBA on 2 of 5 (G7, G8; carrier README)."
     },
     {
       "id": "st_08",
-      "phase": "Phase 4 · 6-layer PCB",
-      "text": "KiCad layout inside the enclosure keep-outs (16 mm height, fan zone, SMA strip, pin-free corners); ERC / DRC 0 / 0, Gerber check, 1:1 print with the real parts (G7)."
+      "phase": "Phase 3 · Carrier PCB",
+      "text": "When the boards arrive: hand-solder the DevKit and CC1101 sockets (DevKit row to match yours), the two screw terminals and the fan header; check the polarized parts."
     },
     {
       "id": "st_09",
-      "phase": "Phase 4 · 6-layer PCB",
-      "text": "JLCPCB quote: confirm the 6-layer 100 × 100 promo and ENIG (G8); order 5."
+      "phase": "Phase 4 · Bring-up",
+      "text": "Bring-up on a current-limited supply (carrier README): rails, EN delay, inhibit, reverse polarity, I2C scan (0x20, 0x40, 0x41, 0x48), 1–5 A on J5; then B1–B3 (G4)."
     },
     {
       "id": "st_10",
-      "phase": "Phase 5 · Bring-up",
-      "text": "Power the bare board from the bench at 12.0–14.4 V; check the rails, the EN delay and the inhibit before fitting the Pi; then the ESP32 and the CC1101; noise floor with everything on (B6)."
+      "phase": "Phase 4 · Bring-up",
+      "text": "Pi + TS-7 + both cameras on the carrier: B4 measured at the Pi's GPIO 5 V pin, B5 with an AM radio (RT rework if it whines), B6 radio noise floor with everything on."
     },
     {
       "id": "st_11",
       "phase": "Phase 6 · Car install",
-      "text": "Cameras into the mirror caps (O-ring + neutral-cure RTV); cables through the hinges and door boots with service loops; reseal the vapour barriers with butyl; LEDs in the door sails."
+      "text": "Cameras into the mirror caps: mark the turn repeater and its wires inside the cap before drilling, then O-ring + neutral-cure RTV. Cables through the hinges and door boots with service loops, tied to the factory harness on the dry side, clear of the window glass and its regulator; reseal the vapour barriers with butyl; LEDs in the door sails. Cycle door / window / mirror 50 times."
     },
     {
       "id": "st_12",
       "phase": "Phase 6 · Car install",
-      "text": "One Add-A-Circuit on the metered ACC fuse + chassis ground; blinker feeds from the wiring diagram; GPS on the dash top (fallback speed); the OBD dongle in its port if it passed B8; alert pod by the shifter."
+      "text": "One Add-A-Circuit on an ACC fuse slot metered in ACC, ON and START (hot side feeding both fuses) + chassis ground stud; blinker feeds from the wiring diagram, metered (G9); GPS on the dash top (fallback speed); the OBD dongle in its port if it passed B8; alert pod by the shifter."
     },
     {
       "id": "st_13",
@@ -994,7 +993,7 @@
       "likelihood": "Caught",
       "title": "The ESP32 enables the Pi rail",
       "cause": "Flashing the ESP32 from the Pi resets it, the rail drops, the Pi dies mid-flash: deadlock",
-      "fix": "The Pi regulator is <b>on by default</b> with ACC (Pololu EN has an internal 100 kΩ pull-up). The ESP32 can only delay it (<code>PIN_PI_INHIBIT</code>, pulled down)",
+      "fix": "The Pi buck is <b>on by default</b> with ACC (its EN divider pulls it up, after a 1.2–1.4 s delay). The ESP32 can only delay it (<code>PIN_PI_INHIBIT</code>, a 2N7002 pulled down), and it reads the rail-up sense first, so a reset with the Pi running never cuts it (audit FW-02)",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1005,8 +1004,8 @@
       "category": "Corrections to the earlier plan",
       "likelihood": "Caught",
       "title": "Pololu D36V50F5 treated as a 36 V part",
-      "cause": "Pololu's page: 5.5–50 V in, reverse protection to 40 V, ~5.5 A, EN on by default, 3 A per header pin",
-      "fix": "Kept, with its real ratings. Power pins on both header rows (6 A per pair)",
+      "cause": "Pololu's page: 5.5–50 V in, reverse protection to 40 V, ~5.5 A, EN on by default, 3 A per header pin; and a fixed 5.0 V ±4 % output that can leave the Pi at its undervoltage threshold (<a href=\"../../05-Audit-Subsystems/01-power-and-protection.md\" target=\"_blank\">PWR-01</a>)",
+      "fix": "Replaced by a TPS54560B buck on the carrier: 60 V in, 5 A, set to 5.17 V; the ESP32 side has a second one",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1018,7 +1017,7 @@
       "likelihood": "Caught",
       "title": "1.5KE24CA TVS",
       "cause": "Minimum breakdown 22.8 V: it conducts on a 24 V jump start and burns",
-      "fix": "SMCJ22CA: 24.4 V minimum breakdown, 35.5 V clamp, 1500 W. Same choice as the v1 audit, sized up",
+      "fix": "SMCJ24CA: 26.7 V minimum breakdown, 38.9 V clamp, 1500 W, bidirectional. Everything after it is rated ≥ 40 V",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1030,7 +1029,7 @@
       "likelihood": "Caught",
       "title": "(implied) series Schottky for reverse polarity",
       "cause": "~1 W at 2.5 A in an SMA package",
-      "fix": "P-MOSFET reverse protection (−40 V, ≤ 20 mΩ, e.g. AOD4185) with a 12 V gate clamp",
+      "fix": "P-MOSFET reverse protection: SUD50P06-15, −60 V (the audit raised it from the −40 V AOD4185, PWR-02), gate held at −5 V by a divider (−16 V at a 39 V clamp)",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1042,7 +1041,7 @@
       "likelihood": "Caught",
       "title": "Blind-spot LEDs in the \"A-pillar mirror-sail triangles, zero door-boot wires\"",
       "cause": "The Yaris iA has side-curtain airbags behind the A-pillar trim, and the triangle at the mirror base belongs to the door",
-      "fix": "LEDs on the inner door sail or in the mirror housing, wired with the camera cable through the door boot. Nothing in the A-pillar trim or on the dash top",
+      "fix": "LEDs on the inner door sail, inside the cabin, wired with the camera cable through the door boot. Not on the outside of the mirror: in California a lamp visible from the rear must be red unless it is a turn signal or a few others (VC 25950(b); <a href=\"../../05-Audit-Subsystems/16-safety-and-legal.md\" target=\"_blank\">audit SAF-08</a>). Nothing in the A-pillar trim or on the dash top",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1101,8 +1100,8 @@
       "category": "Corrections to the earlier plan",
       "likelihood": "Caught",
       "title": "The 7\" display \"floats in the pocket and clears the shifter\"",
-      "cause": "The glass is 192.96 mm wide; the opening is 191 mm at the top and 132.6 mm at the glass's bottom edge",
-      "fix": "It can only sit in front of the trim, overhanging ~30 mm per side. Decide with the 1:1 mock-up",
+      "cause": "A 7\" display is wider than the pocket: the TS-7's board is 165.3 mm wide (the Official display's glass 192.96), the opening 191 mm at the top and 123 mm at the bottom",
+      "fix": "It sits in front of the trim in a 205.6 × 129 mm bezel, 21.8 mm proud; only the 112 × 124 mm rear box goes into the pocket. Decide with the 1:1 mock-up",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1114,7 +1113,7 @@
       "likelihood": "Caught",
       "title": "The display is \"in inventory\"",
       "cause": "The inventory lists only the Touch Display <b>Adapter v1.1</b> board",
-      "fix": "Confirm the LCD glass, touch panel and both ribbons exist (G3)",
+      "fix": "You have a <b>SunFounder TS-7</b> (HDMI video, USB touch), not the Official display. The enclosure, harness, power budget and BOM are redrawn for it (<a href=\"../../05-Audit-Subsystems/09-display-and-ui.md\" target=\"_blank\">audit DSP-01</a>)",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1137,8 +1136,8 @@
       "category": "Corrections to the earlier plan",
       "likelihood": "Caught",
       "title": "\"Mirror LED turn signals\" on the Yaris iA (drawn in the viewer)",
-      "cause": "Not verified",
-      "fix": "Check your mirrors; the plan no longer depends on them",
+      "cause": "Not verified at the time",
+      "fix": "<b>Verified by the audit:</b> Toyota's MY2017/2018 Yaris iA feature pages list \"power outside mirrors with LED turn signal indicators\" as standard, and the owner's manual lists the side turn lights as LED. Each mirror's repeater feed is the natural blinker tap (I1), and the camera hole in the cap must miss the repeater and its wires",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1162,7 +1161,7 @@
       "likelihood": "Caught",
       "title": "Our own fit template placed the display's M3 holes 0.65 mm off",
       "cause": "The drawing dimensions them from the outer frame flange (11.89 line), not the frame body (12.54)",
-      "fix": "Fixed: x = 34.87 / 161.07 mm (front view), now centred on the flange. Template regenerated; the enclosure uses the same values",
+      "fix": "Fixed then for the Official display; superseded by the TS-7, which has no drawing. Its ear holes (157.3 × 114.4 mm, from photos) are a measured parameter, and the template's page 1 draws them 1:1 so you can lay the display on it",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1173,8 +1172,8 @@
       "category": "Corrections to the earlier plan",
       "likelihood": "Caught",
       "title": "Display \"0–50 °C, brightness not specified\"",
-      "cause": "The product brief's safety notes say 0–50 °C; the documentation page lists −20 to +70 °C operating, −30 to +80 °C storage, 250 cd/m², 500:1, viewing 50° top / 70° bottom",
-      "fix": "Design for the brief; 250 cd/m² is dim in daylight (D2); the viewing angles confirm the upside-down mount (D3)",
+      "cause": "The Official display's brief said 0–50 °C, its docs −20…+70 °C. Your TS-7 (SunFounder): −10…+60 °C operating, −20…+70 °C storage, 250 cd/m², IPS, 170° viewing, no documented brightness control",
+      "fix": "Design for −10…+60 °C (D1); 250 cd/m² is dim in daylight (D2); IPS needs no upside-down mount (D3); dimming is a bench test (D4, B7)",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1185,8 +1184,8 @@
       "category": "Corrections to the earlier plan",
       "likelihood": "Caught",
       "title": "\"The Pi's USB end can face either side\"",
-      "cause": "The docs photo shows the documented way: GPIO on top and ports to the right, seen from behind",
-      "fix": "The enclosure is built for it (ports to the driver's right when mounted upside down). Turned round, 2 fit checks fail",
+      "cause": "Its ports must line up with the box's USB window, and its HDMI / USB-C edge must face free space for the 90° plugs",
+      "fix": "The Pi sits on 4 M2.5 posts in the housing: ports to the driver's right (+X), HDMI / USB-C edge on top, GPIO header at the bottom. The window, the cable slot and the fit checks are built for that",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1210,7 +1209,7 @@
       "likelihood": "High",
       "title": "The key passes through ACC on the way to START; the Pi starts booting and the crank browns it out, or it boot-loops",
       "cause": "",
-      "fix": "Pololu EN RC delay (22 kΩ + 100 µF: ~1.3–1.6 s at 12.6–14.4 V, no start below ~7.5 V). Firmware holds the Pi until the engine runs (≥ 13.0 V for 1 s) or 15 s in ACC",
+      "fix": "The Pi buck starts only above 8.0 V and 1.2–1.4 s after ACC (EN divider 1 MΩ / 150 kΩ + 10 µF). Firmware holds the Pi until the engine runs (≥ 13.0 V for 1 s) or 15 s in ACC",
       "status": "Fixed (design + firmware)",
       "status_keys": [
         "fixed"
@@ -1247,7 +1246,7 @@
       "likelihood": "High",
       "title": "5 V sags under load: undervoltage flag, USB cameras drop out",
       "cause": "",
-      "fix": "5.5 A regulator, 18 AWG under 0.5 m, 470 µF at the Pi end; budget ~2.4 A typical, ~3.8 A peak. Pass = <code>get_throttled</code> 0x0 after a 30-minute load test",
+      "fix": "A 5 A buck on the carrier set to 5.17 V (the Pi flags undervoltage below 4.63 V ±5 %: <a href=\"../../05-Audit-Subsystems/01-power-and-protection.md\" target=\"_blank\">audit PWR-01</a>), 2 mm copper straps, three 5 V / GND pairs on J5, 18 AWG under 0.5 m, 470 µF at the Pi end; 5V_PI rail 2.4 A typical, 3.9 A peak (with the TS-7's 0.48 A, on its own J5 pair; the lid fan is on the ESP32 rail). An INA226 logs the rail. Pass (B4) = ≥ 4.95 V at the Pi's GPIO 5 V pin under full load and <code>get_throttled</code> 0x0 after 30 minutes",
       "status": "Fixed (design) + You (B4)",
       "status_keys": [
         "fixed",
@@ -1260,7 +1259,7 @@
       "likelihood": "Medium",
       "title": "Load dump, jump start, reverse battery or negative spikes kill the board",
       "cause": "",
-      "fix": "Onboard 4 A fuse + SMCJ22CA + P-MOSFET; downstream ratings TSR 1-2450 36 V, Pololu 50 V, MOSFET 40 V. A load dump above 35 V on a car without central suppression is an accepted trade-off (as in v1)",
+      "fix": "Onboard 4 A fuse + SMCJ24CA (38.9 V clamp) + −60 V P-MOSFET; downstream ratings: both bucks 60 V, the INA226 40 V. A load dump above ~39 V on a car without central suppression is an accepted trade-off (as in v1)",
       "status": "Fixed (design)",
       "status_keys": [
         "fixed"
@@ -1270,9 +1269,9 @@
       "id": "P6",
       "category": "Power and wiring",
       "likelihood": "Medium",
-      "title": "AM radio buzz: the ~500 kHz regulator's harmonics fall in the AM band",
+      "title": "AM radio buzz: the ~450 kHz bucks' harmonics fall in the AM band",
       "cause": "",
-      "fix": "π filter (ferrite + 2.2 µH + 2 × 10 µF) on 12 V, short twisted leads, ferrites. Test with the AM radio. Rev B could use a 2.1 MHz automotive buck",
+      "fix": "π filter (6.8 µH, 10 µF in, 2 × 10 µF + 47 µF out) on 12 V, a solid GND plane right under the bucks, short twisted leads, ferrites. Test with the AM radio (B5); if it buzzes, one resistor per buck (RT → 43 kΩ) moves it to ~2.2 MHz, above the band",
       "status": "Fixed (design) + You (B5)",
       "status_keys": [
         "fixed",
@@ -1300,8 +1299,7 @@
       "fix": "Thermal reliefs on all plane connections; ENIG",
       "status": "Fixed (layout rule)",
       "status_keys": [
-        "fixed",
-        "you"
+        "fixed"
       ]
     },
     {
@@ -1313,8 +1311,7 @@
       "fix": "High-current paths as ≥ 3 mm outer-layer pours with stitching vias",
       "status": "Fixed (layout rule)",
       "status_keys": [
-        "fixed",
-        "you"
+        "fixed"
       ]
     },
     {
@@ -1407,7 +1404,7 @@
       "likelihood": "High",
       "title": "Pi 4 too slow for two streams plus YOLO",
       "cause": "",
-      "fix": "320 × 320 NCNN, alternate sides, blinker side first, hardware JPEG decode; fall back to motion-in-ROI. Measure in phase 1 with the two USB cameras you already have, before buying cameras",
+      "fix": "320 × 320 NCNN, alternate sides, blinker side first, hardware JPEG decode; fall back to motion-in-ROI. Measure in phase 1 with the two USB cameras you already have, before buying cameras. Pass: ≥ 5 detections per second per side. If not, the inventory's <b>Jetson Nano 4 GB</b> runs the detector on its GPU (TensorRT); it drives HDMI only, so it pairs with the SunFounder display (<a href=\"../../05-Audit-Subsystems/08-cameras-and-vision.md\" target=\"_blank\">audit CAM-04</a>)",
       "status": "You (bench)",
       "status_keys": [
         "you"
@@ -1431,7 +1428,7 @@
       "likelihood": "High in summer",
       "title": "The Pi throttles in a hot cabin, worse inside a closed enclosure",
       "cause": "",
-      "fix": "Enclosure airflow: chin intake slots → past the Pi and round the PCB → 30 mm lid fan (inventory) blowing out → a 2 mm gap round the plate (bumps), so the pocket is never sealed. Heatsinks; hot-start hold (board ≥ 60 °C: wait for 55 °C, at most 10 min). Test T1 in a sun-soaked car: SoC &lt; 80 °C, <code>get_throttled</code> = <code>0x0</code>. If it fails: lower clock, bigger gap, or the PCB in its own box",
+      "fix": "Enclosure airflow: intake slots in the bezel beside the screen → behind the display (its ~2.4 W warms the air by a few K) → the plate's three windows → past the Pi and round the PCB → 30 mm lid fan (inventory) blowing out → a 2 mm gap round the plate (bumps), so the pocket is never sealed. Heatsinks; hot-start hold (board ≥ 60 °C: wait for 55 °C, at most 10 min). Test T1 in a sun-soaked car: SoC &lt; 80 °C, <code>get_throttled</code> = <code>0x0</code>. If it fails: lower clock, bigger gap, or the PCB in its own box",
       "status": "Fixed (design + firmware) + You (T1)",
       "status_keys": [
         "fixed",
@@ -1442,13 +1439,13 @@
       "id": "V4",
       "category": "Vision and compute",
       "likelihood": "High",
-      "title": "No small USB camera fits under the mirror (most \"mirror cameras\" are analog/AHD)",
+      "title": "No small USB camera fits under the mirror (most \"mirror cameras\" are analog/AHD), or the one bought can't see the whole zone",
       "cause": "",
-      "fix": "Acceptance criteria before buying: UVC MJPEG 720p30, WDR (Starvis), no IR LEDs, −20…+70 °C, IP67, barrel ≤ 20 mm, ≥ 3 m cable, 90–110° lens. Fallback: AHD cameras + a 2-channel USB capture. Measure the barrel before drilling",
+      "fix": "Acceptance test before mounting (<a href=\"../../05-Audit-Subsystems/08-cameras-and-vision.md\" target=\"_blank\">audit CAM-01–03</a>): UVC MJPEG 720p30 using the <b>full sensor width</b> (no centre crop); <b>HFOV ≥ 95° measured</b> (1 m from a wall it shows ≥ 2.18 m: \"90–110°\" in listings is usually the diagonal); WDR (Starvis), no IR LEDs, −20…+70 °C or better (+85 °C preferred), IP67, barrel ≤ 20 mm, ≥ 3.5 m lead; <b>both cameras streaming at once on the Pi 4 for 30 min</b> with no <code>-28</code> in <code>dmesg</code> (they share one USB 2.0 bus). Aim <b>~39° outward of straight back, ~10° down</b> (printed wedge), with a strip of the car's side at the inner edge; check with cones at the zone's corners. Fallback: AHD cameras + a 2-channel USB capture. Measure the barrel before drilling",
       "status": "Decision + You",
       "status_keys": [
-        "you",
-        "plan"
+        "plan",
+        "you"
       ]
     },
     {
@@ -1473,7 +1470,8 @@
       "fix": "At start-up the Pi compares the car-body edge with the stored reference; on mismatch it sets <code>camFault</code> for that side → fault pattern on that LED, no alerts from that side",
       "status": "Fixed (protocol + ESP32 logic); Pi side to implement",
       "status_keys": [
-        "fixed"
+        "fixed",
+        "plan"
       ]
     },
     {
@@ -1485,7 +1483,6 @@
       "fix": "Starvis WDR, no IR LEDs, hydrophobic lens coating, headlight-blob fallback in the ROI, lower motorcycle threshold with persistence",
       "status": "Pi software (phase 2 of the build)",
       "status_keys": [
-        "phase2",
         "plan"
       ]
     },
@@ -1495,10 +1492,11 @@
       "likelihood": "Medium",
       "title": "The vision app crashes or freezes and the system fails silently",
       "cause": "",
-      "fix": "systemd <code>Restart=always</code> + watchdog on the Pi; the ESP32 shows the fault pattern and gives one fault beep after 1 s without a fresh report",
-      "status": "Fixed (firmware)",
+      "fix": "systemd <code>Restart=always</code> + watchdog on the Pi. The ESP32 shows the fault pattern and gives one fault beep when reports stop for 1 s, when the vision frame counter (<code>seq</code>) stops moving while \"ready\" is still sent, or when a powered Pi isn't ready after 90 s. Another fault beep only after 30 s without a fault, so a flapping link doesn't nag",
+      "status": "Fixed (firmware, audit FW-06/07/10); Pi side to implement",
       "status_keys": [
-        "fixed"
+        "fixed",
+        "plan"
       ]
     },
     {
@@ -1531,9 +1529,10 @@
       "likelihood": "High on the dash top",
       "title": "The display is damaged by a parked car's heat",
       "cause": "",
-      "fix": "Ratings disagree (brief 0–50 °C, docs −20…+70 °C operating, −30…+80 °C storage): design for the brief. Shaded console mount preferred, sunshade, AMPS quick-release for heat waves, hot-start hold",
+      "fix": "The TS-7 is rated −10…+60 °C operating and −20…+70 °C storage (SunFounder), below a sun-soaked dash top. Shaded console mount preferred, sunshade, AMPS quick-release for heat waves, hot-start hold",
       "status": "Decision (G5) + Fixed (firmware)",
       "status_keys": [
+        "plan",
         "fixed"
       ]
     },
@@ -1541,7 +1540,7 @@
       "id": "D2",
       "category": "Display and driver interface",
       "likelihood": "High by day",
-      "title": "Washed out in sunlight: the docs give only 250 cd/m² and 500:1",
+      "title": "Washed out in sunlight: SunFounder gives only 250 cd/m²",
       "cause": "",
       "fix": "Shaded mount; the bezel lip shades the border; full backlight by day; high-contrast UI (white on black, large icons). Test in the sun with the mock-up",
       "status": "You (G5)",
@@ -1552,11 +1551,11 @@
     {
       "id": "D3",
       "category": "Display and driver interface",
-      "likelihood": "High in the console",
+      "likelihood": "Low (IPS)",
       "title": "Poor contrast from the driver's seat",
       "cause": "",
-      "fix": "<b>6 o'clock viewing direction</b>; the docs give 50° from the top, 70° from the bottom. Looking down at it: mount it upside down (the enclosure's default, <code>MOUNT=inverted</code>). Rotate the image 180° (Screen Configuration → Inverted, or in the app); touch: <code>dtoverlay=vc4-kms-dsi-7inch,invx,invy</code>",
-      "status": "Fixed (design) + You (bench check)",
+      "fix": "The TS-7 is IPS with 170° viewing, so it is mounted the normal way up and the image isn't rotated (the Official display needed the upside-down mount). Still look at it from your seat with the mock-up",
+      "status": "Fixed (display choice) + You (B7)",
       "status_keys": [
         "fixed",
         "you"
@@ -1568,10 +1567,11 @@
       "likelihood": "Medium",
       "title": "The screen and LEDs glare at night",
       "cause": "",
-      "fix": "LED level sent by the Pi (from camera exposure); backlight dimming; optional VL6180X light sensor on I2C",
-      "status": "Fixed (protocol + firmware)",
+      "fix": "LED level sent by the Pi (from camera exposure); optional VL6180X light sensor on I2C. The TS-7 has no documented brightness control: try DDC/CI (<code>ddcutil</code>) on the bench; if it doesn't answer, a dark UI at night (<a href=\"../../05-Audit-Subsystems/09-display-and-ui.md\" target=\"_blank\">audit DSP-04</a>)",
+      "status": "Fixed (LEDs: protocol + firmware) + You (B7: backlight)",
       "status_keys": [
-        "fixed"
+        "fixed",
+        "you"
       ]
     },
     {
@@ -1583,7 +1583,8 @@
       "fix": "Nothing needs touch while moving; camera view only on blinker or danger; the one action you need while driving (mute) is the physical pod button",
       "status": "Fixed (design) + Pi software",
       "status_keys": [
-        "fixed"
+        "fixed",
+        "plan"
       ]
     },
     {
@@ -1616,10 +1617,22 @@
       "likelihood": "Low",
       "title": "Phantom touches or a cracked glass from a bezel that presses on it",
       "cause": "",
-      "fix": "The display hangs on its own 4 × M3 frame holes; the lip sits 0.3 mm clear of the glass and only over the black border, outside the touch area",
+      "fix": "The TS-7 hangs on its 4 ear holes (M3 × 6 into the bezel's bosses), so the glass carries no load; the lip sits 0.3 mm in front of the glass, covers its outer 2 mm and stays ≥ 1.8 mm outside the active area (estimated: check after assembly)",
       "status": "Fixed (enclosure) + You (check after assembly)",
       "status_keys": [
         "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "D9",
+      "category": "Display and driver interface",
+      "likelihood": "Medium",
+      "title": "Black screen after a cold start: the Pi looks for the display before the TS-7's scaler answers, or touch doesn't enumerate",
+      "cause": "",
+      "fix": "Both start on the same 5 V rail, so the display is powered no later than the Pi (SunFounder asks for USB power before HDMI). If B7 shows a black screen: <code>video=HDMI-A-1:1024x600@60D</code> in <code>cmdline.txt</code> (the <code>D</code> forces the connector on)",
+      "status": "You (B7)",
+      "status_keys": [
         "you"
       ]
     },
@@ -1629,7 +1642,7 @@
       "likelihood": "High",
       "title": "The display doesn't fit: shifter in P/R/N/D/M, your hand, the HVAC knobs",
       "cause": "",
-      "fix": "1:1 template + a foam block the size of the enclosure's rear box. The bezel is 127.9 mm tall, under the 129 mm opening, so it doesn't climb onto the HVAC panel (checked by the generator)",
+      "fix": "1:1 template + a foam block the size of the enclosure's rear box. The bezel is 129.0 mm tall, the opening's full height: its top sits at the opening's top edge (0 mm margin, checked by the generator), so it doesn't climb onto the HVAC panel; the opening's height comes from the v1 paper fit, so confirm it on the mock-up. The unit stands <b>21.8 mm proud of the trim</b> (the Official display's design: 13 mm): check the shifter in every position",
       "status": "You (G5)",
       "status_keys": [
         "you"
@@ -1639,9 +1652,9 @@
       "id": "M2",
       "category": "Mechanical and installation",
       "likelihood": "High",
-      "title": "The enclosure's rear box (112 × 120 × 61 mm) is deeper than the pocket or hits the car's USB/12 V strip, which sits behind the panel ~34 mm below the top of the opening",
+      "title": "The enclosure's rear box (112 × 124 × 51 mm) is deeper than the pocket or hits the car's USB/12 V strip, which sits behind the panel ~34 mm below the top of the opening",
       "cause": "",
-      "fix": "Measure ≥ 66 mm clear depth with the mock-up. If not: the car's USB moves to a passthrough, or the PCB goes in its own box (same 92 × 92 posts) and the enclosure shrinks to ~45 mm",
+      "fix": "Measure ≥ 56 mm clear depth (55.5 needed) with the mock-up. If not: the car's USB moves to a passthrough, or the PCB goes in its own box (same 92 × 92 posts) and the enclosure gets shallower",
       "status": "You (G5)",
       "status_keys": [
         "you"
@@ -1653,7 +1666,7 @@
       "likelihood": "High in PLA",
       "title": "Printed parts warp or creep in the heat",
       "cause": "",
-      "fix": "You can print: ASA or ABS (enclosed printer), PETG only in the shaded console, never PLA (soft at ~55–60 °C). Or MJF PA12 from JLC3DP with the PCB",
+      "fix": "You can print: ASA or ABS (enclosed printer), or order MJF PA12 from JLC3DP with the PCB. PETG only for the test fit: its heat-deflection temperature (68–78 °C) is about the cabin air of a car parked all day in a hot climate, and the plate carries the display. Never PLA (55–60 °C). Heat-set brass inserts where screws are opened often (<a href=\"../../05-Audit-Subsystems/10-enclosure-and-thermal.md\" target=\"_blank\">audit ENC-04, ENC-05</a>)",
       "status": "Plan",
       "status_keys": [
         "plan"
@@ -1665,7 +1678,7 @@
       "likelihood": "Medium",
       "title": "The display comes loose in a crash or on bumps",
       "cause": "",
-      "fix": "The display bolts to the housing through its own M3 frame holes; the housing bolts to the car via the AMPS M4 nuts or a pocket bracket, never tape only; no sharp edges; nothing in airbag zones",
+      "fix": "The TS-7 bolts to the bezel through its 4 ear holes and the bezel to the housing with 6 × M3; the lip also holds the glass if the tape between the LCD and its board lets go. The housing bolts to the car via the AMPS M4 nuts or a pocket bracket, never tape only; no sharp edges; nothing in airbag zones",
       "status": "Fixed (enclosure)",
       "status_keys": [
         "fixed"
@@ -1677,7 +1690,7 @@
       "likelihood": "Medium",
       "title": "Vibration loosens sockets and connectors",
       "cause": "",
-      "fix": "Latching connectors (Micro-Fit, JST-GH), strain relief, machined sockets + a dab of RTV (v1 rule), nylon lock nuts",
+      "fix": "Screw terminals for power, latching JST-GH for signals, strain relief, machined sockets + a dab of RTV (v1 rule), nylon lock nuts",
       "status": "Fixed (design rule)",
       "status_keys": [
         "fixed"
@@ -1687,9 +1700,9 @@
       "id": "M6",
       "category": "Mechanical and installation",
       "likelihood": "Medium",
-      "title": "Cracking the mirror cap while drilling",
+      "title": "Cracking the mirror cap while drilling, or drilling into the turn repeater or its wires",
       "cause": "",
-      "fix": "Practise on a used mirror cap; step drill; measure the camera barrel first",
+      "fix": "Take the cap off (or look inside with a light) and mark the repeater and its wires first; practise on a used mirror cap; step drill; measure the camera barrel first; check the repeater still flashes (<a href=\"../../05-Audit-Subsystems/12-vehicle-integration.md\" target=\"_blank\">audit VEH-06</a>)",
       "status": "You",
       "status_keys": [
         "you"
@@ -1711,9 +1724,9 @@
       "id": "M8",
       "category": "Mechanical and installation",
       "likelihood": "Medium",
-      "title": "Cables break in the mirror hinge or the door boot",
+      "title": "Cables break in the mirror hinge or the door boot, or are caught by the window glass or its regulator",
       "cause": "",
-      "fix": "Service loop, follow the factory harness, cycle door / window / mirror 50 times after the install",
+      "fix": "Service loop; follow and tie to the factory harness on the door's inner (dry) side, above the glass's travel and clear of the regulator and lock rods; cycle door / window / mirror 50 times after the install (<a href=\"../../05-Audit-Subsystems/12-vehicle-integration.md\" target=\"_blank\">audit VEH-04</a>)",
       "status": "Fixed (procedure) + You",
       "status_keys": [
         "fixed",
@@ -1735,10 +1748,10 @@
     {
       "id": "M10",
       "category": "Mechanical and installation",
-      "likelihood": "Medium",
-      "title": "The enclosure is drawn from estimates: the Pi seat height isn't in any drawing; straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
+      "likelihood": "Medium-High",
+      "title": "The enclosure is drawn from estimates: SunFounder publishes no drawing of the TS-7 and its listed height (121.0 mm) disagrees with its photos (~124.4 mm over the ears); the ear holes, sockets, back-part height and plug sizes come from photos too. Straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
       "cause": "",
-      "fix": "<code>PI_SEAT</code> and <code>PI_TOP_H</code> are parameters: measure, regenerate, and the 38 checks re-run. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
+      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 43 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
       "status": "You (G6)",
       "status_keys": [
         "you"
@@ -1748,11 +1761,12 @@
       "id": "M11",
       "category": "Mechanical and installation",
       "likelihood": "Low",
-      "title": "Screws into the display's frame bottom out and press on the panel",
+      "title": "Screws through the display's ears crack its board or press on the glass",
       "cause": "",
-      "fix": "M3 × 6 through a 3 mm plate; check the thread depth first",
-      "status": "You (assembly)",
+      "fix": "M3 × 6 from behind through the ears into Ø7 bosses that touch only the ears, clear of the board's main edge (checked by the generator); M3 × 8 would reach the bezel's front face. Snug, not tight: it's a PCB",
+      "status": "Fixed (enclosure) + You (assembly)",
       "status_keys": [
+        "fixed",
         "you"
       ]
     },
@@ -1762,7 +1776,7 @@
       "likelihood": "Low",
       "title": "Fingers reach the boards through vents (Raspberry Pi docs: the enclosure must make the boards unreachable)",
       "cause": "",
-      "fix": "Chin slots 2.5 mm; fan grille with 2.5 mm gaps; split grommet in the cable exit",
+      "fix": "Bezel intake slots 2.5 mm; the plate's windows are behind the display; fan grille with 2.5 mm gaps; split grommet in the cable exit",
       "status": "Fixed (enclosure)",
       "status_keys": [
         "fixed"
@@ -1772,10 +1786,23 @@
       "id": "M13",
       "category": "Mechanical and installation",
       "likelihood": "Medium",
-      "title": "The camera USB plugs and the antenna lead don't fit beside the box in the pocket",
+      "title": "The camera USB plugs, the display leads and the antenna lead don't fit beside the box in the pocket",
       "cause": "",
-      "fix": "90° USB-A adapters and an SMA bulkhead; the generator checks plugs (+15 mm) and the lead inside the opening's outline (1.3 mm margin at the tightest point)",
+      "fix": "Three 90° USB-A adapters (two cameras, the touch lead) and an SMA bulkhead. The display's flat cable and micro-USB lead rise inside the bezel to a 9 × 20 mm slot in the plate, inside the opening. The generator checks the plugs, the leads and the slot inside the opening's outline (3.0 mm margin at the tightest point)",
       "status": "Fixed (enclosure) + You (mock-up)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "M14",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The HDMI flat cable cracks at its fold, or its adapters or the micro-USB plug work loose on bumps",
+      "cause": "",
+      "fix": "One fold, made once, never creased back; Kapton tape over the adapters' latches; a dab of RTV on each plug once the picture is good (v1 socket rule); the leads tied to the plate's slot so they can't pull on the plugs",
+      "status": "Fixed (procedure) + You (assembly)",
       "status_keys": [
         "fixed",
         "you"
@@ -1784,10 +1811,10 @@
     {
       "id": "I1",
       "category": "Vehicle integration",
-      "likelihood": "High",
+      "likelihood": "Medium",
       "title": "No 12 V turn-signal wire found at the kick panel",
       "cause": "",
-      "fix": "Get the wiring diagram (the Yaris iA is in Toyota's service information, techinfo.toyota.com, short subscriptions) and confirm with a meter. Fallback: the tail-lamp feeds in the trunk. Phase 2: CAN",
+      "fix": "<b>Best tap: each mirror's LED turn-signal repeater feed</b>, in the door harness at the mirror connector: it runs where the camera cable and the LED pair already go through the door boot, one side per mirror. Confirm the wire with the wiring diagram (Toyota service information, techinfo.toyota.com, short subscriptions) and a meter (flashing 12 V with that side's signal and the hazards, dead otherwise). Fallbacks: the kick-panel feed, or the rear amber turn bulbs (WY21W, separate from the brake lamps per the owner's manual). Phase 2: CAN",
       "status": "You (G9)",
       "status_keys": [
         "you"
@@ -1809,9 +1836,9 @@
       "id": "I3",
       "category": "Vehicle integration",
       "likelihood": "High",
-      "title": "Hazards cause a danger beep (both sides look like turns)",
+      "title": "Hazards cause a danger beep (both sides look like turns), including hazards pressed during a turn signal",
       "cause": "",
-      "fix": "Hazards are recognised when both sides light within 150 ms; a single side is reported only after that window, and after hazards end only after a fresh flash",
+      "fix": "Hazards are both lamps lit at the same time for 50 ms; a turn signal never lights both. A side is reported only 150 ms after its lamp edge and while the other lamp is dark, so hazards (also pressed mid-flash during a turn signal) never read as a turn to either side, and after hazards end a side is reported only after a fresh flash. The first version used \"both lit within 150 ms\", which read some mid-flash presses as the other side (audit FW-01)",
       "status": "Fixed (firmware)",
       "status_keys": [
         "fixed"
@@ -1854,6 +1881,19 @@
       ]
     },
     {
+      "id": "I7",
+      "category": "Vehicle integration",
+      "likelihood": "Medium",
+      "title": "A blinker input stuck lit (failed opto, shorted input, the wrong wire, or a combined brake/turn lamp tapped at the rear) reads as a permanent turn: nuisance danger beeps, and hazards read as a turn",
+      "cause": "",
+      "fix": "A lamp lit for more than 1.5 s without a break is an input fault: that side counts as dark, shows the fault pattern, one fault beep, and no danger beeps until it clears (dark for 2 s). Tap the front or kick-panel feed, not a combined rear lamp (audit FW-04)",
+      "status": "Fixed (firmware) + You (G9)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
       "id": "O1",
       "category": "OBD-II dongle (optional speed source)",
       "likelihood": "High if done",
@@ -1883,7 +1923,7 @@
       "likelihood": "High (cheap clones)",
       "title": "The dongle sleeps, hangs, answers <code>?</code> or <code>NO DATA</code>, or the link drops; the speed goes stale",
       "cause": "",
-      "fix": "1 s timeouts, a reset (<code>ATZ</code>) after 3 failures, plain <code>010D</code> for clones without the response-count digit, reconnect. OBD speed counts only while &lt; 1 s old; then the GPS takes over, then the 10 s hold, then LEDs only. A bad dongle can only make the buzzer quieter",
+      "fix": "1 s timeouts, a reset (<code>ATZ</code>) after 3 failures, plain <code>010D</code> for clones without the response-count digit, reconnect. <code>NO DATA</code> (key in ACC) is not a failure; any reset banner is accepted; a protocol search (<code>SEARCHING...</code>) gets 8 s; a reply delayed in the Bluetooth link is not taken for the next one's (audit FW-11/12). OBD speed counts only while &lt; 1 s old; then the GPS takes over, then the 10 s hold, then LEDs only",
       "status": "Fixed (firmware)",
       "status_keys": [
         "fixed"
@@ -1965,22 +2005,22 @@
       "id": "R1",
       "category": "TPMS radio",
       "likelihood": "Medium",
-      "title": "The 433 MHz-tuned CC1101 module loses up to ~10 dB at 315 MHz; rear wheels drop out",
+      "title": "The 433 MHz-tuned radio loses ~10 dB at 315 MHz; rear wheels drop out",
       "cause": "",
-      "fix": "Buy a 315 MHz-tuned CC1101 module with the same 2 × 4 pinout (~$3); keep the 433 one as a spare. Check RSSI per wheel",
+      "fix": "Most of that loss is the <b>antenna</b>: a 433 MHz quarter-wave whip used at 315 MHz loses 9.5–11.7 dB, while the module's 433 MHz matching costs only ~0.2–0.5 dB if it follows TI's reference (<a href=\"../../05-Audit-Subsystems/13-tpms-radio.md\" target=\"_blank\">audit RF-09</a>). Use a 315 MHz quarter-wave antenna (~23 cm). A 315 MHz-tuned module with the same 2 × 4 pinout (~$3) is worth it only if an RSSI A/B test shows a gain. Check RSSI per wheel",
       "status": "Buy + You",
       "status_keys": [
-        "you",
-        "plan"
+        "plan",
+        "you"
       ]
     },
     {
       "id": "R2",
       "category": "TPMS radio",
       "likelihood": "Medium-High",
-      "title": "The Pi 4, its USB 3 ports, the display and the regulator raise the 315 MHz noise floor",
+      "title": "The Pi 4, its USB 3 ports, the display and the regulator raise the 315 MHz noise floor; the TS-7's HDMI flat cable is unshielded and carries broadband TMDS data at ~0.5 Gb/s per lane",
       "cause": "",
-      "fix": "The antenna leaves the enclosure: CC1101 → short RG316 → SMA bulkhead in the box wall → 30 cm RG316 → whip away from the Pi; cameras on the USB 2.0 ports; ferrites. Compare the noise floor with everything on and off",
+      "fix": "The antenna leaves the enclosure: CC1101 → short RG316 → SMA bulkhead in the box wall → 30 cm RG316 → whip away from the Pi; cameras on the USB 2.0 ports; ferrites. Buy a shielded HDMI flat cable if you can find one; keep it short and away from the CC1101 and its lead. Compare the noise floor with everything on and off",
       "status": "You (B6)",
       "status_keys": [
         "you"
@@ -2028,10 +2068,11 @@
       "likelihood": "Medium",
       "title": "Trusting it: a missed motorcycle at night",
       "cause": "",
-      "fix": "It is an aid: always look over your shoulder. Disclaimer on the start screen",
-      "status": "Accepted",
+      "fix": "It is an aid: always look over your shoulder. Disclaimer on the start screen. Run the first month with the buzzer muted, logging every alert against what you see, so the miss and false-alarm rates are known before you rely on the beep (<a href=\"../../05-Audit-Subsystems/16-safety-and-legal.md\" target=\"_blank\">audit SAF-01</a>)",
+      "status": "Accepted + You",
       "status_keys": [
-        "accepted"
+        "accepted",
+        "you"
       ]
     },
     {
@@ -2040,7 +2081,7 @@
       "likelihood": "Medium",
       "title": "A silent failure looks like \"all clear\"",
       "cause": "",
-      "fix": "Fault pattern + one beep on a lost Pi link; per-side fault for a camera",
+      "fix": "Fault pattern + one beep on a lost or frozen Pi link, a faulted camera, a stuck blinker input, or a Pi that never boots; per-side faults for the cameras and the blinker inputs (the camera-fault beep was promised but missing: audit FW-06)",
       "status": "Fixed (firmware)",
       "status_keys": [
         "fixed"
@@ -2052,7 +2093,7 @@
       "likelihood": "Low",
       "title": "The blind-spot beep is drowned out by a TPMS reminder or vice versa",
       "cause": "",
-      "fix": "Priorities: danger, then fault, then TPMS; TPMS repeats at most every 10 minutes",
+      "fix": "Priorities: danger, then fault, then TPMS. Each pattern plays for its full length; only a higher priority cuts it, and the cut one is played again. TPMS repeats at most every 10 minutes; a tyre hovering at the threshold re-raises the alarm once (audit FW-08/09)",
       "status": "Fixed (firmware)",
       "status_keys": [
         "fixed"
@@ -2074,9 +2115,9 @@
       "id": "J2",
       "category": "Project",
       "likelihood": "Medium",
-      "title": "Footprint errors (Pololu module, DevKit, connectors)",
+      "title": "Footprint errors (DevKit sockets, CC1101 socket, terminals)",
       "cause": "",
-      "fix": "Print the layout 1:1 and set the real parts on it before ordering, as for v1",
+      "fix": "Print the assembly drawing 1:1 and set the real sockets and terminals on it before ordering, as for v1; the DevKit footprint carries both row spacings",
       "status": "G7",
       "status_keys": [
         "plan"
@@ -2130,74 +2171,86 @@
       "id": "G2",
       "needed": "Safety logic written and unit-tested (power-up, blinker, alerts, Pi link, OBD-II speed)",
       "status": "done",
-      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/README.md\" target=\"_blank\">02-firmware/v2</a>, 120 host checks pass; removing the hazard fixes, the TPMS acknowledge or the OBD fallbacks makes them fail"
+      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/README.md\" target=\"_blank\">02-firmware/v2</a>, 154 host checks pass; removing the hazard fixes, the stuck-input fault, PGOOD, the fault-beep rules, the beep priorities, the TPMS acknowledge or the OBD fallbacks makes them fail. The <a href=\"../../05-Audit-Subsystems/README.md\" target=\"_blank\">subsystem audit</a> found and fixed 1 critical and 3 high logic bugs that the first 120 checks missed"
     },
     {
       "id": "G3",
       "needed": "Every part physically on hand and identified",
       "status": "you",
-      "detail": "<b>You:</b> 7\" LCD glass + touch + both ribbons (the inventory lists only the adapter board), Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout, Pololu D36V50F5 bought"
+      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself: the sockets, two 5.08 mm screw terminals (4- and 6-pole) and the fan header (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>); everything else JLCPCB assembles"
     },
     {
       "id": "G4",
-      "needed": "Power path breadboarded: EN delay, inhibit, crank dip, 4 A load, <code>vcgencmd get_throttled</code> = <code>0x0</code>",
+      "needed": "Power path proven: EN delay, inhibit, crank dip, 4 A load, <code>vcgencmd get_throttled</code> = <code>0x0</code>",
       "status": "you",
-      "detail": "<b>You:</b> procedure in Bench test B1–B6"
+      "detail": "<b>You</b>, on the assembled rev A board: the regulators are on the carrier now, so the <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">bring-up steps</a> and B1–B6 replace the breadboard. Not an order gate any more"
     },
     {
       "id": "G5",
       "needed": "Display location chosen with the 1:1 mock-up (Option A console or B dash top)",
       "status": "you",
-      "detail": "<b>You:</b> print <a href=\"../../01-hardware/docs/v2_fit_template_1to1.pdf\" target=\"_blank\">v2_fit_template_1to1.pdf</a>, tape a 112 × 120 × 61 mm foam block behind the glass outline (the enclosure's rear box), check ≥ 66 mm of pocket depth, the shifter, the HVAC knobs and the car's USB/12 V strip"
+      "detail": "<b>You:</b> print <a href=\"../../01-hardware/docs/v2_fit_template_1to1.pdf\" target=\"_blank\">v2_fit_template_1to1.pdf</a>, lay the TS-7 on page 1, tape a 112 × 124 × 51 mm foam block behind the bezel outline (the enclosure's rear box), check ≥ 56 mm of pocket depth, the shifter (the unit stands 21.8 mm proud of the trim), the HVAC knobs and the car's USB/12 V strip"
     },
     {
       "id": "G6",
-      "needed": "<code>PI_SEAT</code> measured and the enclosure regenerated; bezel and housing test-printed and fitted to the real display and Pi",
+      "needed": "The TS-7 measured (height over the ears, ear holes, sockets, back parts, plugs) and the enclosure regenerated; bezel and housing test-printed and fitted to the real display and Pi",
       "status": "you",
-      "detail": "<b>You:</b> 1 measurement + ~12 h of printing. The PCB's keep-outs (fan zone, SMA strip, corners, 16 mm height) come from this"
+      "detail": "<b>You</b>, at print time (your call: the board is drawn inside the current keep-outs, and the enclosure is the part that adapts). ~10 caliper readings + ~12 h of printing"
     },
     {
       "id": "G7",
       "needed": "KiCad schematic and layout inside the enclosure's keep-outs, ERC/DRC 0/0, independent Gerber check, footprints printed 1:1 and test-fitted with the real parts",
-      "status": "next",
-      "detail": "Next step, after G3–G6 (generator based on the v1 build script)"
+      "status": "done",
+      "detail": "<b>Done</b> except the 1:1 test fit: <a href=\"../../01-hardware/v2/carrier/build_carrier.py\" target=\"_blank\">build_carrier.py</a> generates and checks it (<a href=\"../../05-Audit-Subsystems/11-carrier-pcb.md\" target=\"_blank\">audit page 11</a>). <b>You:</b> print <code>docs/tpms_v2_carrier_assembly_1to1.pdf</code> at 100 % and set the sockets and terminals on it"
     },
     {
       "id": "G8",
       "needed": "JLCPCB quote confirms the 6-layer 100 × 100 mm promo price and options",
       "status": "you",
-      "detail": "<b>You</b>, at checkout. Verified from JLCPCB's capability page: 6+ layer FR-4 is ENIG only (no HASL), inner copper is 0.5 oz by default"
+      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages: 6+ layer FR-4 is ENIG only (no HASL), inner copper 0.5 oz, Economic PCBA takes 6 layers at 1.6 mm with the standard stack-up, and epoxy-filled, capped vias are the default"
     }
   ],
   "enclosure": {
+    "display": "SunFounder TS-7 7\" HDMI touch display (1024 × 600 IPS)",
     "overall_mm": {
-      "width": 205.56,
-      "height": 127.86,
-      "depth": 71.8
+      "width": 205.6,
+      "height": 129.0,
+      "depth": 70.25
     },
+    "proud_of_trim_mm": 21.8,
     "box_mm": {
       "width": 112.0,
       "width_with_ears": 126.0,
-      "height": 120.16,
-      "behind_plate": 60.54,
-      "clear_pocket_depth_needed": 65.5
+      "height": 124.0,
+      "behind_plate": 50.5,
+      "clear_pocket_depth_needed": 55.5
     },
     "z_levels_mm": {
       "lip_front": 2.3,
       "glass": 0.0,
-      "module_back": -5.96,
-      "plate_back": -8.96,
-      "pi_seat": -24.0,
-      "pi_top": -25.4,
-      "pi_tall": -42.4,
-      "pcb_bottom": -47.9,
-      "pcb_top": -49.5,
-      "parts_top": -65.5,
-      "lid_inner": -67.0,
-      "lid_outer": -69.5
+      "display_board_back": -7.75,
+      "plate_front": -14.45,
+      "plate_back": -17.45,
+      "pi_bottom": -22.45,
+      "pi_top": -23.85,
+      "pi_tall": -40.85,
+      "pcb_bottom": -46.35,
+      "pcb_top": -47.95,
+      "parts_top": -63.95,
+      "lid_inner": -65.45,
+      "lid_outer": -67.95
     },
-    "mount": "inverted",
+    "mount": "normal (IPS: no need to turn it upside down)",
     "ports_face": "driver's right (+X)",
+    "display_mount": {
+      "ear_holes_mm": [
+        157.3,
+        114.4
+      ],
+      "screws": "4× M3 × 6 from behind, through the ears into the bezel's bosses",
+      "cable_slot": "9 × 20 mm in the plate, 76.2-85.2 mm right of centre, 38-58 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
+      "intake_slots_mm2": 771
+    },
     "pcb_constraints": {
       "outline": "100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
       "max_part_height_mm": 16.0,
@@ -2207,8 +2260,9 @@
       "pins_below_mm": 2.5
     },
     "hardware": {
-      "display_to_plate": "4× M3 × 6 button head (check how deep the display's threads are first)",
-      "bezel_to_plate": "6× M3 × 10 into 2.6 mm pilots",
+      "display_to_bezel": "4× M3 × 6 pan or button head, from behind through the display's ears",
+      "bezel_to_plate": "6× M3 × 10 from the back of the plate into 2.6 mm pilots",
+      "pi_to_posts": "4× M2.5 × 6 into 2.2 mm pilots",
       "lid_to_box": "4× M3 × 12 into the ears",
       "pcb_to_posts": "4× M3 × 6",
       "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
@@ -2216,15 +2270,15 @@
       "pod": "2× M3 × 8, VHB tape under the base"
     },
     "volumes_cm3": {
-      "bezel": 45.6,
-      "housing": 126.6,
-      "lid": 34.1,
+      "bezel": 47.7,
+      "housing": 139.2,
+      "lid": 35.2,
       "pod_shell": 14.3,
       "pod_base": 4.5
     },
     "checks": {
-      "passed": 38,
-      "total": 38,
+      "passed": 43,
+      "total": 43,
       "all_ok": true
     },
     "assembly": [
@@ -2232,13 +2286,13 @@
         "name": "bezel",
         "file": "../../01-hardware/enclosure/stl/asm_bezel.stl",
         "color": "#1f2937",
-        "label": "Bezel: front frame + 10 mm air-intake chin (print face down)"
+        "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen (print face down)"
       },
       {
         "name": "housing",
         "file": "../../01-hardware/enclosure/stl/asm_housing.stl",
         "color": "#334155",
-        "label": "Housing: plate the display screws to + rear box for the Pi and the PCB (print plate down)"
+        "label": "Housing: plate + rear box for the Pi and the PCB (print plate down)"
       },
       {
         "name": "lid",
@@ -2250,13 +2304,19 @@
         "name": "display",
         "file": "../../01-hardware/enclosure/stl/asm_display.stl",
         "color": "#0b1220",
-        "label": "Official 7\" Touch Display (dummy)"
+        "label": "SunFounder TS-7 7\" HDMI touch display (dummy)"
+      },
+      {
+        "name": "cables",
+        "file": "../../01-hardware/enclosure/stl/asm_cables.stl",
+        "color": "#f97316",
+        "label": "HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)"
       },
       {
         "name": "pi",
         "file": "../../01-hardware/enclosure/stl/asm_pi.stl",
         "color": "#15803d",
-        "label": "Raspberry Pi 4, display adapter and cables (dummy)"
+        "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)"
       },
       {
         "name": "pcb",

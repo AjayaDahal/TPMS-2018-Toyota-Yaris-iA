@@ -1,33 +1,167 @@
 {
   "generator": "01-hardware/enclosure/make_enclosure.py",
-  "mount": "inverted",
+  "display": "SunFounder TS-7 7\" HDMI touch display (1024 × 600 IPS)",
+  "mount": "normal (IPS: no need to turn it upside down)",
   "overall_mm": {
-    "width": 205.56,
-    "height": 127.86,
-    "depth": 71.8
+    "width": 205.6,
+    "height": 129.0,
+    "depth": 70.25
   },
+  "proud_of_trim_mm": 21.8,
+  "screen_offset_mm": -8.0,
   "box_mm": {
     "width": 112.0,
     "width_with_ears": 126.0,
-    "height": 120.16,
-    "behind_plate": 60.54,
-    "clear_pocket_depth_needed": 65.5
+    "height": 124.0,
+    "behind_plate": 50.5,
+    "clear_pocket_depth_needed": 55.5
   },
   "z_levels_mm": {
     "lip_front": 2.3,
     "glass": 0.0,
-    "module_back": -5.96,
-    "plate_back": -8.96,
-    "pi_seat": -24.0,
-    "pi_top": -25.4,
-    "pi_tall": -42.4,
-    "pcb_bottom": -47.9,
-    "pcb_top": -49.5,
-    "parts_top": -65.5,
-    "lid_inner": -67.0,
-    "lid_outer": -69.5
+    "display_board_back": -7.75,
+    "plate_front": -14.45,
+    "plate_back": -17.45,
+    "pi_bottom": -22.45,
+    "pi_top": -23.85,
+    "pi_tall": -40.85,
+    "pcb_bottom": -46.35,
+    "pcb_top": -47.95,
+    "parts_top": -63.95,
+    "lid_inner": -65.45,
+    "lid_outer": -67.95
   },
   "ports_face": "driver's right (+X)",
+  "display_mount": {
+    "ear_holes_mm": [
+      157.3,
+      114.4
+    ],
+    "screws": "4× M3 × 6 from behind, through the ears into the bezel's bosses",
+    "cable_slot": "9 × 20 mm in the plate, 76.2-85.2 mm right of centre, 38-58 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
+    "intake_slots_mm2": 771
+  },
+  "front_view_mm": {
+    "bezel": [
+      -102.8,
+      102.8,
+      -64.5,
+      64.5
+    ],
+    "board": [
+      -90.65,
+      74.65,
+      -62.2,
+      62.2
+    ],
+    "main_h": 106.4,
+    "ear_w": 7.6,
+    "ear_holes": [
+      [
+        -86.65,
+        -57.2
+      ],
+      [
+        -86.65,
+        57.2
+      ],
+      [
+        70.65,
+        -57.2
+      ],
+      [
+        70.65,
+        57.2
+      ]
+    ],
+    "glass": [
+      -90.45,
+      74.45,
+      -50.5,
+      49.5
+    ],
+    "window": [
+      -88.45,
+      72.45,
+      -48.5,
+      47.5
+    ],
+    "active": [
+      -86.31,
+      67.91,
+      -40.26,
+      45.66
+    ],
+    "lcd_flex": [
+      -24.5,
+      5.5,
+      -54.9,
+      -49.2
+    ],
+    "hdmi_socket": [
+      63.05,
+      76.05,
+      17.5,
+      32.5
+    ],
+    "usb_socket": [
+      70.35,
+      75.85,
+      0.25,
+      7.75
+    ],
+    "hdmi_plug": [
+      76.05,
+      96.05,
+      14.0,
+      36.0
+    ],
+    "usb_plug": [
+      75.85,
+      86.85,
+      -2.0,
+      10.0
+    ],
+    "cable_slot": [
+      76.15,
+      85.15,
+      38.0,
+      58.0
+    ],
+    "box": [
+      -56.0,
+      56.0,
+      -63.5,
+      60.5
+    ],
+    "bezel_screws": [
+      [
+        -61.5,
+        59.5
+      ],
+      [
+        61.5,
+        59.5
+      ],
+      [
+        -61.5,
+        -59.5
+      ],
+      [
+        61.5,
+        -59.5
+      ],
+      [
+        -95.38,
+        -25.0
+      ],
+      [
+        96.1,
+        -45.0
+      ]
+    ],
+    "opening_bottom_y": -64.5
+  },
   "pcb_constraints": {
     "outline": "100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
     "max_part_height_mm": 16.0,
@@ -37,8 +171,9 @@
     "pins_below_mm": 2.5
   },
   "hardware": {
-    "display_to_plate": "4× M3 × 6 button head (check how deep the display's threads are first)",
-    "bezel_to_plate": "6× M3 × 10 into 2.6 mm pilots",
+    "display_to_bezel": "4× M3 × 6 pan or button head, from behind through the display's ears",
+    "bezel_to_plate": "6× M3 × 10 from the back of the plate into 2.6 mm pilots",
+    "pi_to_posts": "4× M2.5 × 6 into 2.2 mm pilots",
     "lid_to_box": "4× M3 × 12 into the ears",
     "pcb_to_posts": "4× M3 × 6",
     "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
@@ -46,40 +181,54 @@
     "pod": "2× M3 × 8, VHB tape under the base"
   },
   "parameters": {
-    "MOUNT": "inverted",
-    "GW": 192.96,
-    "GH": 110.76,
-    "MODULE_T": 5.96,
-    "M3_U": [
-      34.87,
-      161.07
+    "MOD_W": 165.3,
+    "MOD_H": 124.4,
+    "MAIN_H": 106.4,
+    "EAR_W": 7.6,
+    "HOLE_IN_X": 4.0,
+    "HOLE_IN_Y": 5.0,
+    "HOLE_D": 3.2,
+    "GW": 164.9,
+    "GH": 100.0,
+    "GLASS_DY": -0.5,
+    "ACTIVE_W": 154.21,
+    "ACTIVE_H": 85.92,
+    "ACTIVE_DX": -1.2,
+    "ACTIVE_DY": 3.2,
+    "MODULE_T": 7.75,
+    "BOARD_T": 1.6,
+    "BACK_H": 6.3,
+    "BACK_CLR": 0.4,
+    "HDMI_Y": 25.0,
+    "USB_Y": 4.0,
+    "HDMI_SOCK": [
+      13.0,
+      15.0,
+      6.3,
+      1.4
     ],
-    "M3_V": [
-      21.58,
-      87.23
+    "USB_SOCK": [
+      5.5,
+      7.5,
+      2.8,
+      1.2
     ],
-    "M25_U": [
-      73.97,
-      131.97
+    "HDMI_PLUG": [
+      20.0,
+      22.0,
+      6.0
     ],
-    "M25_V": [
-      27.43,
-      76.43
+    "USB_PLUG": [
+      11.0,
+      12.0,
+      7.0
     ],
-    "ACTIVE_U": [
-      19.44,
-      173.52
+    "LCD_FPC_X": [
+      -16.5,
+      13.5
     ],
-    "ACTIVE_V": [
-      11.41,
-      97.33
-    ],
-    "FPC_U": [
-      83.72,
-      109.22
-    ],
-    "PI_SEAT": 24.0,
-    "PI_ROT180": 0,
+    "SCREEN_DX": -8.0,
+    "PI_POST_H": 5.0,
     "PI_BOARD_T": 1.4,
     "PI_TOP_H": 17.0,
     "JACK_OVER": 2.5,
@@ -100,21 +249,32 @@
       14.0,
       12.0
     ],
+    "BEZEL_W": 205.6,
+    "BEZEL_SIDE": 3.0,
+    "BEZEL_TB": 2.0,
+    "MOD_CLR": 0.3,
+    "LIP_T": 2.0,
+    "LIP_GAP": 0.3,
+    "LIP_COVER": 2.0,
+    "BOSS_D": 7.0,
     "WALL": 2.5,
     "PLATE_T": 3.0,
     "LID_T": 2.5,
     "LID_GAP": 1.5,
-    "BEZEL_WALL": 6.0,
-    "BEZEL_TOP": 4.0,
-    "LIP_T": 2.0,
-    "LIP_GAP": 0.3,
-    "GLASS_CLR": 0.3,
-    "FPC_CLR": 2.8,
-    "LIP_MARGIN": 1.0,
-    "CHIN_H": 10.0,
-    "CHIN_SKIN": 2.0,
+    "BOX_TOP_GAP": 4.0,
+    "CSLOT": [
+      1.5,
+      9.0,
+      38.0,
+      20.0
+    ],
+    "SIDE_SLOT": [
+      16.0,
+      24.0
+    ],
     "SLOT_W": 2.5,
     "PILOT_D": 2.6,
+    "PI_PILOT_D": 2.2,
     "CLEAR_D": 3.4,
     "FAN": 30.0,
     "FAN_T": 10.0,
@@ -147,24 +307,24 @@
     "SEG": 40
   },
   "volumes_cm3": {
-    "bezel": 45.6,
-    "housing": 126.6,
-    "lid": 34.1,
+    "bezel": 47.7,
+    "housing": 139.2,
+    "lid": 35.2,
     "pod_shell": 14.3,
     "pod_base": 4.5
   },
   "files": {
     "print_bezel": {
       "file": "stl/print_bezel.stl",
-      "triangles": 1428
+      "triangles": 3852
     },
     "print_housing": {
       "file": "stl/print_housing.stl",
-      "triangles": 6742
+      "triangles": 7516
     },
     "print_lid": {
       "file": "stl/print_lid.stl",
-      "triangles": 2092
+      "triangles": 2088
     },
     "print_pod_shell": {
       "file": "stl/print_pod_shell.stl",
@@ -176,33 +336,39 @@
     },
     "asm_bezel": {
       "file": "stl/asm_bezel.stl",
-      "triangles": 1428,
+      "triangles": 3852,
       "color": "#1f2937",
-      "label": "Bezel: front frame + 10 mm air-intake chin (print face down)"
+      "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen (print face down)"
     },
     "asm_housing": {
       "file": "stl/asm_housing.stl",
-      "triangles": 6742,
+      "triangles": 7516,
       "color": "#334155",
-      "label": "Housing: plate the display screws to + rear box for the Pi and the PCB (print plate down)"
+      "label": "Housing: plate + rear box for the Pi and the PCB (print plate down)"
     },
     "asm_lid": {
       "file": "stl/asm_lid.stl",
-      "triangles": 2092,
+      "triangles": 2088,
       "color": "#475569",
       "label": "Lid: 30 mm exhaust fan + cable exit (print outside face down)"
     },
     "asm_display": {
       "file": "stl/asm_display.stl",
-      "triangles": 44,
+      "triangles": 832,
       "color": "#0b1220",
-      "label": "Official 7\" Touch Display (dummy)"
+      "label": "SunFounder TS-7 7\" HDMI touch display (dummy)"
+    },
+    "asm_cables": {
+      "file": "stl/asm_cables.stl",
+      "triangles": 110,
+      "color": "#f97316",
+      "label": "HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)"
     },
     "asm_pi": {
       "file": "stl/asm_pi.stl",
-      "triangles": 122,
+      "triangles": 756,
       "color": "#15803d",
-      "label": "Raspberry Pi 4, display adapter and cables (dummy)"
+      "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)"
     },
     "asm_pcb": {
       "file": "stl/asm_pcb.stl",
@@ -227,32 +393,32 @@
     {
       "check": "bezel: valid solid",
       "ok": true,
-      "detail": "NoError, 45.6 cm³, genus 21"
+      "detail": "NoError, 47.7 cm³, genus 34"
     },
     {
       "check": "bezel: fits a 220 × 220 bed",
       "ok": true,
-      "detail": "print size 205.6 × 127.9 × 8.3 mm, flat face on the bed"
+      "detail": "print size 205.6 × 129.0 × 16.8 mm, flat face on the bed"
     },
     {
       "check": "housing: valid solid",
       "ok": true,
-      "detail": "NoError, 126.6 cm³, genus 22"
+      "detail": "NoError, 139.2 cm³, genus 17"
     },
     {
       "check": "housing: fits a 220 × 220 bed",
       "ok": true,
-      "detail": "print size 205.6 × 127.9 × 61.0 mm, flat face on the bed"
+      "detail": "print size 205.6 × 129.0 × 51.0 mm, flat face on the bed"
     },
     {
       "check": "lid: valid solid",
       "ok": true,
-      "detail": "NoError, 34.1 cm³, genus 15"
+      "detail": "NoError, 35.2 cm³, genus 15"
     },
     {
       "check": "lid: fits a 220 × 220 bed",
       "ok": true,
-      "detail": "print size 126.0 × 120.2 × 4.5 mm, flat face on the bed"
+      "detail": "print size 126.0 × 124.0 × 4.5 mm, flat face on the bed"
     },
     {
       "check": "pod_shell: valid solid",
@@ -277,22 +443,37 @@
     {
       "check": "no clash: bezel / display",
       "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: bezel / cables",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: display / cables",
+      "ok": true,
       "detail": "overlap 0.000 mm³"
     },
     {
       "check": "no clash: housing / display",
       "ok": true,
-      "detail": "overlap -0.000 mm³"
+      "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "no clash: housing / pi",
+      "check": "no clash: housing / cables",
       "ok": true,
       "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "no clash: housing / pcb",
+      "check": "no clash: housing / pi",
       "ok": true,
       "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / pcb",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
     },
     {
       "check": "no clash: housing / pcb_parts",
@@ -306,6 +487,11 @@
     },
     {
       "check": "no clash: housing / lid",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / screws",
       "ok": true,
       "detail": "overlap 0.000 mm³"
     },
@@ -335,11 +521,6 @@
       "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "no clash: bezel / pi",
-      "ok": true,
-      "detail": "overlap 0.000 mm³"
-    },
-    {
       "check": "no clash: sma / pcb_parts",
       "ok": true,
       "detail": "overlap 0.000 mm³"
@@ -347,12 +528,12 @@
     {
       "check": "no clash: sma / housing",
       "ok": true,
-      "detail": "overlap 0.000 mm³"
+      "detail": "overlap -0.000 mm³"
     },
     {
       "check": "no clash: bezel / housing",
       "ok": true,
-      "detail": "overlap -0.000 mm³"
+      "detail": "overlap 0.000 mm³"
     },
     {
       "check": "no clash: pod_shell / pod_button",
@@ -375,14 +556,19 @@
       "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "display M3 pattern 126.2 × 65.65 (drawing)",
+      "check": "display hangs on 4 bezel bosses, on its ears only",
       "ok": true,
-      "detail": "126.20 × 65.65, flange-referenced"
+      "detail": "ear holes 157.3 × 114.4 mm; Ø7 bosses clear of the board's main edge; M3 × 6 from behind"
     },
     {
-      "check": "display M3 screws reachable from behind",
+      "check": "lip covers the glass edge, clears the active area",
       "ok": true,
-      "detail": "axis ≥ 4.1 mm from the box wall, ≥ 12.8 mm from a lid ear (2 mm hex key / #1 driver)"
+      "detail": "lip over the glass 2.0 mm, 0.3 mm in front of it; window ≥ 1.8 mm beyond the active area (estimated position)"
+    },
+    {
+      "check": "plugs fit inside the bezel",
+      "ok": true,
+      "detail": "HDMI adapter + folded cable end 97.6 mm, cavity wall 99.8 mm"
     },
     {
       "check": "PCB posts on 92 × 92",
@@ -390,9 +576,9 @@
       "detail": "92.00 × 92.00"
     },
     {
-      "check": "bezel screws in solid wall",
+      "check": "Pi posts on 58 × 49",
       "ok": true,
-      "detail": "6 × M3 into 2.6 mm pilots"
+      "detail": "58.00 × 49.00, M2.5 into 2.2 mm pilots"
     },
     {
       "check": "air gap Pi -> PCB pins",
@@ -402,17 +588,22 @@
     {
       "check": "vent openings finger-safe",
       "ok": true,
-      "detail": "20 chin slots 2.5 mm wide; fan grille 2.5 mm gaps"
+      "detail": "33 intake slots 2.5 mm wide (771 mm²); fan grille 2.5 mm gaps"
     },
     {
-      "check": "box, ears, 90° USB plugs and SMA lead fit the console opening",
+      "check": "box, ears, 90° USB plugs, display leads and SMA lead fit the console opening",
       "ok": true,
-      "detail": "tightest margin 1.3 mm (opening 191 top / 123 bottom × 129)"
+      "detail": "tightest margin 3.0 mm (opening 191 top / 123 bottom × 129)"
     },
     {
-      "check": "bezel no taller than the opening",
+      "check": "display-cable slot in the plate opens into the pocket",
       "ok": true,
-      "detail": "bezel 205.6 × 127.9 mm; opening 129 high, its top edge is under the HVAC"
+      "detail": "slot 9 × 20 mm at x 76.2-85.2; ≥ 3.4 mm inside the opening's edge"
+    },
+    {
+      "check": "bezel stays below the HVAC panel",
+      "ok": true,
+      "detail": "bezel 205.6 × 129.0 mm; its top +0.0 mm from the opening's top edge (HVAC above)"
     }
   ],
   "all_ok": true

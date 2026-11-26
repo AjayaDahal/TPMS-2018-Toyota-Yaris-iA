@@ -128,7 +128,7 @@ void testBlinker() {
     Trace tr = run(d, 8000, blink(1000, 3000, 333, 333), blink(3200, 5200, 333, 333));
     CHECK(tr.any(1000, 3000, Turn::Left), "left phase missing");
     long right = tr.firstAfter(3200, Turn::Right);
-    CHECK(right > 3200 && right <= 3200 + 50 + 5, "right reported %ld ms after its lamp (left still held)",
+    CHECK(right > 3200 && right <= 3200 + 150 + 5, "right reported %ld ms after its lamp (want <= 155)",
           right - 3200);
     CHECK(!tr.any(0, 8000, Turn::Hazard), "lane change mistaken for hazard");
     CHECK(d.activation() == 2, "two activations, got %u", (unsigned)d.activation());
@@ -152,6 +152,93 @@ void testBlinker() {
     run(d, 7000, [](uint32_t t) { return blink(500, 2500, 333, 333)(t) || blink(4500, 6500, 333, 333)(t); },
         never());
     CHECK(d.activation() == 2, "expected 2 activations, got %u", (unsigned)d.activation());
+  }
+  {  // hazards pressed during a right turn signal, the left lamp joining at any point of the right's flash:
+     // never a left turn (that would be a danger beep for the left lane)
+    int asLeft = 0, missed = 0;
+    for (uint32_t join = 3000; join < 3666; join += 37) {
+      BlinkerDetector d;
+      Lamp r = blink(1000, 9000, 333, 333);
+      Lamp l = [r, join](uint32_t t) { return t >= join && r(t); };
+      Trace tr = run(d, 10000, l, r);
+      asLeft += tr.any(0, 10000, Turn::Left);
+      missed += !tr.any(join, join + 1000, Turn::Hazard);
+    }
+    CHECK(asLeft == 0 && missed == 0, "hazards during a right turn: %d of 18 press times read as left, %d missed",
+          asLeft, missed);
+  }
+  {  // ... or the body control module restarting both lamps when the hazard button is pressed
+    int bad = 0;
+    for (uint32_t press = 3000; press < 3666; press += 37) {
+      BlinkerDetector d;
+      Lamp before = blink(1000, press, 333, 333), after = blink(press, 9000, 333, 333);
+      Lamp r = [before, after](uint32_t t) { return before(t) || after(t); };
+      Trace tr = run(d, 10000, after, r);
+      bad += tr.any(0, 10000, Turn::Left) || !tr.any(press, press + 1000, Turn::Hazard);
+    }
+    CHECK(bad == 0, "hazards restarting both lamps: %d of 18 press times went wrong", bad);
+  }
+  {  // left straight to right at any point of a left flash: never hazard, right within the 150 ms window
+    int bad = 0;
+    for (uint32_t sw = 3000; sw < 3330; sw += 29) {
+      BlinkerDetector d;
+      Trace tr = run(d, 9000, blink(1000, sw, 333, 333), blink(sw, sw + 4000, 333, 333));
+      const long right = tr.firstAfter(sw, Turn::Right);
+      bad += tr.any(0, 9000, Turn::Hazard) || right < 0 || right > (long)sw + 155;
+    }
+    CHECK(bad == 0, "left -> right: %d of 12 switch points read as hazard or were late", bad);
+  }
+  {  // hazards with 100-150 ms of skew between the sides, either side first: never a single side
+    int bad = 0;
+    for (uint32_t skew = 100; skew <= 150; skew += 10) {
+      for (int leftFirst = 0; leftFirst < 2; leftFirst++) {
+        BlinkerDetector d;
+        Lamp a = blink(1000, 4000, 333, 333), b = blink(1000, 4000, 333, 333, skew);
+        Trace tr = leftFirst ? run(d, 6000, a, b) : run(d, 6000, b, a);
+        bad += tr.any(0, 6000, Turn::Left) || tr.any(0, 6000, Turn::Right) || !tr.any(1000, 4000, Turn::Hazard);
+      }
+    }
+    CHECK(bad == 0, "skewed hazards: %d of 12 showed a single side or were missed", bad);
+  }
+  {  // hazards starting right at the millis() wrap (49.7 days), 40 ms of skew: the two edges straddle it
+    BlinkerDetector d;
+    const uint32_t base = 0xFFFFFFFFu - 1019u;  // the left edge at t = 1000 is 20 ms before the wrap
+    Lamp a = blink(1000, 4000, 333, 333), b = blink(1000, 4000, 333, 333, 40);
+    bool single = false, hazard = false;
+    for (uint32_t t = 0; t < 6000; t++) {
+      d.update(base + t, a(t), b(t));
+      single |= d.state() == Turn::Left || d.state() == Turn::Right;
+      hazard |= d.state() == Turn::Hazard;
+    }
+    CHECK(!single && hazard, "hazards across the millis() wrap: single side %d, hazard %d", single, hazard);
+  }
+  {  // ... and a 20 ms spike on the other side just after the wrap, during a left flash, is not a hazard
+    BlinkerDetector d;
+    const uint32_t base = 0xFFFFFFFFu - 2019u;  // the left flash at t = 2000 starts 20 ms before the wrap
+    Lamp left = blink(1334, 6000, 333, 333);
+    Lamp spike = [](uint32_t t) { return t >= 2040 && t < 2060; };
+    bool hazard = false, dropped = false;
+    for (uint32_t t = 0; t < 6000; t++) {
+      d.update(base + t, left(t), spike(t));
+      hazard |= d.state() == Turn::Hazard;
+      dropped |= t >= 1600 && t < 6000 && d.state() != Turn::Left;
+    }
+    CHECK(!hazard && !dropped, "spike across the wrap: hazard %d, left dropped %d", hazard, dropped);
+  }
+  {  // a lamp input stuck lit (failed opto, shorted input, wrong wire): flagged as a fault, then treated as dark,
+     // so a real right turn reads as right (not hazard); the fault clears 2 s after the input goes dark
+    BlinkerDetector d;
+    Lamp stuck = [](uint32_t t) { return t >= 1000 && t < 12000; };
+    Trace tr = run(d, 16000, stuck, blink(5000, 9000, 333, 333));
+    CHECK(tr.all(2600, 5000, Turn::Off), "a stuck input must not read as a turn");
+    const long right = tr.firstAfter(5000, Turn::Right);
+    CHECK(right > 5000 && right <= 5000 + 155 && !tr.any(2600, 16000, Turn::Hazard),
+          "right turn with the left input stuck: right at %ld", right);
+    BlinkerDetector e;
+    run(e, 12000, stuck, never());
+    CHECK(e.faultMask() == 0x1, "stuck left input must be flagged (mask %u)", (unsigned)e.faultMask());
+    for (uint32_t t = 12000; t < 14100; t++) e.update(t, false, false);
+    CHECK(e.faultMask() == 0, "the fault must clear 2 s after the input goes dark");
   }
 }
 
@@ -184,7 +271,7 @@ void testPiPower() {
     CHECK(!onBeforeRun, "the Pi must not start before or during the crank");
     CHECK(on >= 3000 && on <= 3020, "engine-running release at %u ms (want ~3000)", (unsigned)on);
   }
-  {  // ESP32 restarted with the engine already running
+  {  // ESP32 started with the engine already running, Pi rail still off
     PiPowerSequencer p;
     uint32_t on = 0;
     for (uint32_t t = 0; t < 3000; t += 10) {
@@ -192,6 +279,19 @@ void testPiPower() {
       if (!on && !p.inhibit()) on = t;
     }
     CHECK(on >= 1000 && on <= 1020, "running engine release at %u ms", (unsigned)on);
+  }
+  {  // the ESP32 is reset or reflashed while the Pi runs (rail up): the Pi is never cut, in any of the holds
+    const uint16_t acc[] = {14200, 12400, 14200};
+    const int16_t temp[] = {25, 25, 65};
+    for (int i = 0; i < 3; i++) {
+      PiPowerSequencer p;
+      bool cut = false;
+      for (uint32_t t = 0; t < 20000; t += 10) {
+        p.update(t, acc[i], i == 2, temp[i], true);
+        cut |= p.inhibit();
+      }
+      CHECK(!cut, "a running Pi was cut after an ESP32 reset (case %d)", i);
+    }
   }
   {  // short dip (100 ms) while on is ignored, a 300 ms loss restarts the sequence
     PiPowerSequencer p;
@@ -252,14 +352,17 @@ struct AlertRun {
   AlertArbiter a;
   uint32_t t = 0;
   int obd = -1;  // OBD-II speed reported every 200 ms: >= 0 valid deci-mph, -1 not reporting, -2 "NO DATA"
+  uint32_t seq = 0;
+  bool frozen = false;       // the Pi's vision loop is stuck: reports keep coming, the frame counter doesn't move
+  uint8_t blinkerFault = 0;  // BlinkerDetector::faultMask()
   std::vector<Beep> beeps;
   AlertOutput last;
   void step(uint32_t ms, Turn turn, uint32_t act, const PiStatus* pi, int speedDmph) {
     for (uint32_t i = 0; i < ms; i += 10, t += 10) {
-      if (pi && t % 50 == 0) a.piReport(t, *pi);
+      if (pi && t % 50 == 0) a.piReport(t, frozen ? seq : ++seq, *pi);
       if (speedDmph >= 0 && t % 1000 == 0) a.gpsSpeed(t, true, (uint16_t)speedDmph);
       if (obd != -1 && t % 200 == 0) a.obdSpeed(t, obd >= 0, (uint16_t)(obd >= 0 ? obd : 0));
-      last = a.update(t, turn, act);
+      last = a.update(t, turn, act, blinkerFault);
       if (last.beep != Beep::None) beeps.push_back(last.beep);
     }
   }
@@ -414,8 +517,8 @@ void testAlerts() {
     r.a.tpmsAlarm(true);
     r.step(10, Turn::Left, 1, &s, 600);
     CHECK(r.count(Beep::BsmDanger) == 1 && r.count(Beep::TpmsLow) == 0, "danger first");
-    r.step(100, Turn::Left, 1, &s, 600);
-    CHECK(r.count(Beep::TpmsLow) == 1, "deferred TPMS beep expected");
+    r.step(AlertConfig().dangerBeepMs + 100, Turn::Left, 1, &s, 600);
+    CHECK(r.count(Beep::TpmsLow) == 1, "TPMS beep expected once the danger pattern has played");
     r.step(60000, Turn::Off, 0, &s, 600);
     CHECK(r.count(Beep::TpmsLow) == 1, "TPMS must not repeat within 10 min");
   }
@@ -440,9 +543,140 @@ void testAlerts() {
     r.step(100, Turn::Off, 0, nullptr, -1);
     CHECK(r.count(Beep::TpmsLow) == 2, "a second low tyre must sound again");
     r.a.tpmsAlarm(false);
+    r.step(AlertConfig().tpmsClearHoldMs + 1000, Turn::Off, 0, nullptr, -1);
     r.a.tpmsAlarm(true, 0x1);
     r.step(100, Turn::Off, 0, nullptr, -1);
-    CHECK(r.count(Beep::TpmsLow) == 3, "a new alarm after it cleared must sound again");
+    CHECK(r.count(Beep::TpmsLow) == 3, "a new alarm after it stayed clear must sound again");
+  }
+  {  // a camera that fails while running: fault pattern on that side and one fault beep
+    AlertRun r;
+    PiStatus s = ready();
+    r.step(3000, Turn::Off, 0, &s, 600);
+    s.camFaultLeft = true;
+    r.step(3000, Turn::Off, 0, &s, 600);
+    CHECK(r.last.left == LedMode::Fault && r.last.right == LedMode::Off && r.count(Beep::Fault) == 1,
+          "camera fault: left %s, %d fault beeps", ledModeName(r.last.left), r.count(Beep::Fault));
+  }
+  {  // ... also when the camera is faulted from the first report
+    AlertRun r;
+    PiStatus s = ready();
+    s.camFaultRight = true;
+    r.step(4000, Turn::Off, 0, &s, 600);
+    CHECK(r.last.right == LedMode::Fault && r.count(Beep::Fault) == 1, "camera faulted from the start: %d beeps",
+          r.count(Beep::Fault));
+  }
+  {  // a flapping Pi link (1.2 s gap every 4 s) beeps once, not at every gap; 30 s healthy re-arms it
+    AlertRun r;
+    PiStatus s = ready();
+    r.step(3000, Turn::Off, 0, &s, 600);
+    for (int i = 0; i < 15; i++) {
+      r.step(2800, Turn::Off, 0, &s, 600);
+      r.step(1200, Turn::Off, 0, nullptr, 600);
+    }
+    CHECK(r.count(Beep::Fault) == 1, "flapping link: %d fault beeps in 60 s", r.count(Beep::Fault));
+    r.step(31000, Turn::Off, 0, &s, 600);
+    r.step(2000, Turn::Off, 0, nullptr, 600);
+    CHECK(r.count(Beep::Fault) == 2, "a fault after 30 s healthy must beep again (%d)", r.count(Beep::Fault));
+  }
+  {  // beep priority holds over time: a TPMS beep 1 ms after a danger beep waits for it to finish ...
+    AlertArbiter a;
+    PiStatus s = ready(true, false);
+    uint32_t dangerAt = 0, tpmsAt = 0;
+    for (uint32_t t = 0; t < 4000; t++) {
+      if (t % 50 == 0) a.piReport(t, t, s);
+      if (t % 1000 == 0) a.gpsSpeed(t, true, 600);
+      if (t == 2001) a.tpmsAlarm(true);
+      AlertOutput o = a.update(t, t >= 2000 ? Turn::Left : Turn::Off, t >= 2000 ? 1 : 0);
+      if (o.beep == Beep::BsmDanger && !dangerAt) dangerAt = t;
+      if (o.beep == Beep::TpmsLow && !tpmsAt) tpmsAt = t;
+    }
+    CHECK(dangerAt == 2000 && tpmsAt >= 2000 + AlertConfig().dangerBeepMs,
+          "TPMS beep at %u cut the danger beep at %u", (unsigned)tpmsAt, (unsigned)dangerAt);
+  }
+  {  // ... and a danger beep that cuts a TPMS beep has the TPMS beep played again afterwards
+    AlertArbiter a;
+    PiStatus s = ready(true, false);
+    std::vector<uint32_t> tpms;
+    uint32_t dangerAt = 0;
+    for (uint32_t t = 0; t < 4000; t++) {
+      if (t % 50 == 0) a.piReport(t, t, s);
+      if (t % 1000 == 0) a.gpsSpeed(t, true, 600);
+      if (t == 2000) a.tpmsAlarm(true);
+      AlertOutput o = a.update(t, t >= 2001 ? Turn::Left : Turn::Off, t >= 2001 ? 1 : 0);
+      if (o.beep == Beep::BsmDanger && !dangerAt) dangerAt = t;
+      if (o.beep == Beep::TpmsLow) tpms.push_back(t);
+    }
+    CHECK(dangerAt == 2001 && tpms.size() == 2 && tpms.back() >= 2001 + AlertConfig().dangerBeepMs,
+          "TPMS cut by a danger beep: %zu TPMS beeps, danger at %u", tpms.size(), (unsigned)dangerAt);
+  }
+  {  // a tyre hovering at the threshold after acknowledge: one re-raise, not one per crossing; a flapping
+     // alarm flag doesn't re-raise either; a new alarm after it stayed clear for a minute does
+    AlertRun r;
+    r.a.tpmsAlarm(true, 0x1);
+    r.step(100, Turn::Off, 0, nullptr, -1);
+    r.a.mutePressed();
+    r.step(100, Turn::Off, 0, nullptr, -1);
+    for (int i = 0; i < 12; i++) {
+      r.a.tpmsAlarm(true, i % 2 ? 0x1 : 0x3);
+      r.step(5000, Turn::Off, 0, nullptr, -1);
+    }
+    CHECK(r.count(Beep::TpmsLow) == 2, "flapping second tyre: %d TPMS beeps (want 2)", r.count(Beep::TpmsLow));
+    for (int i = 0; i < 12; i++) {
+      r.a.tpmsAlarm(i % 2 == 1);
+      r.step(5000, Turn::Off, 0, nullptr, -1);
+    }
+    CHECK(r.count(Beep::TpmsLow) == 2, "flapping alarm flag: %d TPMS beeps (want 2)", r.count(Beep::TpmsLow));
+    r.a.tpmsAlarm(false);
+    r.step(61000, Turn::Off, 0, nullptr, -1);
+    r.a.tpmsAlarm(true, 0x1);
+    r.step(100, Turn::Off, 0, nullptr, -1);
+    CHECK(r.count(Beep::TpmsLow) == 3, "a new alarm after a 1 min clear must sound (%d)", r.count(Beep::TpmsLow));
+  }
+  {  // LED level 0 from the Pi can't make a danger flash or a fault invisible
+    AlertRun r;
+    PiStatus s = ready(true, false);
+    s.ledLevel = 0;
+    r.step(3000, Turn::Left, 1, &s, 600);
+    CHECK(r.last.left == LedMode::Flash && r.last.level >= AlertConfig().minLedLevel, "level %u",
+          (unsigned)r.last.level);
+  }
+  {  // a Pi that is powered but never becomes ready (dead SD card): fault on both sides and one beep after 90 s
+    AlertRun r;
+    r.a.piPower(0, true);
+    r.step(80000, Turn::Off, 0, nullptr, 600);
+    CHECK(r.last.left == LedMode::Off && r.beeps.empty(), "still booting at 80 s must be quiet");
+    r.step(20000, Turn::Off, 0, nullptr, 600);
+    CHECK(r.last.left == LedMode::Fault && r.last.right == LedMode::Fault && r.count(Beep::Fault) == 1,
+          "Pi never ready: %s, %d fault beeps", ledModeName(r.last.left), r.count(Beep::Fault));
+    AlertRun ok;
+    ok.a.piPower(0, true);
+    PiStatus s = ready();
+    ok.step(60000, Turn::Off, 0, nullptr, 600);
+    ok.step(60000, Turn::Off, 0, &s, 600);
+    CHECK(ok.last.left == LedMode::Off && ok.count(Beep::Fault) == 0, "a Pi ready after 60 s is no fault");
+  }
+  {  // the vision loop freezes while its reporting thread keeps saying "ready": stale after 1 s, one fault beep
+    AlertRun r;
+    PiStatus s = ready(true, false);
+    r.step(3000, Turn::Off, 0, &s, 600);
+    r.frozen = true;
+    r.step(3000, Turn::Off, 0, &s, 600);
+    CHECK(r.last.left == LedMode::Fault && !r.last.bsmAvailable && r.count(Beep::Fault) == 1,
+          "frozen vision: %s, %d fault beeps", ledModeName(r.last.left), r.count(Beep::Fault));
+    r.frozen = false;
+    r.step(500, Turn::Off, 0, &s, 600);
+    CHECK(r.last.left == LedMode::Steady && r.last.bsmAvailable, "must recover when the frame counter moves");
+  }
+  {  // a stuck blinker input: fault on that side, one fault beep, no danger beeps (hazard vs turn is unknown)
+    AlertRun r;
+    PiStatus s = ready(false, true);
+    r.step(3000, Turn::Off, 0, &s, 600);
+    r.blinkerFault = 0x1;
+    r.step(5000, Turn::Right, 1, &s, 600);
+    CHECK(r.last.left == LedMode::Fault && r.last.right == LedMode::Flash && r.count(Beep::BsmDanger) == 0 &&
+              r.count(Beep::Fault) == 1,
+          "blinker fault: left %s, right %s, %d danger, %d fault beeps", ledModeName(r.last.left),
+          ledModeName(r.last.right), r.count(Beep::BsmDanger), r.count(Beep::Fault));
   }
 }
 
@@ -495,6 +729,13 @@ void testLink() {
     CHECK(lines.size() == 2 && lines[0] == good && lines[1] == good, "reader returned %zu lines", lines.size());
     CHECK(r.dropped() == 1, "one overlong line must be counted, got %u", (unsigned)r.dropped());
   }
+  {  // an overlong line cut short by the next '$' is counted as dropped too
+    link::LineReader r;
+    std::vector<std::string> lines;
+    feedAll(r, std::string(200, 'A') + good + "\n", lines);
+    CHECK(lines.size() == 1 && lines[0] == good && r.dropped() == 1, "overlong then $: %zu lines, %u dropped",
+          lines.size(), (unsigned)r.dropped());
+  }
   {  // formatted lines carry valid checksums and the expected fields
     char buf[96];
     int n = link::formatEsp(buf, sizeof buf, 7, Turn::Right, -1, 14120, true, 3, true, SpeedSource::Obd);
@@ -523,14 +764,27 @@ struct FakeElm {
   bool ignoreS0 = false;      // clone: keeps the spaces
   bool hung = false;          // swallows everything
   uint32_t slowNext = 0;      // delay of the next speed reply in ms (0 = normal)
+  uint32_t lagNext = 0;       // the Bluetooth link holds the next speed reply this long (the ELM327 itself is done)
+  std::string banner = "ELM327 v1.5";  // clones print other names
+  bool noSp6 = false;         // clone: answers "?" to ATSPA6, so the first request searches the protocols ...
+  bool car29 = false;         // the car answers on 29-bit IDs (protocol 7): protocol 6 fails, a search finds it
+  bool forced6 = false;       // ATSP6 received: protocol 6 without automatic search
+  uint32_t searchMs = 2500;   // ... for this long ("SEARCHING..." first)
+  bool protocolKnown = false;
   bool echo = true, spaces = true;
   std::string rx;
   struct Out {
     uint32_t at;
     std::string text;
+    uint32_t lag = 0;
+    bool found = false;       // the protocol search succeeded with this reply
   };
-  std::vector<Out> out;
-  void say(uint32_t at, const std::string& text) { out.push_back({at, text}); }
+  std::vector<Out> out;       // what the ELM327 is still producing (it is busy while this isn't empty)
+  std::vector<Out> wire;      // produced, in transit over the Bluetooth link: delivered in order
+  uint32_t wireFree = 0;
+  void say(uint32_t at, const std::string& text, uint32_t lag = 0, bool found = false) {
+    out.push_back({at, text, lag, found});
+  }
 
   void receive(uint32_t now, const std::string& bytes) {
     for (char c : bytes) {
@@ -549,23 +803,37 @@ struct FakeElm {
       const std::string e = echo ? cmd + "\r" : "";
       if (cmd == "ATZ") {
         echo = spaces = true;
-        say(now + 800, e + "\r\rELM327 v1.5\r\r>");
-      } else if (cmd == "ATE0" || cmd == "ATS0" || cmd == "ATH0" || cmd == "ATSP6") {
+        protocolKnown = false;
+        say(now + 800, e + "\r\r" + banner + "\r\r>");
+      } else if (cmd == "ATSPA6" && noSp6) {
+        say(now + 5, e + "?\r\r>");
+      } else if (cmd == "ATSP6") {   // protocol 6 forced, no automatic search
+        forced6 = true;
+        protocolKnown = true;
+        say(now + 5, e + "OK\r\r>");
+      } else if (cmd == "ATE0" || cmd == "ATS0" || cmd == "ATH0" || cmd == "ATSPA6") {
         if (cmd == "ATE0") echo = false;
         if (cmd == "ATS0" && !ignoreS0) spaces = false;
+        if (cmd == "ATSPA6") protocolKnown = !car29;  // 6 first; a 29-bit car needs the automatic search
         say(now + 5, e + "OK\r\r>");
       } else if (cmd == "010D1" && noCountDigit) {
         say(now + 5, e + "?\r\r>");
       } else if (cmd == "010D1" || cmd == "010D") {
-        if (!carAwake) {
+        if (!carAwake || (forced6 && car29)) {   // engine computer silent, or not on the forced protocol
           say(now + 200, e + "SEARCHING...\rNO DATA\r\r>");
           continue;
         }
         char b[16];
         std::snprintf(b, sizeof b, spaces ? "41 0D %02X" : "410D%02X", kmh & 0xFF);
+        if (!protocolKnown) {
+          say(now + 5, e + "SEARCHING...\r");
+          say(now + searchMs, std::string(b) + "\r\r>", 0, true);
+          continue;
+        }
         const uint32_t delay = slowNext ? slowNext : (cmd == "010D1" ? 30 : 230);  // plain: waits out the timer
         slowNext = 0;
-        say(now + delay, e + b + "\r\r>");
+        say(now + delay, e + b + "\r\r>", lagNext);
+        lagNext = 0;
       } else {
         say(now + 5, e + "?\r\r>");
       }
@@ -573,8 +841,15 @@ struct FakeElm {
   }
   void tick(uint32_t now, obd::ElmClient& c) {
     while (!out.empty() && out.front().at <= now) {
-      const std::string text = out.front().text;
+      const Out o = out.front();
       out.erase(out.begin());
+      if (o.found) protocolKnown = true;
+      wireFree = std::max(o.at + o.lag, wireFree);
+      wire.push_back({wireFree, o.text});
+    }
+    while (!wire.empty() && wire.front().at <= now) {
+      const std::string text = wire.front().text;
+      wire.erase(wire.begin());
       for (char ch : text) c.feed(now, ch);
     }
   }
@@ -588,6 +863,7 @@ struct ElmRun {
   uint8_t kmh = 0;
   uint32_t firstAt = 0, lastAt = 0;
   std::vector<std::string> sent;
+  std::vector<uint8_t> values;
   void run(uint32_t ms) {
     for (uint32_t end = t + ms; t < end; t++) {
       if (const char* cmd = c.poll(t)) {
@@ -602,6 +878,7 @@ struct ElmRun {
         speeds++;
         kmh = k;
         lastAt = at;
+        values.push_back(k);
       }
     }
   }
@@ -630,7 +907,7 @@ void testObd() {
     ElmRun r;
     r.c.connected(0, true);
     r.run(3000);
-    const std::vector<std::string> start = {"ATZ", "ATE0", "ATS0", "ATH0", "ATSP6", "010D1"};
+    const std::vector<std::string> start = {"ATZ", "ATE0", "ATS0", "ATH0", "ATSPA6", "010D1"};
     CHECK(r.sent.size() >= start.size() && std::equal(start.begin(), start.end(), r.sent.begin()),
           "setup sequence");
     CHECK(r.speeds > 0 && r.kmh == 60 && r.firstAt <= 1000, "first speed at %u ms (want <= 1000)",
@@ -650,12 +927,14 @@ void testObd() {
     CHECK(r.count("010D1") == 1 && r.count("010D") > 5 && r.speeds > 5 && r.c.failures() == 0,
           "plain 010D fallback: %d polls, %d speeds", r.count("010D"), r.speeds);
   }
-  {  // key in ACC, engine computer silent: NO DATA, a reset after 3 failures; recovers once it answers
+  {  // key in ACC, engine computer silent: NO DATA is not a dongle failure (no resets); speeds once it answers
     ElmRun r;
     r.f.carAwake = false;
     r.c.connected(0, true);
     r.run(5000);
-    CHECK(r.speeds == 0 && r.c.resets() >= 2, "NO DATA: %d speeds, %u resets", r.speeds, (unsigned)r.c.resets());
+    CHECK(r.speeds == 0 && r.c.resets() == 1 && r.c.noData() >= 10 && r.c.failures() == 0,
+          "NO DATA: %d speeds, %u resets, %u NO DATA, %u failures", r.speeds, (unsigned)r.c.resets(),
+          (unsigned)r.c.noData(), (unsigned)r.c.failures());
     r.f.carAwake = true;
     const uint32_t woke = r.t;
     r.run(3000);
@@ -708,6 +987,42 @@ void testObd() {
     const int s0 = r.speeds;
     r.run(1000);
     CHECK(r.speeds > s0 && r.kmh == 60, "junk stopped the replies");
+  }
+  {  // a reply the Bluetooth link holds up past the timeout is not credited to the next request
+    ElmRun r;
+    r.c.connected(0, true);
+    r.run(2000);
+    r.f.kmh = 61;
+    r.f.lagNext = 1100;
+    const size_t n = r.sent.size();
+    while (r.sent.size() == n) r.run(1);
+    r.f.kmh = 30;
+    r.values.clear();
+    r.run(4000);
+    const long stale = (long)std::count(r.values.begin(), r.values.end(), (uint8_t)61);
+    CHECK(stale == 0 && !r.values.empty() && r.values.back() == 30, "late reply credited %ld times", stale);
+  }
+  {  // a clone with its own banner (no "ELM327" in it) is used like any other
+    ElmRun r;
+    r.f.banner = "OBDII to RS232 Interpreter";
+    r.c.connected(0, true);
+    r.run(4000);
+    CHECK(r.speeds > 5 && r.c.resets() == 1, "odd banner: %d speeds, %u resets", r.speeds, (unsigned)r.c.resets());
+  }
+  {  // a clone that rejects ATSPA6 searches the protocols on the first request (2.5 s): the client waits for it
+    ElmRun r;
+    r.f.noSp6 = true;
+    r.c.connected(0, true);
+    r.run(8000);
+    CHECK(r.speeds > 5 && r.c.resets() == 1, "protocol search: %d speeds, %u resets", r.speeds,
+          (unsigned)r.c.resets());
+  }
+  {  // a car on 29-bit CAN IDs: protocol 6 doesn't answer, the automatic search (ATSPA6) finds protocol 7
+    ElmRun r;
+    r.f.car29 = true;
+    r.c.connected(0, true);
+    r.run(8000);
+    CHECK(r.speeds > 5 && r.c.resets() == 1, "29-bit car: %d speeds, %u resets", r.speeds, (unsigned)r.c.resets());
   }
 }
 

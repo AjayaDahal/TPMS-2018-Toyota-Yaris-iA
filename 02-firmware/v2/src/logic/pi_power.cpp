@@ -19,12 +19,12 @@ void PiPowerSequencer::enter(PiPowerState s, uint32_t now) {
   since_ = now;
 }
 
-void PiPowerSequencer::update(uint32_t now, uint16_t accMv, bool tempValid, int16_t tempC) {
+void PiPowerSequencer::update(uint32_t now, uint16_t accMv, bool tempValid, int16_t tempC, bool railUp) {
   if (!accPresent_) {
     if (accMv >= cfg_.accOnMv) {
       accPresent_ = true;
       lowPending_ = runPending_ = false;
-      enter(PiPowerState::WaitStart, now);
+      enter(railUp ? PiPowerState::On : PiPowerState::WaitStart, now);
     }
   } else if (accMv < cfg_.accOffMv) {
     if (!lowPending_) {

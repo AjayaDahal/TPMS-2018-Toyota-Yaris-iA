@@ -1,5 +1,5 @@
 #pragma once
-// Pin map of the TPMS panel PCB. Must match hardware/scripts/design.py (the ESP32 pin nets).
+// Pin map of the TPMS panel PCB. Must match 01-hardware/scripts/design.py (the ESP32 pin nets).
 
 // Shared VSPI bus: CC1101 + OLED (the OLED is write-only)
 constexpr int PIN_SPI_SCK = 18;

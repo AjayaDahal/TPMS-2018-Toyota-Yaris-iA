@@ -61,6 +61,7 @@ bool LineReader::feed(char c) {
     return ok;
   }
   if (c == '$') {
+    if (overflow_) dropped_++;  // an overlong line cut short by the next one
     n_ = 0;
     overflow_ = false;
   }

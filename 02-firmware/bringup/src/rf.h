@@ -26,6 +26,7 @@ struct Frame {
 // sensors use the latter), and the polarity may be inverted (FSK high/low tone): try all against a CRC.
 
 void attach(int pin);           // capture edges on GDO0 or on the MX-05V input (re-attach to switch)
+void detach();                  // stop capturing (e.g. no CC1101: its GDO0 then outputs a 135 kHz clock)
 bool nextBurst(Burst& out);     // pulses separated by gaps shorter than ~2.5 ms
 bool decode(const Burst& b, Frame& f);   // false if the burst does not look like 1-2 chip pulses
 uint32_t edges();               // total edges seen (noise indicator)

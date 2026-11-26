@@ -1,0 +1,5 @@
+(version 1)
+# JLCPCB: pad holes at least 0.45 mm apart (via holes 0.2 mm; the board floor is 0.25 mm)
+(rule "pad hole to hole"
+  (constraint hole_to_hole (min 0.45mm))
+  (condition "A.Type == 'Pad' || B.Type == 'Pad'"))

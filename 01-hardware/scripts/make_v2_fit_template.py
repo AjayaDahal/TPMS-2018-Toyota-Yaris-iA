@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """1:1 fit template for the v2 build (no dependencies: the PDF is written directly).
 
-Page 1: the Official Raspberry Pi 7" Touch Display, front view as seen by the driver, over the Yaris iA console
-        opening, with the mounting holes, the Pi 4 standoffs and the flat cable.
+Page 1: the SunFounder TS-7 7" display in its printed bezel, front view as seen by the driver, over the Yaris iA
+        console opening: board outline and ear holes, glass, sockets and plugs, cable slot, rear box. Lay the
+        display face up on the printout to check its outline and holes before printing the enclosure.
 Page 2: the 100 x 100 mm v2 carrier PCB with its mounting holes and planning zones.
 
     python 01-hardware/scripts/make_v2_fit_template.py   ->  01-hardware/docs/v2_fit_template_1to1.pdf
 
 Print at 100 % ("Actual size") on US Letter landscape and check the 100 mm bar with a caliper.
-Display data: Raspberry Pi 7" display mechanical drawing LMD-D/5624/KIT-LC-V3 rev 003 and product brief.
+Geometry: 01-hardware/enclosure/enclosure_report.json, so run make_enclosure.py first after changing a measurement.
 Console opening: the v1 paper fit (panel_config.py).
 """
+import json
 import pathlib
 import sys
 
@@ -22,16 +24,9 @@ OUT = HERE.parent / "docs" / "v2_fit_template_1to1.pdf"
 PT = 72 / 25.4
 PAGE_W, PAGE_H = 279.4, 215.9                      # US Letter landscape, like the v1 template
 
-# Display, front view: x to the right, y down, origin at the top-left corner of the glass. The flat cable leaves
-# the bottom edge. The drawing dimensions the back view, which is mirrored left-right.
-GLASS_W, GLASS_H = 192.96, 110.76
-ACTIVE = (19.44, 11.41, 154.08, 85.92)
-FRAME = (GLASS_W - 11.89 - 166.2, GLASS_H - 3.53 - 100.6, 166.2, 100.6)
-# The drawing dimensions the M3 holes from the outer frame flange (11.89 line: 20.0 from each side, so they are
-# centred on the flange) and the M2.5 standoffs from the frame body (12.54 line).
-M3 = [(GLASS_W - 11.89 - 20.0 - dx, GLASS_H - 23.53 - dy) for dx in (0, 126.2) for dy in (0, 65.65)]
-M25 = [(GLASS_W - 12.54 - 48.45 - dx, GLASS_H - 34.33 - dy) for dx in (0, 58.0) for dy in (0, 49.0)]
-FPC = (GLASS_W - 83.74 - 25.5, GLASS_H, 25.5, 39.62)
+REPORT = HERE.parent / "enclosure" / "enclosure_report.json"
+ENC = json.loads(REPORT.read_text(encoding="utf-8"))
+FV, E = ENC["front_view_mm"], ENC["parameters"]
 
 WIN_ANSI = {"×": 0xD7, "°": 0xB0, "Ø": 0xD8, "±": 0xB1, "–": 0x96, "—": 0x97, "µ": 0xB5, "’": 0x92, "·": 0xB7,
             "²": 0xB2}
@@ -126,78 +121,106 @@ BLACK, GREY, RED, BLUE, GREEN, ORANGE = (0, 0, 0), (0.45, 0.45, 0.45), (0.8, 0.1
 
 def page_display():
     pg = Page()
-    pg.text(10, 9, "v2 fit template 1:1  ·  Official Raspberry Pi 7\" Touch Display in the Yaris iA console", 11, True)
-    pg.text(10, 14, "Front view as seen from the driver's seat. Dashed = on the back of the display, seen through "
-                    "the glass. Red = console opening from the v1 paper fit.", 7)
-    ox, oy = 12.0, 24.0
-    cx = ox + GLASS_W / 2
+    pg.text(10, 9, "v2 fit template 1:1  ·  SunFounder TS-7 7\" display in the Yaris iA console", 11, True)
+    pg.text(10, 14, "Front view from the driver's seat. Lay the display face up on this page: its board must cover the "
+                    "blue outline and its ear holes the orange circles. Dashed = behind the display.", 7)
+    bx0, bx1, by0, by1 = FV["bezel"]
+    ox, oy = 9.0, 23.0                         # page position of the bezel's top-left corner
+
+    def pt(x, y):                              # front view (X right, Y up, mm) -> page
+        return ox + x - bx0, oy + by1 - y
+
+    def box(r):
+        (a, b), (c, d) = pt(r[0], r[3]), pt(r[1], r[2])
+        pg.rect(a, b, c - a, d - b)
+
+    def label(x, y, s, size=6.0, rgb=BLACK, center=False):
+        pg.text(*pt(x, y), s, size, rgb=rgb, center=center)
 
     top, bottom, height = CFG.OPENING_TOP_WIDTH, CFG.OPENING_BOTTOM_WIDTH, CFG.OPENING_HEIGHT
+    yf = FV["opening_bottom_y"]
     pg.style(RED, 0.3, (2.5, 1.5))
-    pg.poly([(cx - top / 2, oy), (cx + top / 2, oy), (cx + bottom / 2, oy + height), (cx - bottom / 2, oy + height)])
-    width_at_glass_bottom = top - (top - bottom) * GLASS_H / height
-    pg.text(ox, oy + 155, f"Console opening (v1 paper fit): {top:g} top / {bottom:g} bottom × {height:g} high. "
-                          f"At the glass's bottom edge it is only {width_at_glass_bottom:.1f} mm wide, so the glass",
-            6.8, rgb=RED)
-    pg.text(ox, oy + 158.3, f"overhangs the trim by ~{(GLASS_W - width_at_glass_bottom) / 2:.0f} mm on each side: "
-                            "it can only sit in front of the opening, never inside it.", 6.8, rgb=RED)
+    pg.poly([pt(-top / 2, yf + height), pt(top / 2, yf + height), pt(bottom / 2, yf), pt(-bottom / 2, yf)])
+    label(-bottom / 2 + 1, yf - 3.6, f"console opening {top:g} / {bottom:g} × {height:g}", 5.8, RED)
 
     pg.style(GREY, 0.25, (1.5, 1.0))
-    fx, fy, fw, fh = FRAME
-    pg.rect(ox + fx, oy + fy, fw, fh)
-    pg.text(ox + fx + 1.5, oy + fy + fh - 1.6, "back metal frame 166.2 × 100.6", 6, rgb=GREY)
-    px, py, pw, ph = FPC
-    pg.rect(ox + px, oy + py, pw, ph)
-    pg.text(ox + px + pw / 2, oy + py + 6, "flat cable", 6, rgb=GREY, center=True)
-    pg.text(ox + px + pw / 2, oy + py + 9, "(folds behind)", 6, rgb=GREY, center=True)
+    box(FV["box"])
+    x0, x1, y0, y1 = FV["box"]
+    label(x0 + 2, y0 + 3, f"rear box {x1 - x0:.0f} × {y1 - y0:.0f}, {ENC['box_mm']['behind_plate']:.1f} deep "
+                          f"(needs {ENC['box_mm']['clear_pocket_depth_needed']:.0f} mm of pocket depth)", 5.6, GREY)
+    pg.style(RED, 0.3, (1.0, 0.8))
+    box(FV["cable_slot"])
+    cx0, cx1, cy0, cy1 = FV["cable_slot"]
+    label(cx1 + 1, cy1 - 1, "cable slot:", 5.6, RED)
+    label(cx1 + 1, cy1 - 3.6, "HDMI + USB go", 5.6, RED)
+    label(cx1 + 1, cy1 - 6.2, "back here", 5.6, RED)
 
-    xs, ys = sorted({p[0] for p in M25}), sorted({p[1] for p in M25})
-    pg.style(GREEN, 0.25, (1.5, 1.0))
-    # Seen from behind, the Pi sits the usual way round on the official display (GPIO header on top, ports to the
-    # right: Raspberry Pi documentation photo), so in this front view its USB/Ethernet end is on the left.
-    pg.rect(ox + xs[0] - 23.5, oy + ys[0] - 3.5, 85.0, 56.0)
-    pg.text(ox + xs[0] - 22, oy + ys[1] + 2.4, "Pi 4 (85 × 56): USB/Ethernet end on this side (check yours)", 6,
-            rgb=GREEN)
-    for x, y in M25:
-        pg.circle(ox + x, oy + y, 1.35)
-    pg.text(ox + xs[0] + 2, oy + ys[0] - 1.4, "4× M2.5 Pi standoffs, 58.0 × 49.0", 6, rgb=GREEN)
+    pg.style(BLACK, 0.45)
+    box(FV["bezel"])
+    label(bx0 + 1.5, by1 + 1.6, f"printed bezel {bx1 - bx0:.1f} × {by1 - by0:.1f}", 6.5, BLACK)
 
-    pg.style(ORANGE, 0.25, (1.5, 1.0))
-    for x, y in M3:
-        pg.circle(ox + x, oy + y, 1.5)
-    hx = max(p[0] for p in M3)
-    hy = min(p[1] for p in M3)
-    pg.text(ox + hx - 30, oy + hy - 2.6, "4× M3 bracket holes, 126.2 × 65.65", 6, rgb=ORANGE)
+    mx0, mx1, my0, my1 = FV["board"]
+    mh, ew = FV["main_h"] / 2, FV["ear_w"]
+    pg.style(BLUE, 0.35)
+    pg.poly([pt(mx0, my1), pt(mx0 + ew, my1), pt(mx0 + ew, mh), pt(mx1 - ew, mh), pt(mx1 - ew, my1), pt(mx1, my1),
+             pt(mx1, my0), pt(mx1 - ew, my0), pt(mx1 - ew, -mh), pt(mx0 + ew, -mh), pt(mx0 + ew, my0), pt(mx0, my0)])
+    label(mx0 + ew + 2, mh + 2.0, f"TS-7 board {mx1 - mx0:.1f} × {my1 - my0:.1f} over the ears (MEASURE)", 6, BLUE)
+    pg.style(ORANGE, 0.3)
+    hs = FV["ear_holes"]
+    for x, y in hs:
+        pg.circle(*pt(x, y), E["HOLE_D"] / 2)
+    xs, ys = sorted({h[0] for h in hs}), sorted({h[1] for h in hs})
+    label(xs[0] + 4.0, ys[0] + 0.8, f"4× M3 ear holes {xs[1] - xs[0]:.1f} × {ys[1] - ys[0]:.1f} (MEASURE)", 6, ORANGE)
 
-    pg.style(BLACK, 0.4)
-    pg.rect(ox, oy, GLASS_W, GLASS_H)
-    pg.text(ox + 2, oy + 4.5, f"GLASS {GLASS_W} × {GLASS_H} (5.96 mm thick)", 7, True)
-    pg.text(ox + 2, oy + GLASS_H - 1.3, "cable edge = bottom (drawing: viewing direction 6 o'clock)", 6)
-    ax, ay, aw, ah = ACTIVE
-    pg.style(BLUE, 0.3)
-    pg.rect(ox + ax, oy + ay, aw, ah)
-    pg.text(ox + ax + aw / 2, oy + ay + ah / 2, f"active area {aw} × {ah} (800 × 480)", 8, rgb=BLUE, center=True)
+    pg.style(BLACK, 0.3)
+    box(FV["glass"])
+    pg.style(BLACK, 0.25, (3.0, 1.0))
+    box(FV["window"])
+    gx0, gx1, gy0, gy1 = FV["glass"]
+    label(gx0 + 3, gy1 - 7.0, f"glass {gx1 - gx0:.1f} × {gy1 - gy0:.1f}; dashed = bezel window (the lip covers "
+                              f"{E['LIP_COVER']:g} mm of the glass)", 6.5, BLACK)
+    pg.style(BLUE, 0.25, (1.0, 1.0))
+    box(FV["active"])
+    ax0, ax1, ay0, ay1 = FV["active"]
+    label((ax0 + ax1) / 2, (ay0 + ay1) / 2, f"active area {ax1 - ax0:.1f} × {ay1 - ay0:.1f} (1024 × 600, position "
+                                            "estimated)", 7.5, BLUE, center=True)
+    label((ax0 + ax1) / 2, (ay0 + ay1) / 2 - 5, f"screen {abs(E['SCREEN_DX']):g} mm toward the driver, so the plugs "
+                                                "fit on the right", 6.5, BLUE, center=True)
 
-    x, y, w = 211.0, 26.0, 62.0
-    y = pg.wrapped(x, y, w, "BEFORE ORDERING THE v2 PCB", 8, True, 4)
+    pg.style(GREY, 0.25, (1.5, 1.0))
+    box(FV["lcd_flex"])
+    fx0, fx1, fy0, fy1 = FV["lcd_flex"]
+    label(fx0, fy0 - 3.0, "LCD flex wraps round this edge", 5.6, GREY)
+    box(FV["hdmi_socket"])
+    box(FV["usb_socket"])
+    pg.style(ORANGE, 0.3, (1.5, 1.0))
+    box(FV["hdmi_plug"])
+    box(FV["usb_plug"])
+    hx0, hx1, hy0, hy1 = FV["hdmi_plug"]
+    label(hx0 + 0.8, hy1 - 3.0, "HDMI FPC", 5.4, ORANGE)
+    label(hx0 + 0.8, hy1 - 5.6, "adapter", 5.4, ORANGE)
+    ux0, ux1, uy0, uy1 = FV["usb_plug"]
+    label(ux0 + 0.6, uy0 - 3.0, "90° micro-USB", 5.4, ORANGE)
+    pg.style(GREY, 0.25)
+    for x, y in FV["bezel_screws"]:
+        pg.circle(*pt(x, y), 1.7, cross=False)
+
+    x, y, w = 218.0, 25.0, 57.0
+    y = pg.wrapped(x, y, w, "BEFORE PRINTING THE ENCLOSURE", 8, True, 4)
     notes = [
-        "1. Cut out the glass outline, glue it to 5 mm foam board and tape a 112 × 120 × 61 mm block behind it, "
-        "centred under the glass: that is the printed enclosure's rear box (enclosure/README.md). Overall "
-        "205.6 × 127.9 × 71.8 mm.",
-        "2. Hold it where you would mount it with the shifter in P. Check the shifter through P-R-N-D-M with your hand "
-        "on it, the HVAC knobs, the 12 V/USB/AUX ports behind the opening, and the view from your seat. The box "
-        "needs about 66 mm of clear depth in the pocket.",
-        "3. Viewing direction 6 o'clock = best seen from below (docs: 50° from the top, 70° from the bottom). In the "
-        "console you look down at it, so mount it upside down (cable edge up) and rotate the image 180°.",
-        "4. Rated 0-50 °C in the product brief's safety notes (the docs page lists -20 to +70 °C). Keep it out of "
-        "direct sun; 250 cd/m² is dim in daylight.",
-        "5. Option B (dash top) gets more sun and heat; check the windshield view and stay clear of the passenger "
-        "airbag area.",
-        "Sources: Raspberry Pi 7\" display mechanical drawing LMD-D/5624/KIT-LC-V3 rev 003, product brief, "
-        "documentation page; v1 panel_config.py.",
+        "1. Lay the display face up on this page. If its board or ear holes miss the blue outline or the orange "
+        "circles by more than 0.5 mm, measure them with calipers and regenerate (enclosure/README.md, Measure first).",
+        "2. Measure: board height over the ears (SunFounder lists 121, its photos say ~124.4), ear holes, the "
+        "HDMI and micro-USB socket centres, the tallest part on the back, your HDMI adapter and micro-USB plug.",
+        f"3. Mock-up: cut out the bezel outline, glue it to foam board with a {ENC['box_mm']['width']:.0f} × "
+        f"{ENC['box_mm']['height']:.0f} × {ENC['box_mm']['behind_plate']:.0f} mm block behind it. Check the shifter "
+        f"through P-R-N-D-M, the HVAC knobs and the view. It stands {ENC['proud_of_trim_mm']:.0f} mm proud of the trim.",
+        "4. IPS panel: readable from any angle, so it mounts the normal way up.",
+        "5. Rated -10 to +60 °C (storage +70 °C): keep it out of direct sun; 250 cd/m² is dim in daylight.",
+        "Sources: SunFounder TS-7 parameters and product photos; enclosure_report.json; v1 panel_config.py.",
     ]
     for n in notes:
-        y = pg.wrapped(x, y, w, n, 6.8) + 1.6
+        y = pg.wrapped(x, y, w, n, 6.4) + 1.4
     pg.scale_bar(12, 196)
     return pg
 
@@ -246,8 +269,8 @@ def page_pcb():
     pg.text(bx - 31, by + 50, "USB window side", 6.5)
     pg.text(bx + 103, by + 46.5, "right edge:", 6.5)
     pg.text(bx + 103, by + 50, "SMA bulkhead wall", 6.5)
-    pg.text(bx, by + 110, "Drawn for the default mount (cable edge up). With --mount normal the left and right "
-                          "keep-outs swap sides.", 6, rgb=GREY)
+    pg.text(bx, by + 110, "The Pi's ports face the driver's right, so its USB window is on the left of this view "
+                          "(the board is seen from the lid side).", 6, rgb=GREY)
 
     x, y, w = 176.0, 36.0, 95.0
     notes = [

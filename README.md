@@ -2,8 +2,8 @@
 
 A dash unit for the Yaris iA in two stages:
 
-- **v1, TPMS panel (done, orderable):** receives the car's 315 MHz tyre-pressure (TPMS) sensors and shows the pressures on an OLED display, with four tyre LEDs and a rotary encoder. It is based on my ECE 6723 Embedded Systems project ([report](00-project-management/TPMS_project_report_ECE6723.pdf)).
-- **v2, TPMS + blind-spot assist (designed, PCB not yet orderable):** adds two mirror cameras with car/motorcycle detection on a Raspberry Pi 4, shown on the Official 7" Touch Display. When a vehicle is in a blind spot, an amber LED lights in that door sail; signalling towards it sounds a sharp beep and shows that camera. The touch screen replaces the v1 encoder, buttons and OLED; one mute button and the buzzer sit in a small pod by the shifter. A 100 × 100 mm 6-layer ESP32 carrier board does the TPMS radio, the blinker inputs (wired to the lamp feeds), the speed gate (the car's own speed from your Bluetooth OBD-II dongle, GPS as the fallback), the alerts and the Pi's power sequencing. The display, the Pi and the board share one 3D-printed enclosure.
+- **v1, TPMS panel (done; orderable after one fix):** receives the car's 315 MHz tyre-pressure (TPMS) sensors and shows the pressures on an OLED display, with four tyre LEDs and a rotary encoder. It is based on my ECE 6723 Embedded Systems project ([report](00-project-management/TPMS_project_report_ECE6723.pdf)).
+- **v2, TPMS + blind-spot assist (designed, PCB not yet orderable):** adds two mirror cameras with car/motorcycle detection on a Raspberry Pi 4, shown on your SunFounder TS-7 7" HDMI touch display (1024 × 600 IPS). When a vehicle is in a blind spot, an amber LED lights in that door sail; signalling towards it sounds a sharp beep and shows that camera. The touch screen replaces the v1 encoder, buttons and OLED; one mute button and the buzzer sit in a small pod by the shifter. A 100 × 100 mm 6-layer ESP32 carrier board does the TPMS radio, the blinker inputs (wired to the lamp feeds), the speed gate (the car's own speed from your Bluetooth OBD-II dongle, GPS as the fallback), the alerts and the Pi's power sequencing. The display, the Pi and the board share one 3D-printed enclosure.
 
 ![front](04-viewer/renders/render_front.png)
 
@@ -30,12 +30,13 @@ The viewer shows the car blueprint with both cameras, LEDs and harnesses and a l
 | [02-firmware](02-firmware/README.md) | [bringup/](02-firmware/bringup/README.md): ESP32 PlatformIO self-test and 315 MHz TPMS decoder. [v2/](02-firmware/v2/README.md): v2 safety logic, pin map and host unit tests |
 | [03-manufacturing](03-manufacturing/README.md) | v1 JLCPCB Gerber/drill zip (`production/tpms_panel_gerbers_jlcpcb.zip`) & BOM CSV |
 | [04-viewer](04-viewer/README.md) | Offline Three.js r160 3-D viewer (`viewer/`), KiCad renders (`renders/`), `make_viewer.py`, `sync_plan.py`, `serve_viewer.py` |
+| [05-Audit-Subsystems](05-Audit-Subsystems/README.md) | Audit of every subsystem with its own premortem (17 pages), the scorecard and top risks, and [run_checks.py](05-Audit-Subsystems/run_checks.py), which re-runs every automated check |
 
 > **Sensors:** the Yaris iA's own TPMS is indirect (ABS-based, no wheel sensors). Four GM/Schrader EG53MA4 sensors were added to the tyres, and this panel is their receiver.
 
-> **v1 status: ready to order.** The outline was accepted from the in-car paper fit (board 1 mm smaller than the opening on the sides and bottom), and the USB holes are Ø25.8 mm for the measured 25.16 mm thread.
+> **v1 status: ready to order after one fix.** The audit found the regulator's heatsink pour split by a track ([V1-01](05-Audit-Subsystems/14-v1-panel.md)): fix it in the build script and rebuild first. The outline was accepted from the in-car paper fit (board 1 mm smaller than the opening on the sides and bottom), and the USB holes are Ø25.8 mm for the measured 25.16 mm thread.
 > The order file is `03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`. If the 7" display takes the console opening (v2 Option A), v1 has no place in the car: order it only for the dash-top option or as a TPMS-only first step.
 
 > **v2 status: not ready to order yet.**
-> - Done: the electrical design and pin map (audited), the safety logic (120 unit checks) and the printed enclosure (38 fit checks).
-> - Open: gates G3–G8 in [PREMORTEM_v2.md](00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). They need the parts on hand, a power-path breadboard test, a mock-up in the car, one display measurement (`PI_SEAT`), a test print, and then the KiCad layout and the quote.
+> - Done: the electrical design and pin map (audited), the safety logic (154 unit checks) and the printed enclosure for the TS-7 (43 fit checks).
+> - Open: gates G3–G8 in [PREMORTEM_v2.md](00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). They need the parts on hand, a power-path breadboard test, a mock-up in the car, the TS-7's measurements (SunFounder publishes no drawing: [enclosure README](01-hardware/enclosure/README.md#measure-first-then---set)), a test print, and then the KiCad layout and the quote.

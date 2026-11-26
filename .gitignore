@@ -6,8 +6,9 @@ fp-info-cache
 _autosave-*
 \#auto_saved_files#
 
-# Build intermediates (netlist, DSN/SES, router log, ERC/DRC JSON); they contain local absolute paths
-hardware/build/
+# Build intermediates (netlist, DSN/SES, router log, ERC/DRC JSON); they contain local absolute paths.
+# Any build/ folder: 01-hardware/build/ and the pre-rename local hardware/build/.
+build/
 
 # Python / Freerouting
 __pycache__/

@@ -13,89 +13,102 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 8216 >>
+<< /Length 9087 >>
 stream
-BT 0.000 0.000 0.000 rg /F2 11.0 Tf 28.346 586.488 Td (v2 fit template 1:1  \267  Official Raspberry Pi 7" Touch Display in the Yaris iA console) Tj ET
-BT 0.000 0.000 0.000 rg /F1 7.0 Tf 28.346 572.315 Td (Front view as seen from the driver's seat. Dashed = on the back of the display, seen through the glass. Red = console opening from the v1 paper fit.) Tj ET
+BT 0.000 0.000 0.000 rg /F2 11.0 Tf 28.346 586.488 Td (v2 fit template 1:1  \267  SunFounder TS-7 7" display in the Yaris iA console) Tj ET
+BT 0.000 0.000 0.000 rg /F1 7.0 Tf 28.346 572.315 Td (Front view from the driver's seat. Lay the display face up on this page: its board must cover the blue outline and its ear holes the orange circles. Dashed = behind the display.) Tj ET
 0.800 0.100 0.100 RG 0.800 0.100 0.100 rg 0.850 w
 [7.09 4.25] 0 d
-36.794 543.969 m 578.211 543.969 l 481.833 178.299 l 133.172 178.299 l h S
-BT 0.800 0.100 0.100 rg /F1 6.8 Tf 34.016 104.598 Td (Console opening \(v1 paper fit\): 191 top / 123 bottom \327 129 high. At the glass's bottom edge it is only 132.6 mm wide, so the glass) Tj ET
-BT 0.800 0.100 0.100 rg /F1 6.8 Tf 34.016 95.244 Td (overhangs the trim by ~30 mm on each side: it can only sit in front of the opening, never inside it.) Tj ET
+46.205 546.803 m 587.622 546.803 l 491.244 181.134 l 142.583 181.134 l h S
+BT 0.800 0.100 0.100 rg /F1 5.8 Tf 145.417 170.929 Td (console opening 191 / 123 \327 129) Tj ET
 0.450 0.450 0.450 RG 0.450 0.450 0.450 rg 0.709 w
 [4.25 2.83] 0 d
-76.167 525.175 m 547.285 525.175 l 547.285 240.009 l 76.167 240.009 l h S
-BT 0.450 0.450 0.450 rg /F1 6.0 Tf 80.419 244.545 Td (back metal frame 166.2 \327 100.6) Tj ET
-271.332 230.003 m 343.616 230.003 l 343.616 117.694 l 271.332 117.694 l h S
-BT 0.450 0.450 0.450 rg /F1 6.0 Tf 292.474 212.995 Td (flat cable) Tj ET
-BT 0.450 0.450 0.450 rg /F1 6.0 Tf 286.474 204.491 Td (\(folds behind\)) Tj ET
-0.100 0.500 0.200 RG 0.100 0.500 0.200 rg 0.709 w
-[4.25 2.83] 0 d
-177.080 476.135 m 418.025 476.135 l 418.025 317.395 l 177.080 317.395 l h S
-BT 0.100 0.500 0.200 rg /F1 6.0 Tf 181.332 320.513 Td (Pi 4 \(85 \327 56\): USB/Ethernet end on this side \(check yours\)) Tj ET
-411.931 327.317 m 411.931 325.203 410.217 323.490 408.104 323.490 c 405.990 323.490 404.277 325.203 404.277 327.317 c 404.277 329.430 405.990 331.143 408.104 331.143 c 410.217 331.143 411.931 329.430 411.931 327.317 c S
-401.443 327.317 m 414.765 327.317 l S
-408.104 333.978 m 408.104 320.655 l S
-411.931 466.214 m 411.931 464.101 410.217 462.387 408.104 462.387 c 405.990 462.387 404.277 464.101 404.277 466.214 c 404.277 468.328 405.990 470.041 408.104 470.041 c 410.217 470.041 411.931 468.328 411.931 466.214 c S
-401.443 466.214 m 414.765 466.214 l S
-408.104 472.876 m 408.104 459.553 l S
-247.521 327.317 m 247.521 325.203 245.808 323.490 243.694 323.490 c 241.581 323.490 239.868 325.203 239.868 327.317 c 239.868 329.430 241.581 331.143 243.694 331.143 c 245.808 331.143 247.521 329.430 247.521 327.317 c S
-237.033 327.317 m 250.356 327.317 l S
-243.694 333.978 m 243.694 320.655 l S
-247.521 466.214 m 247.521 464.101 245.808 462.387 243.694 462.387 c 241.581 462.387 239.868 464.101 239.868 466.214 c 239.868 468.328 241.581 470.041 243.694 470.041 c 245.808 470.041 247.521 468.328 247.521 466.214 c S
-237.033 466.214 m 250.356 466.214 l S
-243.694 472.876 m 243.694 459.553 l S
-BT 0.100 0.500 0.200 rg /F1 6.0 Tf 249.364 470.183 Td (4\327 M2.5 Pi standoffs, 58.0 \327 49.0) Tj ET
-0.850 0.450 0.000 RG 0.850 0.450 0.000 rg 0.709 w
-[4.25 2.83] 0 d
-494.844 296.702 m 494.844 294.354 492.940 292.450 490.592 292.450 c 488.244 292.450 486.340 294.354 486.340 296.702 c 486.340 299.051 488.244 300.954 490.592 300.954 c 492.940 300.954 494.844 299.051 494.844 296.702 c S
-483.506 296.702 m 497.679 296.702 l S
-490.592 303.789 m 490.592 289.616 l S
-494.844 482.797 m 494.844 480.448 492.940 478.545 490.592 478.545 c 488.244 478.545 486.340 480.448 486.340 482.797 c 486.340 485.145 488.244 487.049 490.592 487.049 c 492.940 487.049 494.844 485.145 494.844 482.797 c S
-483.506 482.797 m 497.679 482.797 l S
-490.592 489.883 m 490.592 475.710 l S
-137.112 296.702 m 137.112 294.354 135.208 292.450 132.860 292.450 c 130.511 292.450 128.608 294.354 128.608 296.702 c 128.608 299.051 130.511 300.954 132.860 300.954 c 135.208 300.954 137.112 299.051 137.112 296.702 c S
-125.773 296.702 m 139.946 296.702 l S
-132.860 303.789 m 132.860 289.616 l S
-137.112 482.797 m 137.112 480.448 135.208 478.545 132.860 478.545 c 130.511 478.545 128.608 480.448 128.608 482.797 c 128.608 485.145 130.511 487.049 132.860 487.049 c 135.208 487.049 137.112 485.145 137.112 482.797 c S
-125.773 482.797 m 139.946 482.797 l S
-132.860 489.883 m 132.860 475.710 l S
-BT 0.850 0.450 0.000 rg /F1 6.0 Tf 405.553 490.167 Td (4\327 M3 bracket holes, 126.2 \327 65.65) Tj ET
-0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 1.134 w
+158.173 535.465 m 475.654 535.465 l 475.654 183.969 l 158.173 183.969 l h S
+BT 0.450 0.450 0.450 rg /F1 5.6 Tf 163.843 192.472 Td (rear box 112 \327 124, 50.5 deep \(needs 56 mm of pocket depth\)) Tj ET
+0.800 0.100 0.100 RG 0.800 0.100 0.100 rg 0.850 w
+[2.83 2.27] 0 d
+532.772 528.378 m 558.283 528.378 l 558.283 471.685 l 532.772 471.685 l h S
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 561.118 525.543 Td (cable slot:) Tj ET
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 561.118 518.173 Td (HDMI + USB go) Tj ET
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 561.118 510.803 Td (back here) Tj ET
+0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 1.276 w
 [] 0 d
-34.016 543.969 m 580.989 543.969 l 580.989 230.003 l 34.016 230.003 l h S
-BT 0.000 0.000 0.000 rg /F2 7.0 Tf 39.685 531.213 Td (GLASS 192.96 \327 110.76 \(5.96 mm thick\)) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.0 Tf 39.685 233.688 Td (cable edge = bottom \(drawing: viewing direction 6 o'clock\)) Tj ET
-0.100 0.300 0.800 RG 0.100 0.300 0.800 rg 0.850 w
+25.512 546.803 m 608.315 546.803 l 608.315 181.134 l 25.512 181.134 l h S
+BT 0.000 0.000 0.000 rg /F1 6.5 Tf 29.764 551.339 Td (printed bezel 205.6 \327 129.0) Tj ET
+0.100 0.300 0.800 RG 0.100 0.300 0.800 rg 0.992 w
 [] 0 d
-89.121 511.625 m 525.883 511.625 l 525.883 268.072 l 89.121 268.072 l h S
-BT 0.100 0.300 0.800 rg /F1 8.0 Tf 231.502 389.849 Td (active area 154.08 \327 85.92 \(800 \327 480\)) Tj ET
-BT 0.000 0.000 0.000 rg /F2 8.0 Tf 598.110 538.299 Td (BEFORE ORDERING THE v2 PCB) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 526.961 Td (1. Cut out the glass outline, glue it to 5 mm foam) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 517.606 Td (board and tape a 112 \327 120 \327 61 mm block behind it,) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 508.252 Td (centred under the glass: that is the printed) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 498.898 Td (enclosure's rear box \(enclosure/README.md\). Overall) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 489.543 Td (205.6 \327 127.9 \327 71.8 mm.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 475.654 Td (2. Hold it where you would mount it with the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 466.299 Td (shifter in P. Check the shifter through P-R-N-D-M) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 456.945 Td (with your hand on it, the HVAC knobs, the 12) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 447.591 Td (V/USB/AUX ports behind the opening, and the view) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 438.236 Td (from your seat. The box needs about 66 mm of clear) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 428.882 Td (depth in the pocket.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 414.992 Td (3. Viewing direction 6 o'clock = best seen from) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 405.638 Td (below \(docs: 50\260 from the top, 70\260 from the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 396.283 Td (bottom\). In the console you look down at it, so) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 386.929 Td (mount it upside down \(cable edge up\) and rotate the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 377.575 Td (image 180\260.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 363.685 Td (4. Rated 0-50 \260C in the product brief's safety) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 354.331 Td (notes \(the docs page lists -20 to +70 \260C\). Keep it) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 344.976 Td (out of direct sun; 250 cd/m\262 is dim in daylight.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 331.087 Td (5. Option B \(dash top\) gets more sun and heat;) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 321.732 Td (check the windshield view and stay clear of the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 312.378 Td (passenger airbag area.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 298.488 Td (Sources: Raspberry Pi 7" display mechanical drawing) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 289.134 Td (LMD-D/5624/KIT-LC-V3 rev 003, product brief,) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.8 Tf 598.110 279.780 Td (documentation page; v1 panel_config.py.) Tj ET
+59.953 540.283 m 81.496 540.283 l 81.496 514.772 l 506.976 514.772 l 506.976 540.283 l 528.520 540.283 l 528.520 187.654 l 506.976 187.654 l 506.976 213.165 l 81.496 213.165 l 81.496 187.654 l 59.953 187.654 l h S
+BT 0.100 0.300 0.800 rg /F1 6.0 Tf 87.165 520.441 Td (TS-7 board 165.3 \327 124.4 over the ears \(MEASURE\)) Tj ET
+0.850 0.450 0.000 RG 0.850 0.450 0.000 rg 0.850 w
+[] 0 d
+75.827 201.827 m 75.827 199.322 73.796 197.291 71.291 197.291 c 68.786 197.291 66.756 199.322 66.756 201.827 c 66.756 204.332 68.786 206.362 71.291 206.362 c 73.796 206.362 75.827 204.332 75.827 201.827 c S
+63.921 201.827 m 78.661 201.827 l S
+71.291 209.197 m 71.291 194.457 l S
+75.827 526.110 m 75.827 523.605 73.796 521.575 71.291 521.575 c 68.786 521.575 66.756 523.605 66.756 526.110 c 66.756 528.615 68.786 530.646 71.291 530.646 c 73.796 530.646 75.827 528.615 75.827 526.110 c S
+63.921 526.110 m 78.661 526.110 l S
+71.291 533.480 m 71.291 518.740 l S
+521.717 201.827 m 521.717 199.322 519.686 197.291 517.181 197.291 c 514.676 197.291 512.646 199.322 512.646 201.827 c 512.646 204.332 514.676 206.362 517.181 206.362 c 519.686 206.362 521.717 204.332 521.717 201.827 c S
+509.811 201.827 m 524.551 201.827 l S
+517.181 209.197 m 517.181 194.457 l S
+521.717 526.110 m 521.717 523.605 519.686 521.575 517.181 521.575 c 514.676 521.575 512.646 523.605 512.646 526.110 c 512.646 528.615 514.676 530.646 517.181 530.646 c 519.686 530.646 521.717 528.615 521.717 526.110 c S
+509.811 526.110 m 524.551 526.110 l S
+517.181 533.480 m 517.181 518.740 l S
+BT 0.850 0.450 0.000 rg /F1 6.0 Tf 82.630 204.094 Td (4\327 M3 ear holes 157.3 \327 114.4 \(MEASURE\)) Tj ET
+0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 0.850 w
+[] 0 d
+60.520 504.283 m 527.953 504.283 l 527.953 220.819 l 60.520 220.819 l h S
+0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 0.709 w
+[8.50 2.83] 0 d
+66.189 498.614 m 522.283 498.614 l 522.283 226.488 l 66.189 226.488 l h S
+BT 0.000 0.000 0.000 rg /F1 6.5 Tf 69.024 484.441 Td (glass 164.9 \327 100.0; dashed = bezel window \(the lip covers 2 mm of the glass\)) Tj ET
+0.100 0.300 0.800 RG 0.100 0.300 0.800 rg 0.709 w
+[2.83 2.83] 0 d
+72.255 493.398 m 509.414 493.398 l 509.414 249.846 l 72.255 249.846 l h S
+BT 0.100 0.300 0.800 rg /F1 7.5 Tf 183.960 371.622 Td (active area 154.2 \327 85.9 \(1024 \327 600, position estimated\)) Tj ET
+BT 0.100 0.300 0.800 rg /F1 6.5 Tf 193.335 357.449 Td (screen 8 mm toward the driver, so the plugs fit on the right) Tj ET
+0.450 0.450 0.450 RG 0.450 0.450 0.450 rg 0.709 w
+[4.25 2.83] 0 d
+247.465 224.504 m 332.504 224.504 l 332.504 208.346 l 247.465 208.346 l h S
+BT 0.450 0.450 0.450 rg /F1 5.6 Tf 247.465 199.843 Td (LCD flex wraps round this edge) Tj ET
+495.638 456.094 m 532.488 456.094 l 532.488 413.575 l 495.638 413.575 l h S
+516.331 385.937 m 531.921 385.937 l 531.921 364.677 l 516.331 364.677 l h S
+0.850 0.450 0.000 RG 0.850 0.450 0.000 rg 0.850 w
+[4.25 2.83] 0 d
+532.488 466.016 m 589.181 466.016 l 589.181 403.654 l 532.488 403.654 l h S
+531.921 392.315 m 563.102 392.315 l 563.102 358.299 l 531.921 358.299 l h S
+BT 0.850 0.450 0.000 rg /F1 5.4 Tf 534.756 457.512 Td (HDMI FPC) Tj ET
+BT 0.850 0.450 0.000 rg /F1 5.4 Tf 534.756 450.142 Td (adapter) Tj ET
+BT 0.850 0.450 0.000 rg /F1 5.4 Tf 533.622 349.795 Td (90\260 micro-USB) Tj ET
+0.450 0.450 0.450 RG 0.450 0.450 0.450 rg 0.709 w
+[] 0 d
+147.402 532.630 m 147.402 529.968 145.244 527.811 142.583 527.811 c 139.921 527.811 137.764 529.968 137.764 532.630 c 137.764 535.291 139.921 537.449 142.583 537.449 c 145.244 537.449 147.402 535.291 147.402 532.630 c S
+496.063 532.630 m 496.063 529.968 493.906 527.811 491.244 527.811 c 488.583 527.811 486.425 529.968 486.425 532.630 c 486.425 535.291 488.583 537.449 491.244 537.449 c 493.906 537.449 496.063 535.291 496.063 532.630 c S
+147.402 195.307 m 147.402 192.646 145.244 190.488 142.583 190.488 c 139.921 190.488 137.764 192.646 137.764 195.307 c 137.764 197.969 139.921 200.126 142.583 200.126 c 145.244 200.126 147.402 197.969 147.402 195.307 c S
+496.063 195.307 m 496.063 192.646 493.906 190.488 491.244 190.488 c 488.583 190.488 486.425 192.646 486.425 195.307 c 486.425 197.969 488.583 200.126 491.244 200.126 c 493.906 200.126 496.063 197.969 496.063 195.307 c S
+51.364 293.102 m 51.364 290.441 49.206 288.283 46.545 288.283 c 43.883 288.283 41.726 290.441 41.726 293.102 c 41.726 295.764 43.883 297.921 46.545 297.921 c 49.206 297.921 51.364 295.764 51.364 293.102 c S
+594.142 236.409 m 594.142 233.748 591.984 231.591 589.323 231.591 c 586.661 231.591 584.504 233.748 584.504 236.409 c 584.504 239.071 586.661 241.228 589.323 241.228 c 591.984 241.228 594.142 239.071 594.142 236.409 c S
+BT 0.000 0.000 0.000 rg /F2 8.0 Tf 617.953 541.134 Td (BEFORE PRINTING THE ENCLOSURE) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 529.795 Td (1. Lay the display face up on this page. If its) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 520.441 Td (board or ear holes miss the blue outline or the) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 511.087 Td (orange circles by more than 0.5 mm, measure them) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 501.732 Td (with calipers and regenerate \(enclosure/README.md,) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 492.378 Td (Measure first\).) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 479.055 Td (2. Measure: board height over the ears \(SunFounder) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 469.701 Td (lists 121, its photos say ~124.4\), ear holes, the) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 460.346 Td (HDMI and micro-USB socket centres, the tallest) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 450.992 Td (part on the back, your HDMI adapter and micro-USB) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 441.638 Td (plug.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 428.315 Td (3. Mock-up: cut out the bezel outline, glue it to) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 418.961 Td (foam board with a 112 \327 124 \327 50 mm block behind) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 409.606 Td (it. Check the shifter through P-R-N-D-M, the HVAC) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 400.252 Td (knobs and the view. It stands 22 mm proud of the) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 390.898 Td (trim.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 377.575 Td (4. IPS panel: readable from any angle, so it) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 368.220 Td (mounts the normal way up.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 354.898 Td (5. Rated -10 to +60 \260C \(storage +70 \260C\): keep it) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 345.543 Td (out of direct sun; 250 cd/m\262 is dim in daylight.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 332.220 Td (Sources: SunFounder TS-7 parameters and product) Tj ET
+BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 322.866 Td (photos; enclosure_report.json; v1 panel_config.py.) Tj ET
 0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 0.992 w
 [] 0 d
 34.016 56.409 m 317.480 56.409 l S
@@ -117,7 +130,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 792.00 612.00] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
 endobj
 7 0 obj
-<< /Length 6716 >>
+<< /Length 6735 >>
 stream
 BT 0.000 0.000 0.000 rg /F2 11.0 Tf 28.346 586.488 Td (v2 fit template 1:1  \267  100 \327 100 mm carrier PCB \(6-layer\)) Tj ET
 BT 0.000 0.000 0.000 rg /F1 7.0 Tf 28.346 572.315 Td (Parts side up, as you see it with the enclosure lid off. Zones are planning estimates until the KiCad layout exists; the keep-outs come from the enclosure generator.) Tj ET
@@ -171,7 +184,7 @@ BT 0.000 0.000 0.000 rg /F1 6.5 Tf 8.504 378.142 Td (left edge: the Pi's) Tj ET
 BT 0.000 0.000 0.000 rg /F1 6.5 Tf 8.504 368.220 Td (USB window side) Tj ET
 BT 0.000 0.000 0.000 rg /F1 6.5 Tf 388.346 378.142 Td (right edge:) Tj ET
 BT 0.000 0.000 0.000 rg /F1 6.5 Tf 388.346 368.220 Td (SMA bulkhead wall) Tj ET
-BT 0.450 0.450 0.450 rg /F1 6.0 Tf 96.378 198.142 Td (Drawn for the default mount \(cable edge up\). With --mount normal the left and right keep-outs swap sides.) Tj ET
+BT 0.450 0.450 0.450 rg /F1 6.0 Tf 96.378 198.142 Td (The Pi's ports face the driver's right, so its USB window is on the left of this view \(the board is seen from the lid side\).) Tj ET
 BT 0.000 0.000 0.000 rg /F1 7.0 Tf 498.898 509.953 Td (The board rides in the printed enclosure behind the Pi, parts facing the) Tj ET
 BT 0.000 0.000 0.000 rg /F1 7.0 Tf 498.898 500.598 Td (lid, on 4 posts \(M3, 92 \327 92 mm\). Its flat underside faces the Pi with a 3) Tj ET
 BT 0.000 0.000 0.000 rg /F1 7.0 Tf 498.898 491.244 Td (mm air gap: through-hole pins at most 2.5 mm long.) Tj ET
@@ -213,11 +226,11 @@ xref
 0000000127 00000 n 
 0000000224 00000 n 
 0000000326 00000 n 
-0000008594 00000 n 
-0000008736 00000 n 
-0000015504 00000 n 
+0000009465 00000 n 
+0000009607 00000 n 
+0000016394 00000 n 
 trailer
 << /Size 9 /Root 1 0 R >>
 startxref
-15646
+16536
 %%EOF

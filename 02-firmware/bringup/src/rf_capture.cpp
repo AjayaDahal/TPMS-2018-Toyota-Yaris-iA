@@ -19,6 +19,7 @@ constexpr int kMinBurst = 40;           // shorter bursts are treated as noise
 volatile uint16_t ring[kRing];          // bit 15: level of the pulse that just ended, bits 0-14: duration
 volatile uint32_t head = 0, tail = 0, nEdges = 0, nDropped = 0;
 volatile uint32_t lastEdgeUs = 0;
+volatile uint32_t lastLevel = 0;        // input level after the last recorded edge
 volatile uint32_t inReg = GPIO_IN_REG;  // GPIO_IN1_REG for GPIO32..39
 volatile uint32_t inShift = 0;
 int attachedPin = -1;
@@ -28,10 +29,15 @@ bool inBurst = false, mergeNext = false;
 
 void IRAM_ATTR onEdge() {
   const uint32_t now = (uint32_t)esp_timer_get_time();
+  const uint32_t level = (*(volatile uint32_t*)inReg >> inShift) & 1;
+  // A glitch shorter than the interrupt latency (the CC1101's asynchronous output has ~38 ns ones) is over by the
+  // time the level is read: no edge, so the pulse/gap alternation stays intact and the time adds to the next edge.
+  if (level == lastLevel) return;
+  lastLevel = level;
   const uint32_t d = now - lastEdgeUs;
   lastEdgeUs = now;
   nEdges++;
-  const uint32_t ended = ((*(volatile uint32_t*)inReg >> inShift) & 1) ^ 1;
+  const uint32_t ended = level ^ 1;
   const uint32_t h = head, next = (h + 1) & (kRing - 1);
   if (next == tail) {
     nDropped++;
@@ -53,16 +59,22 @@ bool finish(Burst& out) {
 }  // namespace
 
 void attach(int pin) {
-  if (attachedPin >= 0) detachInterrupt(digitalPinToInterrupt(attachedPin));
+  detach();
   pinMode(pin, INPUT);
   inReg = pin >= 32 ? GPIO_IN1_REG : GPIO_IN_REG;
   inShift = pin >= 32 ? pin - 32 : pin;
   head = tail = 0;
   inBurst = mergeNext = false;
   cur.n = 0;
+  lastLevel = (uint32_t)digitalRead(pin);
   lastEdgeUs = (uint32_t)esp_timer_get_time();
   attachedPin = pin;
   attachInterrupt(digitalPinToInterrupt(pin), onEdge, CHANGE);
+}
+
+void detach() {
+  if (attachedPin >= 0) detachInterrupt(digitalPinToInterrupt(attachedPin));
+  attachedPin = -1;
 }
 
 bool nextBurst(Burst& out) {

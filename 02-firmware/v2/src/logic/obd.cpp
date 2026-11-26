@@ -8,7 +8,7 @@ namespace obd {
 
 namespace {
 
-const char* const kSetup[] = {"ATE0", "ATS0", "ATH0", "ATSP6"};
+const char* const kSetup[] = {"ATE0", "ATS0", "ATH0", "ATSPA6"};
 constexpr int kSetupSteps = (int)(sizeof(kSetup) / sizeof(kSetup[0]));
 
 int hexValue(char c) {
@@ -83,6 +83,7 @@ void ElmClient::connected(uint32_t, bool up) {
   if (up) noCount_ = false;
   step_ = 0;
   waiting_ = false;
+  draining_ = false;
   pollSent_ = false;
   streak_ = 0;
   n_ = 0;
@@ -110,7 +111,8 @@ void ElmClient::endLine() {
   overflow_ = false;
   if (!ok || !waiting_ || same(line_, sent_)) return;  // empty, overlong, unsolicited or the echo
   if (state_ == ElmState::Resetting) {
-    if (containsNoCase(line_, "ELM327")) gotId_ = true;
+    // The banner. Clones print all sorts of names ("ELM327 v1.5", "OBDII v1.5", ...): anything but a refusal.
+    if (!same(line_, "STOPPED") && !same(line_, "?")) gotId_ = true;
   } else if (state_ == ElmState::Polling) {
     uint8_t v;
     if (parseSpeedLine(line_, v)) {
@@ -118,6 +120,10 @@ void ElmClient::endLine() {
       lineKmh_ = v;
     } else if (same(line_, "?")) {
       gotQuestion_ = true;
+    } else if (containsNoCase(line_, "SEARCHING")) {
+      searching_ = true;   // protocol search under way: give it time (searchTimeoutMs)
+    } else if (containsNoCase(line_, "NO DATA")) {
+      gotNoData_ = true;
     }
   }
 }
@@ -136,7 +142,7 @@ void ElmClient::prompt(uint32_t now) {
       }
       break;
     case ElmState::Configuring:
-      // Best effort: any answer moves on (the parser copes with echo, spaces and headers; ATSP6 only saves time).
+      // Best effort: any answer moves on (the parser copes with echo, spaces and headers; ATSPA6 only saves time).
       streak_ = 0;
       if (++step_ >= kSetupSteps) {
         state_ = ElmState::Polling;
@@ -152,8 +158,11 @@ void ElmClient::prompt(uint32_t now) {
         streak_ = 0;
       } else if (gotQuestion_ && !noCount_) {
         noCount_ = true;  // a clone without the response-count digit: poll with plain "010D"
+      } else if (gotNoData_) {
+        noData_++;        // the dongle works, the car didn't answer (key in ACC): not a reason to reset it
+        streak_ = 0;
       } else {
-        failed();         // NO DATA, CAN ERROR, STOPPED, BUFFER FULL, UNABLE TO CONNECT, ...
+        failed();         // CAN ERROR, STOPPED, BUFFER FULL, UNABLE TO CONNECT, ...
       }
       break;
     case ElmState::Disconnected:
@@ -172,10 +181,18 @@ void ElmClient::failed() {
 const char* ElmClient::poll(uint32_t now) {
   if (state_ == ElmState::Disconnected) return nullptr;
   if (waiting_) {
-    const uint32_t limit = state_ == ElmState::Resetting ? cfg_.resetTimeoutMs : cfg_.cmdTimeoutMs;
+    const uint32_t limit = state_ == ElmState::Resetting ? cfg_.resetTimeoutMs
+                           : searching_                  ? cfg_.searchTimeoutMs
+                                                         : cfg_.cmdTimeoutMs;
     if ((uint32_t)(now - sentMs_) < limit) return nullptr;
     waiting_ = false;
     failed();
+    draining_ = true;  // a late reply may still be on its way: let it arrive and be ignored
+    drainUntil_ = now + cfg_.drainMs;
+  }
+  if (draining_) {
+    if ((int32_t)(now - drainUntil_) < 0) return nullptr;
+    draining_ = false;
   }
   const char* cmd = nullptr;
   switch (state_) {
@@ -198,7 +215,7 @@ const char* ElmClient::poll(uint32_t now) {
   sent_ = cmd;
   sentMs_ = now;
   waiting_ = true;
-  gotId_ = gotSpeed_ = gotQuestion_ = false;
+  gotId_ = gotSpeed_ = gotQuestion_ = gotNoData_ = searching_ = false;
   n_ = 0;
   overflow_ = false;
   return cmd;

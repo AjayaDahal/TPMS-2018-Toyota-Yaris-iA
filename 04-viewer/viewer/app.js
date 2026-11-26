@@ -71,7 +71,6 @@ let explodeAmt = 0;
 let xrayOn = false;
 let sectionOn = false;
 let turntableOn = false;
-let v1Loaded = false;
 
 function resize() {
   const w = stageEl.clientWidth || 640, h = stageEl.clientHeight || 480;
@@ -81,6 +80,20 @@ function resize() {
 }
 window.addEventListener("resize", resize);
 resize();
+
+// A visible error instead of empty tabs and a console message.
+function showError(msg) {
+  let el = document.getElementById("load-error");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "load-error";
+    el.setAttribute("role", "alert");
+    el.style.cssText = "position:absolute;left:18px;right:18px;top:96px;z-index:7;padding:10px 12px;border-radius:8px;" +
+      "background:rgba(127,29,29,.95);border:1px solid #ef4444;color:#fff;font-size:12.5px;line-height:1.45";
+    stageEl.appendChild(el);
+  }
+  el.textContent = msg;
+}
 
 function hideMedia() {
   mediaEl.hidden = true;
@@ -193,12 +206,23 @@ function selectV1Part(name) {
   renderV1Inspector(v1Records.find((r) => r.item.name === selectedName) || null);
 }
 
-async function ensureV1Loaded() {
-  if (v1Loaded || !manifest) return;
-  v1Loaded = true;
-  for (let i = 0; i < (manifest.items || []).length; i++) {
-    const it = manifest.items[i];
-    const geo = await loader.loadAsync(it.url);
+let v1LoadPromise = null;
+function ensureV1Loaded() {
+  if (!manifest) return Promise.resolve();
+  if (!v1LoadPromise) {
+    v1LoadPromise = loadV1Parts().catch((err) => {
+      v1LoadPromise = null;  // let the next visit retry
+      throw err;
+    });
+  }
+  return v1LoadPromise;
+}
+
+async function loadV1Parts() {
+  const items = manifest.items || [];
+  const geos = await Promise.all(items.map((it) => loader.loadAsync(it.url)));
+  geos.forEach((geo, i) => {
+    const it = items[i];
     geo.scale(MM, MM, MM);
     geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({
@@ -211,7 +235,7 @@ async function ensureV1Loaded() {
     mesh.userData.name = it.name;
     v1PartsGroup.add(mesh);
     v1Records.push({ item: it, mesh, mat, hue: (i * 0.618) % 1 });
-  }
+  });
   applyV1ColorsAndOpacity();
 }
 
@@ -259,8 +283,8 @@ function setV1Camera(key) {
   hideMedia();
   const presets = {
     iso: [[0.18, -0.22, 0.22], [0, 0, 0], "v1 TPMS Panel Isometric"],
-    front: [[0, -0.01, 0.30], [0, 0, 0], "v1 Front (2.7\" OLED & Tyre LEDs)"],
-    back: [[0, -0.01, -0.30], [0, 0, 0], "v1 Back (ESP32 & CC1101)"],
+    front: [[0, -0.01, 0.30], [0, 0, 0], "v1 Front (board and fitted parts; the OLED, DevKit, CC1101 and encoder modules are not modelled)"],
+    back: [[0, -0.01, -0.30], [0, 0, 0], "v1 Back (sockets for the DevKit and CC1101; the modules are not modelled)"],
     side: [[0.30, 0, 0.04], [0, 0, 0], "v1 Side Profile"],
   };
   const p = presets[key] || presets.iso;
@@ -321,15 +345,21 @@ async function switchMode(mode, syncTab = true) {
   } else if (mode === "pcb6") {
     document.getElementById("eyebrow").textContent = "JLCPCB 6-LAYER · ENIG · 100 × 100 mm · PROMO PRICE TO CONFIRM AT CHECKOUT";
     document.getElementById("stage-title").textContent = "100 × 100 mm ESP32 Carrier + Printed Display Enclosure";
-    document.getElementById("dimension").textContent = "PCB 100.0 × 100.0 × 1.6 mm · enclosure 205.6 × 127.9 × 71.8 mm · layout pending (gate G7)";
+    const eo = systemPlan?.enclosure?.overall_mm;
+    document.getElementById("dimension").textContent = `PCB 100.0 × 100.0 × 1.6 mm · enclosure ${eo ? `${eo.width} × ${eo.height} × ${eo.depth} mm` : "see the enclosure README"} · layout pending (gate G7)`;
     setPcb6Camera("iso");
     if (syncTab) activateTab("tab-pcb6");
   } else {
     document.getElementById("eyebrow").textContent = "ORIGINAL v1 TPMS MONITOR PANEL · 2-LAYER KiCad 10";
     document.getElementById("stage-title").textContent = "315 MHz Dash TPMS Receiver PCB (189×128 mm)";
     const d = (manifest && manifest.dims_mm) || [189, 128, 27.1];
-    document.getElementById("dimension").textContent = `${d[0]} × ${d[1]} × ${d[2]} mm · ERC/DRC 0/0 · orderable, but no room for it if the 7" display takes the pocket`;
-    await ensureV1Loaded();
+    document.getElementById("dimension").textContent = `${d[0]} × ${d[1]} × ${d[2]} mm · ERC/DRC 0/0 · orderable after the heatsink-pour fix (audit V1-01); no room for it if the 7" display takes the pocket`;
+    try {
+      await ensureV1Loaded();
+    } catch (err) {
+      showError(`The v1 board model failed to load (${err.message || err}). Switch modes to retry.`);
+    }
+    if (activeMode !== "v1") return;  // switched away while the model loaded
     setV1Camera("iso");
     if (syncTab) activateTab("tab-v1");
   }
@@ -375,7 +405,7 @@ function buildUI() {
   const updateMountCard = (id) => {
     const opt = systemPlan?.mount_options?.[id];
     if (!opt) return;
-    mountDescEl.innerHTML = `<strong>${opt.name}</strong><br>${opt.summary}<br><span class="muted">DSI: ${opt.dsi_cable}</span>`;
+    mountDescEl.innerHTML = `<strong>${opt.name}</strong><br>${opt.summary}<br><span class="muted">Display cables: ${opt.display_cable}</span>`;
   };
   updateMountCard("console_float");
   document.querySelectorAll("#mount-opts button").forEach((btn) => {
@@ -512,7 +542,9 @@ function buildUI() {
     ["Track F / R", `${bp.track_front_mm} / ${bp.track_rear_mm} mm`],
     ["Tires", bp.tire_size],
     ["Console Pocket", bp.console_pocket_mm],
-    ["7\" RPi Display", bp.rpi_7in_display_mm],
+    ["7\" Display", bp.display_7in_mm],
+    ["Display Mount", bp.display_mount_holes_mm],
+    ["Enclosure", bp.enclosure_mm],
     ["6-Layer PCB", bp.carrier_pcb_mm],
   ].map(([k, v]) => `<dt>${k}</dt><dd style="text-align:right">${v || "—"}</dd>`).join("");
 
@@ -532,7 +564,7 @@ function buildUI() {
     r.peak += p.peak_a;
     return `<dt>${p.load} <span class="muted">(${p.rail})</span></dt><dd>${p.typ_a.toFixed(2)} A / ${p.peak_a.toFixed(2)} A pk</dd>`;
   }).join("");
-  const limits = { "5V_PI": "Pololu D36V50F5, 5.5 A", "5V_ESP": "TSR 1-2450, 1 A", "12V_PROT": "4 A fuse" };
+  const limits = { "5V_PI": "TPS54560B buck, 5 A", "5V_ESP": "TPS54560B buck, 1 A design", "12V_PROT": "4 A fuse" };
   const totals = Object.entries(railTot).map(([k, v]) =>
     `<dt><b>${k} total</b> <span class="muted">(${limits[k] || ""})</span></dt><dd style="color:#fb923c;">${v.typ.toFixed(2)} A / ${v.peak.toFixed(2)} A pk</dd>`).join("");
   pwrEl.innerHTML = `<dl>${rows}${totals}</dl>`;
@@ -633,6 +665,8 @@ function buildUI() {
     };
   });
   document.getElementById("chk-reset").onclick = () => {
+    const ticked = Object.values(chkDone).filter(Boolean).length;
+    if (ticked && !window.confirm(`Clear all ${ticked} ticked items in every checklist? This can't be undone.`)) return;
     chkDone = {};
     try { localStorage.removeItem(CHK_STORE_KEY); } catch {}
     renderChecklists();
@@ -643,7 +677,7 @@ function buildUI() {
   const gate = systemPlan?.order_gate || [];
   const open = gate.filter((g) => g.status !== "done");
   document.getElementById("gate-verdict").innerHTML = open.length
-    ? `<b style="color:#f87171">v2 PCB: not yet.</b> ${gate.length - open.length} of ${gate.length} gates done; open: ${open.map((g) => g.id).join(", ")}. The v1 panel is orderable (ERC/DRC 0/0) but has no place in the car if the 7" display takes the pocket.`
+    ? `<b style="color:#f87171">v2 PCB: not yet.</b> ${gate.length - open.length} of ${gate.length} gates done; open: ${open.map((g) => g.id).join(", ")}. The v1 panel is orderable after one fix (ERC/DRC 0/0; its regulator's heatsink pour is split: audit V1-01) but has no place in the car if the 7" display takes the pocket.`
     : `<b style="color:#34d399">All gates green: the v2 PCB can be ordered.</b>`;
   const GATE_PILL = { done: ["pass", "DONE"], you: ["buy", "YOU"], next: ["opt", "NEXT"] };
   const gateEl = document.getElementById("gate-list");
@@ -703,16 +737,17 @@ function buildUI() {
   const enc = systemPlan?.enclosure;
   const encCard = document.getElementById("enclosure-card");
   if (enc && encCard) {
-    const o = enc.overall_mm, b = enc.box_mm, pc = enc.pcb_constraints;
-    encCard.innerHTML = `<strong>Printed enclosure (${enc.mount}, ${enc.checks.passed}/${enc.checks.total} fit checks pass)</strong><br>
-      Overall ${o.width} × ${o.height} × ${o.depth} mm · rear box ${b.width} × ${b.height} mm, ${b.behind_plate} mm behind the plate (pocket ≥ ${b.clear_pocket_depth_needed} mm) · Pi ports face the ${enc.ports_face}.<br>
+    const o = enc.overall_mm, b = enc.box_mm, pc = enc.pcb_constraints, dm = enc.display_mount || {};
+    encCard.innerHTML = `<strong>Printed enclosure for the ${enc.display || "display"} (${enc.checks.passed}/${enc.checks.total} fit checks pass)</strong><br>
+      Overall ${o.width} × ${o.height} × ${o.depth} mm, ${enc.proud_of_trim_mm} mm proud of the trim · rear box ${b.width} × ${b.height} mm, ${b.behind_plate} mm behind the plate (pocket ≥ ${b.clear_pocket_depth_needed} mm) · Pi ports face the ${enc.ports_face}. Mounted ${enc.mount}.<br>
+      ${dm.screws ? `Display: ${dm.screws}; ear holes ${dm.ear_holes_mm.join(" × ")} mm (measure). Cables: ${dm.cable_slot}.<br>` : ""}
       <span class="muted">PCB keep-outs: parts ≤ ${pc.max_part_height_mm} mm · ${pc.fan_zone} · ${pc.sma_strip} · ${pc.corners}.</span><br>
       <a href="../../01-hardware/enclosure/README.md" target="_blank">Enclosure README</a> · STL: ${enc.print_files.map((f) => `<a href="${f}" download>${f.split("/").pop().replace("print_", "").replace(".stl", "")}</a>`).join(" · ")}`;
   }
 
   // ---- TAB 5: ORIGINAL v1 PCB ----
   const viewsEl = document.getElementById("views");
-  [["iso", "Isometric"], ["front", "Front (OLED)"], ["back", "Back (MCU/RF)"], ["side", "Side Profile"]].forEach(([k, lbl]) => {
+  [["iso", "Isometric"], ["front", "Front"], ["back", "Back"], ["side", "Side Profile"]].forEach(([k, lbl]) => {
     const b = document.createElement("button");
     b.textContent = lbl;
     b.onclick = async () => { if (activeMode !== "v1") await switchMode("v1", false); setV1Camera(k); };
@@ -803,7 +838,8 @@ function buildUI() {
   document.getElementById("back-3d").onclick = hideMedia;
   document.getElementById("collapse").onclick = (e) => {
     const c = document.querySelector("main").classList.toggle("collapsed");
-    e.target.textContent = c ? "Show" : "Hide";
+    e.currentTarget.textContent = c ? "Show" : "Hide";
+    e.currentTarget.setAttribute("aria-expanded", String(!c));
     setTimeout(resize, 20);
   };
 }
@@ -830,17 +866,25 @@ function pickCurrent(clientX, clientY) {
   const root = activeMode === "car" ? carRoot : pcb6Root;
   const pickList = activeMode === "car" ? carCtx.pickables : pcb6Ctx.pickables;
   const hits = raycaster.intersectObjects(root.children, true);
+  // The Raycaster ignores `visible`: skip anything hidden itself or under a hidden group. Keep-out volumes are
+  // picked only when no part is behind the click.
+  let fallback = null;
   for (const h of hits) {
-    let obj = h.object;
+    let obj = h.object, hidden = false, info = null, low = false;
     while (obj && obj !== root) {
-      if (obj.userData && obj.userData.pickId) {
-        const info = pickList.find((p) => p.id === obj.userData.pickId);
-        if (info) return { kind: "info", info, tip: `${info.title} · ${info.source}` };
+      if (!obj.visible) { hidden = true; break; }
+      if (!info && obj.userData && obj.userData.pickId) {
+        info = pickList.find((p) => p.id === obj.userData.pickId) || null;
+        low = !!obj.userData.lowPriority;
       }
       obj = obj.parent;
     }
+    if (hidden || !info) continue;
+    const hit = { kind: "info", info, tip: `${info.title} · ${info.source}` };
+    if (!low) return hit;
+    if (!fallback) fallback = hit;
   }
-  return null;
+  return fallback;
 }
 
 renderer.domElement.addEventListener("pointermove", (e) => {
@@ -871,16 +915,29 @@ window.addEventListener("keydown", (e) => {
 });
 
 async function init() {
-  [manifest, systemPlan] = await Promise.all([
-    fetch("manifest.json", { cache: "no-store" }).then((r) => r.json()),
-    fetch("system_plan.json", { cache: "no-store" }).then((r) => r.json()),
-  ]);
+  const getJson = (url) => fetch(url, { cache: "no-store" }).then((r) => {
+    if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
+    return r.json();
+  });
+  try {
+    [manifest, systemPlan] = await Promise.all([getJson("manifest.json"), getJson("system_plan.json")]);
+  } catch (err) {
+    showError(`Could not load the plan data (${err.message || err}). Start the viewer with ` +
+      "python 04-viewer/serve_viewer.py (browsers block file:// pages), and check system_plan.json is valid JSON.");
+    return;
+  }
 
-  carCtx = createCarBlueprintScene(carRoot);
-  pcb6Ctx = createPcb6Scene(pcb6Root, systemPlan.pcb6_stackup || [], systemPlan.enclosure || null);
-
-  buildUI();
-  await switchMode("car", true);
+  try {
+    carCtx = createCarBlueprintScene(carRoot);
+    pcb6Ctx = createPcb6Scene(pcb6Root, systemPlan.pcb6_stackup || [], systemPlan.enclosure || null);
+    buildUI();
+    await switchMode("car", true);
+  } catch (err) {
+    showError(`The viewer failed to start (${err.message || err}). A hand edit of system_plan.json may be missing a ` +
+      "field: run python 04-viewer/sync_plan.py --check.");
+    console.error(err);
+    return;
+  }
 
   let last = performance.now();
   function tick(now) {

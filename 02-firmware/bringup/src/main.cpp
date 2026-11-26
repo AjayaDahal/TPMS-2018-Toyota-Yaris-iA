@@ -29,7 +29,11 @@ const RfProfile kProfiles[] = {
     {"FSK d48k bw270k",    0x6A,   0x83,   0x00,   0x47,   0x43, 0x40, 0x91},
 };
 constexpr int kCcModes = sizeof(kProfiles) / sizeof(kProfiles[0]);
+#ifdef TPMS_MX05V
 constexpr int kModes = kCcModes + 1;   // last mode: optional MX-05V on IO36 (CC1101 idle)
+#else
+constexpr int kModes = kCcModes;       // MX-05V mode off: IO36 floats unless R9/R10/J3 are fitted (README §6)
+#endif
 
 U8G2_SSD1322_NHD_128X64_F_4W_HW_SPI oled(U8G2_R0, PIN_OLED_CS, PIN_OLED_DC, PIN_OLED_RES);
 CC1101 cc(SPI, PIN_CC_CS, PIN_SPI_MISO);
@@ -113,9 +117,14 @@ void setMode(int m) {
   if (mode < kCcModes) {
     if (ccOk) {
       cc.configure(kProfiles[mode]);
-      for (int i = 0; i < 20 && !inRx; i++, delay(1)) inRx = cc.marcState() == 0x0D;   // calibration takes ~1 ms
+      for (int tries = 0; tries < 2 && !inRx; tries++) {   // calibration on IDLE -> RX takes ~0.8 ms
+        for (int i = 0; i < 20 && !inRx; i++, delay(1)) inRx = cc.marcState() == 0x0D;
+        if (!inRx) cc.rx();                                 // not in RX yet: strobe SRX again
+      }
+      rf::attach(PIN_CC_GDO0);
+    } else {
+      rf::detach();   // no CC1101: never listen to GDO0 (after a reset it outputs a 135 kHz clock)
     }
-    rf::attach(PIN_CC_GDO0);
   } else {
     if (ccOk) cc.idle();
     rf::attach(PIN_MX05_DATA);
@@ -285,22 +294,29 @@ void setup() {
 void loop() {
   const uint32_t now = millis();
 
-  static int32_t lastDetent = 0;
-  const int32_t detent = encCount / 4;
-  if (detent != lastDetent) {
-    setMode(mode + (detent - lastDetent));
-    lastDetent = detent;
+  // One step per full detent (4 counts), with hysteresis: wiggling the knob at a detent doesn't step twice
+  static int32_t encRef = 0;
+  const int32_t moved = encCount - encRef;
+  if (moved >= 4 || moved <= -4) {
+    setMode(mode + moved / 4);
+    encRef += (moved / 4) * 4;
   }
 
-  static uint32_t pressedAt = 0;
-  static bool wasDown = false;
+  // Button: a level must hold 20 ms on both edges, so bounce on release isn't a second press
+  static bool rawDown = false, stableDown = false;
+  static uint32_t rawSince = 0;
   const bool down = digitalRead(PIN_ENC_SW) == LOW;
-  if (down && !wasDown && now - pressedAt > 50) {
-    pressedAt = now;
-    beep(40);
-    Serial.println("button pressed");
+  if (down != rawDown) {
+    rawDown = down;
+    rawSince = now;
   }
-  wasDown = down;
+  if (rawDown != stableDown && now - rawSince >= 20) {
+    stableDown = rawDown;
+    if (stableDown) {
+      beep(40);
+      Serial.println("button pressed");
+    }
+  }
 
   while (Serial.available()) {
     switch (Serial.read()) {

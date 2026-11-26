@@ -31,7 +31,10 @@ class PiPowerSequencer {
   explicit PiPowerSequencer(const PiPowerConfig& cfg = PiPowerConfig());
 
   // accMv: ACC voltage at the board. tempValid = false when no temperature sensor is fitted or it fails.
-  void update(uint32_t nowMs, uint16_t accMv, bool tempValid, int16_t tempC);
+  // railUp: the Pi regulator's power-good output (PIN_PI_PGOOD). If the rail is already up when ACC is first seen,
+  // the Pi is running (the ESP32 was reset, crashed or reflashed while driving, or booted later than the regulator's
+  // EN delay): it is left on and never held off. Read it before driving PIN_PI_INHIBIT in setup().
+  void update(uint32_t nowMs, uint16_t accMv, bool tempValid, int16_t tempC, bool railUp = false);
 
   bool inhibit() const { return state_ != PiPowerState::On; }
   PiPowerState state() const { return state_; }

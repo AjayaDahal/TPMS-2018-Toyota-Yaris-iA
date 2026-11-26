@@ -12,10 +12,14 @@
 //   bootlow   the net is low or floating at reset (required on strapping pin GPIO2)
 //   pullup / pulldown   external resistor fitted on the board
 //
-// Board-side notes:
-//   - The Pi's 5 V regulator (Pololu D36V50F5) is ON by default whenever ACC is present (its EN has an internal
-//     100 k pull-up plus an RC start delay on the board). The ESP32 can only delay it via PIN_PI_INHIBIT, so an
-//     ESP32 crash, reset or firmware update never cuts power to the Pi.
+// Board-side notes (carrier rev A, 01-hardware/v2/carrier):
+//   - The Pi's 5 V regulator (on-board TPS54560B buck, 5.17 V) is ON by default whenever ACC is present: its EN
+//     divider (1 M / 150 k: starts at 8.0 V) has 10 uF on it, a 1.2-1.4 s start delay. The ESP32 can only delay it
+//     via PIN_PI_INHIBIT (a 2N7002 pulling EN low), and at start-up it reads PIN_PI_PGOOD first: a rail that is
+//     already up means a running Pi, which is left on (PiPowerSequencer, railUp). So an ESP32 crash, reset or
+//     firmware update never cuts power to the Pi.
+//   - Every GPIO reaches its circuit through one series resistor next to the DevKit socket (a cut point for
+//     rework). check_pinmap.py checks the carrier netlist against this file.
 //   - All GPIOs of the 30-pin DevKit are assigned. GPIO12 must stay unconnected (flash-voltage strapping pin).
 
 // Shared VSPI bus: CC1101 (same pins as v1)
@@ -28,7 +32,8 @@ constexpr int PIN_CC_CS = 5;        // [out,v1]  strapping pin, idles high: fine
 constexpr int PIN_CC_GDO0 = 34;     // [in,v1]   OOK data, asynchronous serial mode
 constexpr int PIN_CC_GDO2 = 35;     // [in,v1]   carrier sense
 
-// I2C: optional VL6180X light sensor and LM75A board-temperature sensor (same pins as v1, 4.7 k pull-ups)
+// I2C (same pins as v1, 4.7 k pull-ups): TMP75 board temperature (LM75 compatible, 0x48), TCA9534 I/O expander
+// (0x20: P0 AUX input, P1 fan, P2 Pi spare line), INA226 monitors 0x40 (12 V in) and 0x41 (5V_PI), optional VL6180X
 constexpr int PIN_I2C_SDA = 21;     // [io,v1]
 constexpr int PIN_I2C_SCL = 22;     // [io,v1]
 
@@ -40,8 +45,8 @@ constexpr int PIN_STATUS_LED = 2;   // [out,bootlow]      DevKit blue LED; its r
 
 // Inputs
 constexpr int PIN_BTN = 4;          // [in,v1,pullup]     mute / acknowledge button in the alert pod, active low (v1 RC)
-constexpr int PIN_BLINK_L = 36;     // [in,poll,pullup]   PC817 output, active low (left lamp lit = low)
-constexpr int PIN_BLINK_R = 39;     // [in,poll,pullup]   PC817 output, active low (right lamp lit = low)
+constexpr int PIN_BLINK_L = 36;     // [in,poll,pullup]   LTV-357T opto output, active low (left lamp lit = low)
+constexpr int PIN_BLINK_R = 39;     // [in,poll,pullup]   LTV-357T opto output, active low (right lamp lit = low)
 constexpr int PIN_ACC_SENSE = 32;   // [analog]           ADC1_CH4: 100 k / 10 k divider from 12V_PROT, clamped
 
 // u-blox NEO-M8N GPS, UART1 remapped: the speed gate's fallback (the OBD-II dongle's speed comes over Bluetooth,
@@ -53,7 +58,8 @@ constexpr int PIN_GPS_TX = 27;      // [out]  -> GPS RX (configuration only)
 constexpr int PIN_PI_UART_RX = 16;  // [in]   <- Pi GPIO14 TXD through 1 k
 constexpr int PIN_PI_UART_TX = 17;  // [out]  -> Pi GPIO15 RXD through 4.7 k; keep disabled while the Pi is off
 constexpr int PIN_PI_INHIBIT = 26;  // [out,power,pulldown]  high = hold the Pi 5 V regulator off
-constexpr int PIN_PI_PGOOD = 15;    // [in,pullup]  Pololu PG, open drain. Strapping pin: low at boot only mutes the ROM log
+constexpr int PIN_PI_PGOOD = 15;    // [in,pulldown]  5V_PI rail sense, 22 k / 33 k divider: 3.1 V when the rail is up.
+                                    //   Strapping pin: low at boot (rail off) only mutes the ROM log
 
 // Fixed by the DevKit
 constexpr int PIN_USB_TX = 1;       // [usb]  UART0 to the DevKit's USB bridge (log, flashing)

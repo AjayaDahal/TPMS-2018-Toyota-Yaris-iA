@@ -33,6 +33,13 @@ const DIMS = {
   MIRROR_Z: 1.015,
 };
 
+// Blind-spot zone and camera spec from the subsystem audit (05-Audit-Subsystems/08-cameras-and-vision.md).
+// Zone: from the driver's seat (mid-wheelbase, y = 0) back to 3 m behind the bumper, 0.5-3.5 m out from the body
+// side (ISO 17387 uses 0.5-3.0 m; 3.5 m covers a whole lane). Seen from the camera it spans 3.7-80.6 deg outward of
+// straight back; with the car's side in the frame, 83 deg: hence HFOV >= 95 deg aimed ~39 deg outward.
+const ZONE = { yNear: 0.0, yFar: DIMS.Y_TAIL - 3.0, xIn: DIMS.W / 2 + 0.5, xOut: DIMS.W / 2 + 3.5 };
+const CAM = { hfovDeg: 95, yawDeg: 39, pitchDeg: 10, rangeM: 7.5 };
+
 function makeTube(points, radius, color, opacity = 0.95) {
   const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(...p)));
   const geo = new THREE.TubeGeometry(curve, Math.max(20, points.length * 10), radius, 8, false);
@@ -312,15 +319,18 @@ function buildMirrorsAndCameras(parent, pickables) {
     housing.position.set(mx, my, mz);
     parent.add(housing);
 
-    // Turn-signal lamp material (used by the bumper lamps below; mirror repeaters on the Yaris iA are not verified)
+    // Turn-signal lamp material (bumper lamps below). The mirrors have LED turn-signal repeaters (Toyota feature pages,
+    // owner's manual): their feed in each door is the planned blinker tap (premortem I1)
     const bMat = new THREE.MeshStandardMaterial({ color: 0x451a03, emissive: 0xf59e0b, emissiveIntensity: 0.05 });
     blinkerMats[side] = bMat;
 
-    // USB UVC camera in the lower mirror cap, aimed back along the car's side
+    // USB UVC camera in the lower mirror cap, its barrel along the optical axis (audit CAM-02: ~39° outward of
+    // straight back, ~10° down; a strip of the car's side at the inner edge of the picture)
     const cam = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.019, 0.036, 16), camBodyMat);
     cam.position.set(mx + sign * 0.03, my - 0.01, mz - 0.072);
-    cam.rotation.x = Math.PI / 2 - 0.14; // pitched slightly down
-    cam.rotation.z = sign * 0.31;        // yawed outward
+    const yaw = THREE.MathUtils.degToRad(CAM.yawDeg), pitch = THREE.MathUtils.degToRad(CAM.pitchDeg);
+    const axis = new THREE.Vector3(sign * Math.sin(yaw) * Math.cos(pitch), -Math.cos(yaw) * Math.cos(pitch), -Math.sin(pitch));
+    cam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), axis);
     cam.userData.pickId = `cam_${side}`;
     parent.add(cam);
 
@@ -331,47 +341,45 @@ function buildMirrorsAndCameras(parent, pickables) {
       category: "Mirror vision (BUY after the bench test)",
       source: "BUY (~$45 each)",
       location: `Underside of the ${side === "L" ? "left" : "right"} mirror's lower cap, outer half`,
-      mount: "Measure the camera barrel first and practise on a spare cap; step drill; printed wedge sets the angle; O-ring + neutral-cure (oxime) RTV. Keep a strip of the car's side in the frame: the Pi uses it to detect a folded or bumped mirror.",
-      wiring: "Acceptance: MJPEG 720p30, Starvis WDR, no IR LEDs, −20…+70 °C, IP67, barrel ≤ 20 mm, ≥ 3 m lead. Lead: service loop through the hinge → door harness → door boot → kick panel → the Pi's USB 2.0 port (no JST-GH in the data path).",
+      mount: `Measure the camera barrel first and practise on a spare cap; step drill; a printed wedge sets the aim: ~${CAM.yawDeg}° outward of straight back, ~${CAM.pitchDeg}° down. O-ring + neutral-cure (oxime) RTV. Keep a strip of the car's side in the frame: the Pi uses it to detect a folded or bumped mirror. Check with cones at the zone's four corners.`,
+      wiring: `Acceptance: MJPEG 720p30 at full sensor width, HFOV ≥ ${CAM.hfovDeg}° measured (≥ 2.18 m of wall at 1 m), Starvis WDR, no IR LEDs, −20…+70 °C (+85 °C preferred), IP67, barrel ≤ 20 mm, ≥ 3.5 m lead, both cameras streaming at once on the Pi 4. Lead: service loop through the hinge → door harness → door boot → kick panel → the Pi's USB 2.0 port (no JST-GH in the data path).`,
     });
 
-    // Exact 5-vertex 3-D FOV Pyramid from mirror camera lens back to adjacent-lane blind-spot zone
-    const apex = [mx + sign * 0.03, my - 0.01, mz - 0.072];
-    const farInBot = [sign * 1.05, -5.65, 0.03];
-    const farOutBot = [sign * 3.35, -5.65, 0.03];
-    const farOutTop = [sign * 3.35, -5.65, 1.50];
-    const farInTop = [sign * 1.05, -5.65, 1.50];
-    const verts = new Float32Array([
-      ...apex, ...farInBot, ...farOutBot,
-      ...apex, ...farOutBot, ...farOutTop,
-      ...apex, ...farOutTop, ...farInTop,
-      ...apex, ...farInTop, ...farInBot,
-    ]);
-    const coneGeo = new THREE.BufferGeometry();
-    coneGeo.setAttribute("position", new THREE.BufferAttribute(verts, 3));
-    coneGeo.computeVertexNormals();
-    const cone = new THREE.Mesh(coneGeo, side === "L" ? coneMatL : coneMatR);
-    fovGroup.add(cone);
+    // The lens's horizontal field of view on the road: a fan from the camera's ground point, HFOV wide, centred
+    // on the aim. Its inner edge grazes the car's side (the reference strip).
+    const gx = mx + sign * 0.03, gy = my - 0.01;
+    const fanPts = [gx, gy, 0.01];
+    const a0 = CAM.yawDeg - CAM.hfovDeg / 2, a1 = CAM.yawDeg + CAM.hfovDeg / 2;
+    const arc = [];
+    for (let i = 0; i <= 24; i++) {
+      const th = THREE.MathUtils.degToRad(a0 + (a1 - a0) * (i / 24));
+      arc.push([gx + sign * Math.sin(th) * CAM.rangeM, gy - Math.cos(th) * CAM.rangeM, 0.01]);
+    }
+    const fanVerts = [];
+    for (let i = 0; i < arc.length - 1; i++) fanVerts.push(...fanPts, ...arc[i], ...arc[i + 1]);
+    const fanGeo = new THREE.BufferGeometry();
+    fanGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(fanVerts), 3));
+    fovGroup.add(new THREE.Mesh(fanGeo, side === "L" ? coneMatL : coneMatR));
 
-    const coneEdgeVerts = new Float32Array([
-      ...apex, ...farInBot, ...apex, ...farOutBot, ...apex, ...farOutTop, ...apex, ...farInTop,
-      ...farInBot, ...farOutBot, ...farOutBot, ...farOutTop, ...farOutTop, ...farInTop, ...farInTop, ...farInBot,
-    ]);
+    const apex = [gx, gy, mz - 0.072];
+    const edgeVerts = [...apex, ...arc[0], ...apex, ...arc[arc.length - 1]];
+    for (let i = 0; i < arc.length - 1; i++) edgeVerts.push(...arc[i], ...arc[i + 1]);
     const coneEdgeGeo = new THREE.BufferGeometry();
-    coneEdgeGeo.setAttribute("position", new THREE.BufferAttribute(coneEdgeVerts, 3));
+    coneEdgeGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(edgeVerts), 3));
     fovGroup.add(new THREE.LineSegments(coneEdgeGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.42 })));
 
-    // Calibrated Adjacent-Lane Blind-Spot ROI Zone painted on road surface
-    // Covers from B-pillar (Y=+0.3m) back to -5.5m behind bumper, width 1.05m..3.35m from centerline
+    // Blind-spot zone painted on the road (ZONE): from the driver's seat back to 3 m behind the bumper,
+    // 0.5-3.5 m out from the body side
+    const zoneW = ZONE.xOut - ZONE.xIn, zoneL = ZONE.yNear - ZONE.yFar;
     const roi = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.25, 6.2),
+      new THREE.PlaneGeometry(zoneW, zoneL),
       side === "L" ? roiMatL : roiMatR
     );
-    roi.position.set(sign * 2.12, -2.55, 0.015);
+    roi.position.set(sign * (ZONE.xIn + ZONE.xOut) / 2, (ZONE.yNear + ZONE.yFar) / 2, 0.015);
     fovGroup.add(roi);
 
     const roiOutline = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.PlaneGeometry(2.25, 6.2)),
+      new THREE.EdgesGeometry(new THREE.PlaneGeometry(zoneW, zoneL)),
       new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7 })
     );
     roiOutline.position.copy(roi.position);
@@ -394,37 +402,37 @@ function buildMirrorsAndCameras(parent, pickables) {
 }
 
 function buildDisplayAndElectronics(parent, pickables) {
-  // Live 800x480 UI of the Official 7" Touch Display, drawn into a CanvasTexture
+  // Live 1024x600 UI of the SunFounder TS-7, drawn into a CanvasTexture of the same shape
   const hudCanvas = document.createElement("canvas");
   hudCanvas.width = 640;
-  hudCanvas.height = 384;
+  hudCanvas.height = 375;
   const hudTex = new THREE.CanvasTexture(hudCanvas);
   hudTex.anisotropy = 4;
 
-  // Printed enclosure (01-hardware/enclosure): bezel + plate 205.6 x 127.9 x 11.3 mm in front, rear box
-  // 112 x 120 x 60.5 mm behind it with the Pi 4 on the display's standoffs and the carrier PCB on 4 posts.
-  // Group frame: X right, Y = depth (the screen faces -Y, toward the driver), Z up. Mounted upside down
-  // (cable edge up), so the box centre sits 4.5 mm left of and 5.6 mm below the glass centre.
+  // Printed enclosure (01-hardware/enclosure/enclosure_report.json): bezel + plate 205.6 x 129.0 x 19.75 mm in front
+  // of the trim, rear box 112 x 124 x 50.5 mm behind it with the Pi 4 on four posts and the carrier PCB on four more.
+  // Group frame: X right, Y = depth (the screen faces -Y, toward the driver), Z up; origin at the bezel's centre.
+  // The display sits 8 mm toward the driver, so its HDMI and micro-USB plugs fit on its right.
   const displayGroup = new THREE.Group();
   const plastic = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.72, metalness: 0.05 });
-  const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.2056, 0.0113, 0.1279), plastic);
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(0.2056, 0.01975, 0.129), plastic);
   bezel.userData.pickId = "rpi_display";
   displayGroup.add(bezel);
 
-  const screenPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.154, 0.086), new THREE.MeshBasicMaterial({ map: hudTex }));
+  const screenPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.1542, 0.0859), new THREE.MeshBasicMaterial({ map: hudTex }));
   screenPlane.rotation.set(Math.PI / 2, 0, 0); // normal toward -Y (driver), texture top = +Z (up), right = +X
-  screenPlane.position.set(0, -0.0059, -0.001);
+  screenPlane.position.set(-0.0092, -0.0102, 0.0027);
   screenPlane.userData.pickId = "rpi_display";
   displayGroup.add(screenPlane);
 
   const boxMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.7, transparent: true, opacity: 0.45, depthWrite: false });
-  const rearBox = new THREE.Mesh(new THREE.BoxGeometry(0.112, 0.0605, 0.1202), boxMat);
-  rearBox.position.set(-0.0045, 0.0057 + 0.03025, -0.0056);
+  const rearBox = new THREE.Mesh(new THREE.BoxGeometry(0.112, 0.0505, 0.124), boxMat);
+  rearBox.position.set(0, 0.03513, -0.0015);
   rearBox.userData.pickId = "enclosure_box";
   displayGroup.add(rearBox);
 
   const rpi4 = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.0184, 0.056), new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.45 }));
-  rpi4.position.set(0.0035, 0.0332, -0.0035);
+  rpi4.position.set(0.008, 0.02407, -0.008);
   rpi4.userData.pickId = "rpi4_sbc";
   displayGroup.add(rpi4);
 
@@ -432,12 +440,12 @@ function buildDisplayAndElectronics(parent, pickables) {
     new THREE.BoxGeometry(0.100, 0.0016, 0.100),
     new THREE.MeshStandardMaterial({ color: 0x059669, emissive: 0x047857, emissiveIntensity: 0.35, roughness: 0.35 })
   );
-  pcb6.position.set(-0.0045, 0.0487, -0.0015);
+  pcb6.position.set(0, 0.03958, 0.0045);
   pcb6.userData.pickId = "pcb6_carrier";
   displayGroup.add(pcb6);
 
   const fan = new THREE.Mesh(new THREE.BoxGeometry(0.030, 0.010, 0.030), new THREE.MeshStandardMaterial({ color: 0x111827 }));
-  fan.position.set(0.0005, 0.062, 0.0025);
+  fan.position.set(0.005, 0.05287, 0.0085);
   displayGroup.add(fan);
 
   parent.add(displayGroup);
@@ -446,12 +454,12 @@ function buildDisplayAndElectronics(parent, pickables) {
     {
       id: "rpi_display",
       mesh: bezel,
-      title: "Printed enclosure + Official 7\" Touch Display",
+      title: "Printed enclosure + SunFounder TS-7 7\" display",
       category: "Display + enclosure",
-      source: "INVENTORY display (confirm the glass) + printed parts",
+      source: "INVENTORY display (SunFounder TS-7, 1024 × 600 IPS) + printed parts",
       location: "Option A: in front of the console opening, rear box in the pocket · Option B: dash top on a RAM / AMPS base",
-      mount: "The display screws to the housing's plate through its own 4 × M3 frame holes; the bezel lip sits 0.3 mm clear of the glass. Upside down (cable edge up) for contrast from above. 205.6 × 127.9 × 71.8 mm; make_enclosure.py runs 38 fit checks.",
-      wiring: "Inside: the Pi on the display's standoffs and the carrier PCB behind it. Air: chin intake → lid fan. Cameras plug into the Pi through the box window (90° adapters); harness through the lid grommet; antenna on an SMA bulkhead.",
+      mount: "The display hangs by its four ears on bosses in the bezel (M3 × 6 from behind); the lip covers 2 mm of the glass, 0.3 mm clear of it. Normal way up (IPS). 205.6 × 129.0 × 70.3 mm, 21.8 mm proud of the trim; make_enclosure.py runs 43 fit checks. Measure the display first: SunFounder lists 121 mm tall, its photos ~124.4.",
+      wiring: "HDMI flat cable and a split micro-USB lead (5 V from J5, touch data to a Pi USB port) leave the display's right edge, go back through the plate's cable slot and into the box. Inside: the Pi on 4 posts, the carrier PCB behind it. Air: slots beside the screen → behind the display → lid fan. Cameras plug into the Pi through the box window (90° adapters); harness through the lid grommet; antenna on an SMA bulkhead.",
     },
     {
       id: "enclosure_box",
@@ -459,8 +467,8 @@ function buildDisplayAndElectronics(parent, pickables) {
       title: "Rear box: Pi 4 + carrier PCB + 30 mm fan",
       category: "Printed enclosure",
       source: "ASA / ABS print (never PLA) or MJF PA12",
-      location: "Behind the display; in Option A it drops into the console pocket (needs ≥ 66 mm clear depth)",
-      mount: "112 × 120 mm, 60.5 mm deep behind the plate. 2 mm bumps on the plate let the fan's air out round the bezel, so the pocket is never sealed. AMPS 30 × 38 M4 nuts in the bottom wall.",
+      location: "Behind the display; in Option A it drops into the console pocket (needs ≥ 56 mm clear depth)",
+      mount: "112 × 124 mm, 50.5 mm deep behind the plate. 2 mm bumps on the plate let the fan's air out round the bezel, so the pocket is never sealed. AMPS 30 × 38 M4 nuts in the bottom wall.",
       wiring: "Thermal test T1 in a sun-soaked car: SoC < 80 °C and get_throttled 0x0, or lower the clock / move the PCB to its own box.",
     },
     {
@@ -469,9 +477,9 @@ function buildDisplayAndElectronics(parent, pickables) {
       title: "Raspberry Pi 4 Model B (vision + UI)",
       category: "Compute (INVENTORY)",
       source: "INVENTORY (2 in the lab; needs ≥ 2 GB)",
-      location: "On the display's own standoffs, inside the rear box; ports to the driver's right",
+      location: "On 4 posts behind the plate, inside the rear box; ports to the driver's right, HDMI / USB-C edge on top",
       mount: "Heatsinks; the lid fan pulls air past it. GPIO plugs 90° / low profile (height budget).",
-      wiring: "Bookworm with a read-only root, overlay FS, watchdog. Two UVC streams, 320 × 320 detector, touch UI; talks to the ESP32 over its GPIO UART (checksummed $BSM / $ESP / $TPM lines).",
+      wiring: "Bookworm with a read-only root, overlay FS, watchdog. HDMI0 → the TS-7 (1024 × 600 on HDMI-A-1), touch over USB. Two UVC streams, 320 × 320 detector; talks to the ESP32 over its GPIO UART (checksummed $BSM / $ESP / $TPM lines).",
     },
     {
       id: "pcb6_carrier",
@@ -502,7 +510,7 @@ function buildDisplayAndElectronics(parent, pickables) {
       category: "Visual alert",
       source: "BUY (amber 5 mm + bezel)",
       location: `Inside the ${side === "L" ? "driver's" : "passenger's"} door, at the mirror's base, facing the driver`,
-      mount: "On the door's inner sail or the mirror housing, not in the A-pillar trim: the Yaris iA has side-curtain airbags behind it. The wires ride with the camera cable through the door boot.",
+      mount: "On the door's inner sail, inside the cabin, facing the driver. Not in the A-pillar trim (the Yaris iA has side-curtain airbags behind it) and not on the outside of the mirror (an amber light seen from behind isn't allowed). The wires ride with the camera cable through the door boot.",
       wiring: `Low-side MOSFET on ${side === "L" ? "IO25" : "IO14"}. Steady = vehicle in the blind spot; flashing = you are signalling towards it. PWM level from the Pi (night dimming).`,
     });
   }
@@ -605,7 +613,7 @@ function buildDisplayAndElectronics(parent, pickables) {
     category: "Power & vehicle signals",
     source: "OEM CAR + BUY Add-A-Circuit",
     location: "Left kick panel / lower dash",
-    mount: "One Add-A-Circuit (5 A) on a non-critical ACC fuse, metered first: hot in ACC and ON, dead with the key out; never an SRS or engine fuse. Ring terminal on a chassis ground stud. Turn-signal feeds found with the wiring diagram and a meter (or at the tail lamps).",
+    mount: "One Add-A-Circuit (5 A) on a non-critical ACC fuse, metered first: hot in ACC and ON, dead with the key out; never an SRS or engine fuse. Ring terminal on a chassis ground stud. Turn-signal sense comes from the mirror repeater feeds in the doors (fallback: here, found with the wiring diagram and a meter).",
     wiring: "ACC only: zero draw when parked. The OBD-II port nearby takes your Bluetooth dongle (optional speed source); listening to CAN is phase 2 (USB adapter on the Pi, listen-only).",
   });
 
@@ -723,9 +731,9 @@ function buildHarnesses(parent, pickables) {
     {
       id: "harness_sig", mesh: sigBlinker, title: "Turn-signal sense (2 × 22 AWG)",
       category: "Vehicle signals", source: "BUY PC817 (on the board)",
-      location: "Lamp feeds (found with the wiring diagram) → carrier JST-GH",
-      mount: "Solder or T-tap + heat-shrink on one 12 V lamp feed per side.",
-      wiring: "PC817 optos (~6 mA each) → IO36 / IO39, polled at 1 kHz; PWM gaps bridged, spikes ignored, hazards recognised. Not from OBD-II: standard OBD-II has no turn-signal data (a CAN cross-check is phase 2).",
+      location: "Each mirror's LED turn-signal repeater feed, inside the door at the mirror connector → with the camera cable through the door boot → carrier JST-GH",
+      mount: "Solder + heat-shrink (no T-taps) on the repeater feed, found with the wiring diagram and metered: flashing 12 V with that side's signal and the hazards. Fallbacks: kick-panel feed, rear amber WY21W bulbs.",
+      wiring: "PC817 optos (~6 mA each) → IO36 / IO39, polled at 1 kHz; PWM gaps bridged, spikes ignored, hazards = both lamps lit together ≥ 50 ms, an input lit > 1.5 s is flagged as a fault. Not from OBD-II: standard OBD-II has no turn-signal data (a CAN cross-check is phase 2).",
     },
     {
       id: "harness_alerts", mesh: ledL, title: "Door LEDs + alert pod leads",
@@ -897,7 +905,7 @@ export function createCarBlueprintScene(parentGroup) {
     if (sim.mountOption === "console_float") {
       // Option A: the bezel's back face on the pocket's front face (pocket box: centre (0, 0.49, 0.64), 100 mm deep,
       // tilted -0.32 rad), so only the rear box sits inside the pocket, below the HVAC dials
-      displayGroup.position.set(0, 0.437, 0.657);
+      displayGroup.position.set(0, 0.433, 0.6583);
       displayGroup.rotation.set(-0.32, 0, 0);
     } else {
       // Option B: dash top on a RAM / AMPS base beside the factory screen
@@ -907,7 +915,7 @@ export function createCarBlueprintScene(parentGroup) {
   }
   applyMountPosition();
 
-  // Draw live 7" RPi Touch Display HUD (TPMS + automatic Mirror Camera / YOLO bounding box)
+  // Draw the live HUD of the 7" TS-7 (TPMS + automatic mirror camera / YOLO bounding box)
   let lastHudRedraw = 0;
   function drawDisplayHud(now, status) {
     if (now - lastHudRedraw < 85) return;
@@ -1100,8 +1108,9 @@ export function createCarBlueprintScene(parentGroup) {
     target.motoG.visible = sim.targetType === "motorcycle";
     target.group.position.set(sim.targetSide === "L" ? -2.12 : 2.12, sim.targetY, 0);
 
-    // Blind-spot occupancy test against calibrated ROI (-5.65 m to +0.55 m)
-    const inRoi = sim.targetType !== "none" && sim.targetY >= -5.65 && sim.targetY <= 0.65;
+    // Blind-spot occupancy: any part of the target inside the zone (ZONE, the painted area)
+    const halfLen = sim.targetType === "car" ? 2.15 : 1.05;
+    const inRoi = sim.targetType !== "none" && sim.targetY - halfLen <= ZONE.yNear && sim.targetY + halfLen >= ZONE.yFar;
     const occL = inRoi && sim.targetSide === "L";
     const occR = inRoi && sim.targetSide === "R";
 

@@ -11,7 +11,7 @@ The CC1101 is only ever put in receive mode; this firmware never transmits.
 ## Build and flash
 
 - Use PlatformIO (the VS Code extension, or the CLI).
-- Open `firmware/bringup`, run `pio run -t upload`, then `pio device monitor` (115200 baud).
+- Open `02-firmware/bringup`, run `pio run -t upload`, then `pio device monitor` (115200 baud).
 - The build is pinned to `espressif32@6.13.0` (Arduino-ESP32 2.0.x). The only library is U8g2.
 - The DevKit's USB powers the whole panel on the bench, so no 12 V is needed. Plug in the DevKit, CC1101 and display only after checking the 5 V / 3V3 pads on J4 with a meter.
 - Behind a corporate TLS-inspecting proxy, PlatformIO fails with SSL errors. Fix it by running `pip install pip-system-certs` in PlatformIO's Python environment.
@@ -48,7 +48,7 @@ If no EG53MA4 frame ever appears but `chips` dumps do, send `r` to capture the r
 
 ## Decoder unit test (on a PC, no hardware)
 
-From `firmware/bringup`, with any C++17 compiler (here using the pip-installable zig compiler):
+From `02-firmware/bringup`, with any C++17 compiler (here using the pip-installable zig compiler):
 
 ```
 python -m ziglang c++ -std=c++17 -O2 -Isrc test/host/test_decode.cpp src/rf_decode.cpp src/eg53ma4.cpp -o test_decode.exe
@@ -59,7 +59,8 @@ The test feeds synthetic bursts through both decoders:
 - EG53MA4 messages built to rtl_433's format:
   - a normal frame, with ID, pressure (kPa and psi), temperature and flags all checked;
   - two repeats in one burst;
-  - a bad checksum and a 119-bit frame, which must be rejected.
+  - a bad checksum and a 119-bit frame, which must be rejected;
+  - frames that lost 1–20 of their 40 zero preamble bits (the receiver's AGC settling on the first pulses), which must decode, and one that lost 21 or has a 1 left in its preamble, which must not. rtl_433 needs all 120 bits; this decoder also takes 100–119.
 - Generic decoder cases:
   - OOK Manchester at 123 µs, normal and inverted;
   - FSK Manchester at 52 µs with 15 % jitter;
@@ -68,3 +69,5 @@ The test feeds synthetic bursts through both decoders:
   - random noise and too-short bursts, which must be rejected.
 
 It prints `all decoder tests passed` and exits with 0.
+
+The [subsystem audit](../../05-Audit-Subsystems/13-tpms-radio.md) also ran this decoder on four real EG53MA4 captures from the rtl_433 test set (64 of 64 frames, the same values as rtl_433) and fixed the capture interrupt: a glitch shorter than the interrupt latency no longer adds a phantom edge.

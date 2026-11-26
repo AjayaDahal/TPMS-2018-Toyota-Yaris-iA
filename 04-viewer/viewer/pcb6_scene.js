@@ -5,9 +5,11 @@ import { STLLoader } from "three/addons/STLLoader.js";
  * v2 carrier PCB (100 x 100 x 1.6 mm, 6 layers) and the 3-D printed enclosure around it.
  *
  * Units: metres. Z up = the PCB's parts side, which faces the enclosure lid. Origin at the PCB centre.
- * Part zones follow the fit template (01-hardware/docs/v2_fit_template_1to1.pdf, page 2): template (x, y) in mm
- * from the top-left, parts side up -> viewer (x - 50, 50 - y). The keep-outs (fan zone, SMA strip, pin-free
- * corners) come from 01-hardware/enclosure/make_enclosure.py, which also writes the assembly STLs loaded here.
+ * Zones follow the generated layout (01-hardware/v2/carrier/carrier_layout.py): template (x, y) in mm from the
+ * top-left, parts side up -> viewer (x - 50, 50 - y). Each layer shows the real copper when the textures from
+ * 04-viewer/make_pcb_textures.py are present (media/pcb/L1.png ... L6.png), else a drawn sketch. The keep-outs
+ * (fan zone, SMA strip, pin-free corners) come from 01-hardware/enclosure/make_enclosure.py, which also writes
+ * the assembly STLs loaded here.
  */
 
 const MM = 0.001;
@@ -22,19 +24,20 @@ function makeBox(w, d, h, color, metalness = 0.25, roughness = 0.45) {
 // fit-template rectangle (x, y, w, h) -> centre in viewer mm
 const centre = (x, y, w, h) => [x + w / 2 - 50, 50 - (y + h / 2)];
 
+// from carrier_layout.py (DEVKIT_BOARD, CC1101_BOARD, the buck macros, ANTENNA_KEEPOUT, FAN_ZONE, SMA_STRIP)
 const ZONES = {
-  cc1101: [62, 2.5, 30, 18],
-  esp32: [0, 12, 28, 52],
-  pololu: [64, 62, 25.4, 25.4],
-  tsr: [64, 42, 20, 16],
-  protect: [36, 70, 24, 14],
-  j1: [34, 88, 12, 10],
-  j5: [50, 88, 12, 10],
-  jst: [11, 88, 21, 10],
-  enrc: [64, 88, 14, 10],
+  esp32: [0.2, 14.4, 28.3, 50.8],
+  cc1101: [70.8, 53.6, 15, 30],
+  buck_pi: [53, 14, 19.5, 44],
+  buck_esp: [30, 17, 23, 41],
+  protect: [1, 66, 32, 23],
+  j1: [11, 89, 21.5, 10.5],
+  j5: [55.5, 2.5, 30.5, 10],
+  jst: [33.5, 93.4, 54, 6.4],
+  io: [33, 70, 36, 23],
   fan: [29, 30, 32, 32],
   sma: [86, 28.5, 14, 12],
-  antenna: [0, 50, 28, 14],
+  antenna: [0.2, 14.4, 28.2, 5.9],
 };
 
 function rectPx(ctx, [x, y, w, h], stroke = true) {
@@ -43,19 +46,19 @@ function rectPx(ctx, [x, y, w, h], stroke = true) {
 }
 
 function makeLayerTexture(layerIndex) {
+  // Fallback sketch, shown until (or unless) the real copper image loads: see loadLayerImage()
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 512;
   const ctx = c.getContext("2d");
-
+  const bg = ["#11161f", "#065f46", "#1e1b2e", "#047857", "#0f172a", "#11161f"][layerIndex];
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 512, 512);
   if (layerIndex === 0) {
-    // L1: parts side, black soldermask, planning zones and the enclosure keep-outs
-    ctx.fillStyle = "#11161f";
-    ctx.fillRect(0, 0, 512, 512);
     ctx.strokeStyle = "rgba(226,232,240,0.5)";
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 6]);
-    for (const k of ["cc1101", "esp32", "pololu", "tsr", "protect", "j1", "j5", "jst", "enrc"]) rectPx(ctx, ZONES[k]);
+    for (const k of ["esp32", "cc1101", "buck_pi", "buck_esp", "protect", "j1", "j5", "jst", "io"]) rectPx(ctx, ZONES[k]);
     ctx.setLineDash([5, 4]);
     ctx.strokeStyle = "#f87171";
     rectPx(ctx, ZONES.fan);
@@ -63,109 +66,44 @@ function makeLayerTexture(layerIndex) {
     for (const [x, y] of [[0, 0], [90, 0], [0, 90], [90, 90]]) rectPx(ctx, [x, y, 10, 10]);
     ctx.setLineDash([]);
     ctx.fillStyle = "#e2e8f0";
-    ctx.font = "bold 13px monospace";
-    ctx.fillText("CC1101 315 MHz → SMA", 62 * PX + 4, 2.5 * PX + 16);
-    ctx.fillText("ESP32 DevKit", 4, 12 * PX + 18);
-    ctx.fillText("Pololu 5V_PI", 64 * PX + 4, 62 * PX + 16);
-    ctx.fillText("TSR + 3V3", 64 * PX + 4, 42 * PX + 16);
-    ctx.fillText("12 V protection", 36 * PX + 4, 70 * PX + 16);
-    ctx.font = "bold 11px monospace";
-    ctx.fillText("J1 12V", 34 * PX + 2, 88 * PX + 14);
-    ctx.fillText("J5 5V", 50 * PX + 2, 88 * PX + 14);
-    ctx.fillText("JST-GH", 11 * PX + 4, 88 * PX + 14);
-    ctx.fillStyle = "#fca5a5";
     ctx.font = "bold 12px monospace";
-    ctx.fillText("FAN ZONE ≤ 6 mm", 29 * PX + 6, 30 * PX + 18);
+    const label = (t, z, dy = 14) => ctx.fillText(t, ZONES[z][0] * PX + 4, ZONES[z][1] * PX + dy);
+    label("ESP32 DevKit", "esp32", 40);
+    label("CC1101", "cc1101");
+    label("5V_PI buck", "buck_pi");
+    label("5V_ESP buck", "buck_esp");
+    label("12 V protection", "protect");
+    label("J1 12V", "j1");
+    label("J5 5V", "j5");
+    label("JST-GH", "jst");
+    label("optos + drivers", "io");
+    ctx.fillStyle = "#fca5a5";
+    ctx.fillText("FAN ≤ 6 mm", 29 * PX + 6, 62 * PX - 6);
     ctx.fillText("SMA", 86 * PX + 10, 28.5 * PX + 36);
     ctx.fillStyle = "#facc15";
-    ctx.font = "bold 12px monospace";
-    ctx.fillText("v2 carrier · 6 layers · 100×100", 150, 505);
-    ctx.strokeStyle = "#eab308";
-    ctx.lineWidth = 7;
-    for (const [x, y] of [[4, 4], [96, 4], [4, 96], [96, 96]]) {
-      ctx.beginPath();
-      ctx.arc(x * PX, y * PX, 11, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  } else if (layerIndex === 1 || layerIndex === 3) {
-    // L2 / L4: solid ground planes, no copper under the ESP32's PCB antenna
-    ctx.fillStyle = layerIndex === 1 ? "#065f46" : "#047857";
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.strokeStyle = "rgba(167,243,208,0.22)";
-    ctx.lineWidth = 1;
-    for (let g = 32; g < 512; g += 32) {
-      ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, 512); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(512, g); ctx.stroke();
-    }
+    ctx.fillText("run 04-viewer/make_pcb_textures.py for the real copper", 20, 505);
+  } else {
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 16px monospace";
+    const text = ["", "L2: SOLID GND PLANE", "L3: SIGNALS + GND POUR", "L4: SIGNALS + GND POUR",
+      "L5: SIGNALS + GND POUR", "L6: SIGNALS, POWER POURS"][layerIndex];
+    ctx.fillText(text, 60, 260);
     ctx.fillStyle = "#0f172a";
     rectPx(ctx, ZONES.antenna, false);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 11px monospace";
-    ctx.fillText("antenna", 6, 50 * PX + 30);
-    ctx.fillStyle = "#ecfdf5";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText(layerIndex === 1 ? "L2: SOLID GND (reference for L1)" : "L4: SOLID GND (shields L5)", 70, 260);
-  } else if (layerIndex === 2) {
-    // L3: low-current power distribution (the 5 A path stays on the outer layers)
-    ctx.fillStyle = "#1e1b2e";
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.fillStyle = "#b91c1c";
-    ctx.fillRect(170, 330, 330, 170);
-    ctx.fillStyle = "#d97706";
-    ctx.fillRect(300, 190, 200, 130);
-    ctx.fillStyle = "#2563eb";
-    ctx.fillRect(10, 10, 480, 170);
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 18px monospace";
-    ctx.fillText("3V3 (CC1101, DevKit)", 120, 100);
-    ctx.fillText("5V_ESP", 350, 260);
-    ctx.fillText("12V_PROT", 280, 420);
-    ctx.font = "bold 13px monospace";
-    ctx.fillText("L3: low current only · 0.5 oz inner copper", 40, 500);
-  } else if (layerIndex === 4) {
-    // L5: slow signals
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 4;
-    for (let i = 0; i < 6; i++) {
-      ctx.beginPath();
-      ctx.moveTo(60 + i * 18, 460);
-      ctx.lineTo(60 + i * 18, 200 + i * 12);
-      ctx.lineTo(150, 200 + i * 12);
-      ctx.stroke();
-    }
-    ctx.strokeStyle = "#facc15";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(150, 120); ctx.lineTo(330, 120); ctx.lineTo(330, 60);
-    ctx.stroke();
-    ctx.fillStyle = "#93c5fd";
-    ctx.font = "bold 16px monospace";
-    ctx.fillText("L5: BLINKER · UARTS · I2C · SPI", 70, 492);
-  } else {
-    // L6: underside, faces the Pi with a 3 mm air gap
-    ctx.fillStyle = "#11161f";
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.fillStyle = "rgba(217,119,6,0.55)";
-    ctx.fillRect(170, 300, 300, 200);
-    ctx.fillStyle = "#eab308";
-    for (let x = 190; x <= 450; x += 26) {
-      for (let y = 320; y <= 480; y += 26) {
-        ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 14px monospace";
-    ctx.fillText("L6: 5V_PI / 12 V pour, stitched to L1", 60, 470 - 200);
-    ctx.fillText("pins ≤ 2.5 mm (faces the Pi)", 60, 490 - 200);
   }
-
   const tex = new THREE.CanvasTexture(c);
   tex.anisotropy = 4;
   return tex;
+}
+
+// The real copper of each layer (written by 04-viewer/make_pcb_textures.py); keeps the sketch if it's missing
+function loadLayerImage(layerIndex, mat) {
+  new THREE.TextureLoader().load(`media/pcb/L${layerIndex + 1}.png`, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    mat.map = tex;
+    mat.needsUpdate = true;
+  }, undefined, () => {});
 }
 
 function stlGeometry(buffer) {
@@ -189,12 +127,12 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   const partEntries = [];
 
   const defaultLayers = [
-    { id: "layer_L1", label: "L1 parts side (faces the lid)", z: 0.78, explodeZ: 18, role: "Parts and routing; 5 V / 12 V on wide outer pours." },
-    { id: "layer_L2", label: "L2 solid ground", z: 0.48, explodeZ: 11, role: "Reference plane for L1; no copper under the ESP32 antenna." },
-    { id: "layer_L3", label: "L3 power distribution (low current)", z: 0.16, explodeZ: 4, role: "12V_PROT, 5V_ESP, 3V3. Inner copper is 0.5 oz: the 5 A path stays outside." },
-    { id: "layer_L4", label: "L4 solid ground", z: -0.16, explodeZ: -4, role: "Shields the L5 signals from L3." },
-    { id: "layer_L5", label: "L5 slow signals", z: -0.48, explodeZ: -11, role: "Blinker optos, Pi and GPS UARTs, I2C, SPI to the CC1101." },
-    { id: "layer_L6", label: "L6 underside (faces the Pi)", z: -0.78, explodeZ: -18, role: "5V_PI / 12 V pour stitched to L1; pins ≤ 2.5 mm, 3 mm air gap to the Pi." },
+    { id: "layer_L1", label: "L1 parts side (faces the lid)", z: 0.78, explodeZ: 18, role: "Parts, the high-current straps, signals, power and GND pours." },
+    { id: "layer_L2", label: "L2 solid GND plane", z: 0.48, explodeZ: 11, role: "Every GND pad has its own via into it; nothing routed on it; no copper under the ESP32 antenna." },
+    { id: "layer_L3", label: "L3 signals + GND pour", z: 0.16, explodeZ: 4, role: "Autorouted signals and small power branches. Inner copper is 0.5 oz: the high current stays on L1/L6." },
+    { id: "layer_L4", label: "L4 signals + GND pour", z: -0.16, explodeZ: -4, role: "Autorouted signals; GND pour in the gaps." },
+    { id: "layer_L5", label: "L5 signals + GND pour", z: -0.48, explodeZ: -11, role: "Autorouted signals; GND pour in the gaps." },
+    { id: "layer_L6", label: "L6 underside (faces the Pi)", z: -0.78, explodeZ: -18, role: "Signals, power pours under the bucks and the 12 V chain stitched to L1; pins ≤ 2.5 mm, 3 mm air gap to the Pi." },
   ];
 
   defaultLayers.forEach((ld, idx) => {
@@ -203,6 +141,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
       roughness: idx === 0 || idx === 5 ? 0.42 : 0.3,
       metalness: idx === 0 || idx === 5 ? 0.18 : 0.55,
     });
+    loadLayerImage(idx, mat);
     const thickness = idx === 0 || idx === 5 ? 0.28 : 0.16;
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(100 * MM, 100 * MM, thickness * MM), mat);
     mesh.position.set(0, 0, ld.z * MM);
@@ -216,7 +155,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
       category: "6-layer stackup",
       source: "JLCPCB 6-layer (ENIG)",
       location: `Layer ${idx + 1} of 6 · 100.0 × 100.0 × 1.6 mm FR-4`,
-      mount: "JLCPCB 6+ layer FR-4 is ENIG only; inner copper 0.5 oz by default. Thermal reliefs on every through-hole pad (hand soldering).",
+      mount: "JLCPCB 6+ layer FR-4 is ENIG only; inner copper 0.5 oz; epoxy-filled, capped vias (the default). Thermal reliefs on every through-hole pad (hand soldering).",
       wiring: (stackupMeta[idx] && stackupMeta[idx].role) || ld.role,
     });
   });
@@ -252,118 +191,93 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   }
 
   addPart({
-    id: "p6_esp32", zone: ZONES.esp32, h: 13, color: 0x1e293b, subsystem: "rf_mcu",
-    title: "A1: ESP32-WROOM-32 DevKit (30-pin, on sockets)",
+    id: "p6_esp32", zone: ZONES.esp32, h: 15.5, color: 0x1e293b, subsystem: "rf_mcu", opacity: 0.85,
+    title: "A1: ESP32 DevKit (30-pin) on two 1×15 sockets",
     category: "Real-time µC", source: "INVENTORY (2 in the lab)",
-    mount: "Machined sockets (~13 mm total height, inside the 16 mm budget). USB at the top edge for flashing; no copper under its PCB antenna (bottom end).",
-    wiring: "Pins from 02-firmware/v2/include/pins_v2.h (audited by check_pinmap.py): CC1101 5/18/19/23/34/35 and I2C 21/22, buzzer 13, button 4 as on v1; blinkers 36/39 (polled); ACC 32; GPS 33/27; Pi UART 16/17; PI_INHIBIT 26; PGOOD 15; LEDs 25/14; status LED 2; GPIO12 unconnected.",
+    mount: "Female headers, ~15.5 mm with the module (16 mm budget). The footprint carries both row spacings (0.9\" and 1.0\", marked): solder the socket that matches your DevKit. Antenna end toward the top edge (silkscreen ESP32 ANTENNA END, no copper under it on any layer); USB end toward J1, reachable for a 90° lead with the lid off.",
+    wiring: "Pins from 02-firmware/v2/include/pins_v2.h, checked against the board's netlist by check_pinmap.py: CC1101 5/18/19/23/34/35 and I2C 21/22, buzzer 13, button 4 as on v1; blinkers 36/39 (polled); ACC 32; GPS 33/27; Pi UART 16/17; PI_INHIBIT 26; rail-up sense 15; LEDs 25/14; GPIO12 and 2 unconnected. Every signal passes a series resistor beside its pin (a cut point for rework).",
     decorate: (g, pid) => {
       const shield = makeBox(18, 16, 3.2, 0xcbd5e1, 0.85, 0.22);
-      shield.position.set(0, -14 * MM, 6.5 * MM);
+      shield.position.set(0, 11 * MM, 6.5 * MM);
       shield.userData.pickId = pid;
       const usb = makeBox(8, 6, 3.2, 0x94a3b8, 0.9, 0.25);
-      usb.position.set(0, 24 * MM, 6.0 * MM);
+      usb.position.set(0, -23 * MM, 6.0 * MM);
       usb.userData.pickId = pid;
       g.add(shield, usb);
     },
   });
 
   addPart({
-    id: "p6_cc1101", zone: ZONES.cc1101, h: 12, color: 0x1d4ed8, subsystem: "rf_mcu",
-    title: "U1: CC1101 315 MHz module (same 2 × 4 pinout as v1)",
+    id: "p6_cc1101", zone: ZONES.cc1101, h: 15.5, color: 0x1d4ed8, subsystem: "rf_mcu", opacity: 0.85,
+    title: "A2: CC1101 315 MHz module on a 2 × 4 socket",
     category: "TPMS radio", source: "BUY the 315 MHz-tuned module (~$3)",
-    mount: "Module on a 2 × 4 socket over the L2 ground plane, its own SMA pointing at the right edge. No RF trace on this board.",
-    wiring: "VSPI 18/19/23, CS 5, GDO0 34, GDO2 35: the v1 driver and the EG53MA4 decoder are reused unchanged. Its SMA → 10 cm RG316 → bulkhead in the enclosure wall → 30 cm RG316 → whip away from the Pi.",
-    decorate: (g, pid, w) => {
+    mount: "Stands 11 mm over the board with parts underneath (the 3.3 V LDO and its capacitors). SMA end toward the top (silkscreen CC1101: SMA END): the 2 × 4 is symmetric, so turned round it would swap power pins. J10 (not fitted) is a breakout for a module with another pinout.",
+    wiring: "VSPI 18/19/23 through 1 kΩ, CS 5 through 1 kΩ, GDO0 34, GDO2 35: the v1 driver and decoder are reused. 3V3_RF behind a ferrite. Its SMA → 10 cm RG316 → bulkhead in the enclosure wall → 30 cm RG316 → whip away from the Pi.",
+    decorate: (g, pid, w, d) => {
       const sma = new THREE.Mesh(
         new THREE.CylinderGeometry(3.2 * MM, 3.2 * MM, 9 * MM, 16),
         new THREE.MeshStandardMaterial({ color: 0xeab308, metalness: 0.9, roughness: 0.2 })
       );
-      sma.rotation.z = Math.PI / 2;
-      sma.position.set((w / 2 + 3) * MM, 0, 1 * MM);
+      sma.position.set(0, (d / 2 + 4.5) * MM, 2.5 * MM);
       sma.userData.pickId = pid;
       g.add(sma);
     },
   });
 
   addPart({
-    id: "p6_pololu", zone: ZONES.pololu, h: 15, color: 0x0f766e, subsystem: "power_io",
-    title: "U3: Pololu D36V50F5 → 5V_PI (Pi + display + cameras + fan)",
-    category: "Power (P1, ACC only)", source: "BUY (~$20)",
-    mount: "On 0.1\" sockets; power pins on both rows (3 A per pin). 5.5–50 V in, ~5.5 A out, reverse-protected to 40 V.",
-    wiring: "EN has an internal 100 k pull-up: ON by default with ACC. 22 kΩ + 100 µF to ground give a ~1.3–1.6 s start delay; a 2N7002 (IO26) can only hold it off. PG → IO15. Budget ~2.2 A typical, ~3.7 A peak.",
+    id: "p6_buck_pi", zone: ZONES.buck_pi, h: 4.5, color: 0x0f766e, subsystem: "power_io",
+    title: "U201: 5V_PI buck — TPS54560B, 5.17 V / 5 A, 441 kHz",
+    category: "Power (P1, ACC only)", source: "JLCPCB assembly",
+    mount: "6.8 µH MWSA1004S, B560C catch diode, 2 × 10 µF in, 4 × 47 µF out, all on 2 mm straps; PowerPAD with 6 filled vias into the planes. 10 mΩ shunt + INA226 (0x41) on Kelvin taps; SMBJ6.0A clamp.",
+    wiring: "Starts at 8.0 V, 1.2–1.4 s after ACC (EN 1 MΩ / 150 kΩ + 10 µF), so the ESP32 boots first; Q201 (IO26, PI_INHIBIT) can only hold it off; a 22 k / 33 k rail-up divider → IO15. Remove R201/R202 to isolate it and feed J5 from a module via J11. RT → 43 kΩ moves it above the AM band if B5 hears it.",
   });
 
   addPart({
-    id: "p6_tsr", zone: ZONES.tsr, h: 11, color: 0xf59e0b, subsystem: "power_io",
-    title: "U2 / U4: TRACO TSR 1-2450 → 5V_ESP, AMS1117-3.3 + 22 µF tantalum → 3V3",
-    category: "Power", source: "BUY (~$8)",
-    mount: "TSR vertical SIP (~10 mm), next to the DevKit's VIN.",
-    wiring: "5V_ESP feeds the DevKit, the GPS and the LEDs; 3V3 feeds the CC1101 and the I2C sensors. The v1 C5 tantalum stability fix is kept.",
+    id: "p6_buck_esp", zone: ZONES.buck_esp, h: 4.5, color: 0xf59e0b, subsystem: "power_io",
+    title: "U301: 5V_ESP buck — TPS54560B, 5.17 V / 1 A, 485 kHz; XC6206 → 3V3",
+    category: "Power", source: "JLCPCB assembly",
+    mount: "Same power stage as the Pi buck, in the fan zone (≤ 6 mm tall). Its 12 V feed is a strap from the bus around the Pi buck.",
+    wiring: "5V_ESP → the DevKit's VIN through an SS14 (a USB-powered DevKit can't back-feed the board), the GPS (PTC), the door LEDs and the lid fan; XC6206 → 3V3 for the I2C parts; ferrite → 3V3_RF for the CC1101. Remove R301 to isolate it, J12 takes a module's 5 V.",
   });
 
   addPart({
-    id: "p6_protect", zone: ZONES.protect, h: 6, color: 0xdc2626, subsystem: "power_io",
-    title: "F1 / D1 / Q1 / FL1: 4 A fuse, SMCJ22CA, AOD4185 reverse protection, π filter",
-    category: "12 V protection", source: "BUY (~$8)",
-    mount: "Low parts (≤ 6 mm); the 47 µF / 50 V bulk capacitor sits beside the Pololu.",
-    wiring: "SMCJ22CA: 24.4 V minimum breakdown (survives a 24 V jump start), 35.5 V clamp. P-MOSFET instead of a hot Schottky. Ferrite + 2.2 µH + 2 × 10 µF against AM-band noise (bench test B5).",
+    id: "p6_protect", zone: ZONES.protect, h: 7.7, color: 0xdc2626, subsystem: "power_io",
+    title: "12 V in: 4 A fuse, SMCJ24CA, SUD50P06-15 (−60 V), π filter, 10 mΩ shunt + INA226 (0x40)",
+    category: "12 V protection", source: "JLCPCB assembly",
+    mount: "Under the DevKit's USB end, all on 2 mm straps; the 47 µF / 50 V electrolytic damps the π filter.",
+    wiring: "SMCJ24CA: 26.7 V minimum breakdown (survives a 24 V jump start), 38.9 V clamp; every part after it takes ≥ 40 V. The P-MOSFET blocks reverse battery (gate at −5 V, −16 V at the clamp). If it ever dies open, bridge its tab to pin 3.",
   });
 
   addPart({
     id: "p6_j1", zone: ZONES.j1, h: 10, color: 0x7f1d1d, subsystem: "power_io",
-    title: "J1: 12 V ACC in (Micro-Fit 3.0, right angle)",
-    category: "Connectors", source: "BUY",
-    mount: "Right-angle at the bottom edge, under the lid's cable exit; mated height < 16 mm.",
-    wiring: "2 × ACC + 2 × GND, 18 AWG, from one Add-A-Circuit (5 A) on a metered ACC fuse. No battery feed: zero draw when parked.",
+    title: "J1: 12 V in — 4-pole 5.08 mm screw terminal",
+    category: "Connectors", source: "BUY (hand-soldered)",
+    mount: "Wire entries toward the bottom edge, under the lid's cable exit.",
+    wiring: "+12 V (ACC), GND, AUX sense in, AUX return; 18 AWG from one Add-A-Circuit (5 A) on a metered ACC fuse. No battery feed: zero draw when parked.",
   });
 
   addPart({
     id: "p6_j5", zone: ZONES.j5, h: 10, color: 0xea580c, subsystem: "power_io",
-    title: "J5: 5V_PI out (Micro-Fit 3.0) + fan header",
-    category: "Connectors", source: "BUY",
-    mount: "Right-angle at the bottom edge.",
-    wiring: "Pair 1 → 90° USB-C pigtail to the Pi (470 µF at the Pi end); pair 2 → display adapter 5 V / GND; a 2-pin header powers the lid fan.",
+    title: "J5: 5V_PI out — 6-pole 5.08 mm screw terminal",
+    category: "Connectors", source: "BUY (hand-soldered)",
+    mount: "Wire entries toward the top edge (a clear strip in front of them for the wire bend).",
+    wiring: "1–2 → 90° USB-C pigtail to the Pi (470 µF at the Pi end); 3–4 → the TS-7's 5 V on its split micro-USB lead (its touch data goes to a Pi USB port); 5–6 spare. Fed by 2 mm straps from the shunt.",
   });
 
   addPart({
-    id: "p6_jst", zone: ZONES.jst, h: 6, color: 0x10b981, subsystem: "signals",
-    title: "J6–J11: JST-GH harness (blinkers, LEDs, alert pod, GPS, Pi UART, I2C)",
-    category: "Connectors", source: "BUY / INVENTORY (JST-GH kit)",
-    mount: "Keyed, latching; right-angle at the bottom edge next to the cable exit.",
-    wiring: "Blinker L/R (2 × 2-pin), LED L/R (2 × 2-pin), alert pod (4-pin: BTN IO4, GND, BUZ+, BUZ−), GPS (4-pin, UART1 33/27, 5 V), Pi UART (3-pin, 16/17 with 1 k / 4.7 k), I2C (4-pin, 21/22).",
+    id: "p6_jst", zone: ZONES.jst, h: 4.3, color: 0x10b981, subsystem: "signals",
+    title: "J4, J2, J3, J6, J7: JST-GH — pod, doors L / R, Pi UART, GPS",
+    category: "Connectors", source: "JLCPCB assembly (SMD)",
+    mount: "Keyed, latching; mouths on the bottom edge next to the cable exit.",
+    wiring: "POD (4-pin): mute button IO4, GND, 12 V piezo ±. DOOR L / R (4-pin): blinker sense pair + amber LED. PI (4-pin): GND, TXD, RXD, GPIO18 (1 kΩ / 4.7 kΩ). GPS (6-pin Pixhawk): 5 V, TX, RX, SCL, SDA, GND; swap TX/RX with R907/R908.",
   });
 
   addPart({
-    id: "p6_enrc", zone: ZONES.enrc, h: 9, color: 0x6366f1, subsystem: "power_io",
-    title: "Pi start delay and inhibit: 22 kΩ + 100 µF, Q2 2N7002 (IO26)",
-    category: "Power sequencing (tested in firmware)", source: "BUY",
-    mount: "Next to the Pololu; the 100 µF can is ~9 mm tall, outside the fan zone.",
-    wiring: "The Pi rail starts by itself with ACC; the ESP32 holds it off while cranking (PiPowerSequencer: engine ≥ 13.0 V for 1 s, or 15 s in ACC; hot hold ≥ 60 °C). Bench tests B1–B3.",
-  });
-
-  // Low parts in the fan zone
-  const [fx, fy] = centre(...ZONES.fan);
-  addPart({
-    id: "p6_opto", x: fx - 8, y: fy + 7, w: 14, d: 10, h: 4, color: 0xfacc15, subsystem: "signals",
-    title: "U5 / U6: PC817 blinker inputs (IO36 / IO39)",
-    category: "Blinker sensing (tested in firmware)", source: "BUY",
-    mount: "In the fan zone (parts ≤ 6 mm). 2 × 1.1 kΩ 1206 in series + 1N4148 reverse diode per input (~6 mA).",
-    wiring: "Active-low outputs with 10 k pull-ups, polled at 1 kHz (ESP32 errata 3.11). BlinkerDetector: bridges PWM gaps ≤ 25 ms, 50 ms debounce, 900 ms hold, hazard window 150 ms.",
-  });
-  addPart({
-    id: "p6_drivers", x: fx + 8, y: fy + 7, w: 14, d: 10, h: 3, color: 0xe879f9, subsystem: "ui",
-    title: "Q3–Q5: amber LED and piezo drivers (IO25 / IO14 / IO13)",
-    category: "Alerts (tested in firmware)", source: "BUY",
-    mount: "Low-side MOSFETs; 33 Ω + SMAJ18A on the piezo's 12 V feed.",
-    wiring: "LEDs: steady = vehicle in the blind spot, flashing = you are signalling towards it, PWM level from the Pi. Piezo in the alert pod. AlertArbiter: speed gate 12 / 8 mph, hazards silent, mute = this turn + TPMS acknowledge, fault pattern when the Pi goes quiet.",
-  });
-  addPart({
-    id: "p6_acc", x: fx, y: fy - 9, w: 16, d: 8, h: 2, color: 0x94a3b8, subsystem: "signals",
-    title: "ACC sense (IO32) + LM75A board temperature (I2C)",
-    category: "Sensing", source: "BUY",
-    mount: "100 kΩ / 10 kΩ + BAT54S clamp + 100 nF; LM75A in the middle of the board.",
-    wiring: "ACC ≥ 9.0 V = on, < 7.5 V = off; ≥ 13.0 V for 1 s = engine running. The LM75A drives the hot-start hold (≥ 60 °C: wait for 55 °C, at most 10 min).",
+    id: "p6_io", zone: ZONES.io, h: 3, color: 0xfacc15, subsystem: "signals",
+    title: "LTV-357T blinker / AUX optos + door LED, piezo and fan drivers",
+    category: "Blinker sensing and alerts (tested in firmware)", source: "JLCPCB assembly",
+    mount: "Per input: 2 × 1.2 kΩ + indicator LED + opto, 1N4148W reverse diode, separate lamp return. Low-side AO3400A for the LEDs and the fan, 2N7002 (60 V) for the piezo behind a 0.5 A PTC.",
+    wiring: "Opto outputs active-low with 10 k pull-ups, polled at 1 kHz (ESP32 errata 3.11). LEDs: steady = vehicle in the blind spot, flashing = you are signalling towards it. The fan runs by default; the TCA9534 (0x20) can stop it. TMP75 (0x48) drives the hot-start hold.",
   });
 
   // Keep-outs from the enclosure generator
@@ -373,6 +287,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
     const m = new THREE.Mesh(new THREE.BoxGeometry(zone[2] * MM, zone[3] * MM, h * MM), keepMat(color));
     m.position.set(x * MM, y * MM, (0.92 + h / 2) * MM);
     m.userData.pickId = id;
+    m.userData.lowPriority = true;  // a volume around parts: a click on a part inside it selects the part
     group.add(m);
     pickables.push({ id, mesh: m, title, category: "Enclosure keep-out", source: "make_enclosure.py",
       location: `Template zone (${zone[0]}, ${zone[1]}) · ${zone[2]}×${zone[3]} mm`, mount: "Rule for the KiCad layout (gate G7).", wiring });
@@ -384,11 +299,12 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   const mountStackGroup = new THREE.Group();
   const stackTiers = [];
   const ENC = {
-    bezel: { color: 0x1f2937, opacity: 1, explode: -40, title: "Bezel (print face down)", mount: "2 mm lip over the glass's black border, 0.3 mm clear of the glass (no pressure on the touch panel). 10 mm chin with 20 intake slots, 2.5 mm wide. 6 × M3 into the side walls and the chin." },
-    housing: { color: 0x475569, opacity: 0.55, explode: 0, title: "Housing: plate + rear box (print plate down)", mount: "The display screws to the plate through its own 4 × M3 frame holes. The box holds the Pi (on the display's standoffs) and this PCB on 4 posts (92 × 92). USB/Ethernet window, SMA bulkhead, AMPS 30 × 38 M4 nuts, 2 mm bumps so air leaves round the plate." },
+    bezel: { color: 0x1f2937, opacity: 1, explode: -40, title: "Bezel (print face down)", mount: "The display hangs by its four ears on four bosses (M3 × 6 from behind). The lip covers the outer 2 mm of the glass, 0.3 mm clear of it. Intake slots (2.5 mm) beside the screen; 2 mm top / bottom walls keep it as tall as the opening. 6 × M3 × 10 from the back of the plate." },
+    housing: { color: 0x475569, opacity: 0.55, explode: 0, title: "Housing: plate + rear box (print plate down)", mount: "The plate sits 0.4 mm behind the display's back parts, with three intake windows and a cable slot for the display's leads. The box holds the Pi on 4 posts (58 × 49) and this PCB on 4 more (92 × 92). USB/Ethernet window with the display-lead slot above it, SMA bulkhead, AMPS 30 × 38 M4 nuts, 2 mm bumps so air leaves round the plate." },
     lid: { color: 0x64748b, opacity: 0.5, explode: 40, title: "Lid with the 30 mm fan (print outside down)", mount: "The inventory fan blows out through a 2.5 mm bar grille; cable exit with a split grommet; locating rim; 4 × M3 into the ears." },
-    display: { color: 0x0b1a3a, opacity: 1, explode: -28, title: "Official 7\" Touch Display (dummy)", mount: "Mounted upside down (cable edge up): 6 o'clock viewing direction, docs 50° top / 70° bottom. Rotate the image 180° and invert touch." },
-    pi: { color: 0x15803d, opacity: 1, explode: -14, title: "Raspberry Pi 4 + adapter + ribbons (dummy)", mount: "On the display's own standoffs, ports to the driver's right (window in the box wall). GPIO plugs 90° / low profile." },
+    display: { color: 0x0b1a3a, opacity: 1, explode: -28, title: "SunFounder TS-7 7\" display (dummy)", mount: "1024 × 600 IPS, readable from any angle: mounted the normal way up. HDMI and micro-USB sockets on the back at its right edge. Board ~165.3 × 124.4 mm over its ears: measure it first (SunFounder lists 121)." },
+    cables: { color: 0xf97316, opacity: 1, explode: -28, title: "Display plugs and leads (dummy)", mount: "Straight HDMI-A FPC adapter (flat cable folded up over it) and a 90° micro-USB plug (lead upward), rising to the plate's cable slot; then into the pocket and into the box above the USB window." },
+    pi: { color: 0x15803d, opacity: 1, explode: -14, title: "Raspberry Pi 4 + its plugs (dummy)", mount: "On 4 posts behind the plate, ports to the driver's right (window in the box wall), HDMI / USB-C edge on top: micro-HDMI adapter in HDMI0, 90° USB-C pigtail. GPIO plugs 90° / low profile." },
     fan: { color: 0x111827, opacity: 1, explode: 40, title: "30 mm fan (dummy)", mount: "Under the lid, over the PCB's fan zone." },
     pcb_parts: { color: 0xf59e0b, opacity: 0.12, explode: 0, title: "PCB part-height budget (16 mm, 6 mm under the fan)", mount: "From the enclosure generator; the KiCad layout must stay inside it." },
   };

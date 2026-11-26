@@ -92,9 +92,10 @@ void CC1101::configure(const RfProfile& p) {
       {FREQ2, 0x0C},     {FREQ1, 0x1D},      {FREQ0, 0x8A},    // 315.000 MHz with a 26 MHz crystal
       {MDMCFG1, 0x02},   {MDMCFG0, 0xF8},
       {MCSM2, 0x07},     {MCSM1, 0x30},
-      {MCSM0, 0x18},     // calibrate on every IDLE -> RX
-      {FOCCFG, 0x16},    {BSCFG, 0x6C},      {WORCTRL, 0xFB},
-      {FREND1, 0x56},    {FREND0, 0x11},
+      {MCSM0, 0x18},     // calibrate on every IDLE -> RX (so no manual SCAL is needed)
+      {BSCFG, 0x6C},     {WORCTRL, 0xFB},
+      {FREND1, 0xB6},    // DN022: 0xB6 for RX filters wider than 101 kHz (all profiles here are >= 135 kHz)
+      {FREND0, 0x11},
       {FSCAL3, 0xE9},    {FSCAL2, 0x0A},     {FSCAL1, 0x00},   {FSCAL0, 0x1F},
       {TEST2, 0x81},     {TEST1, 0x35},
       {TEST0, 0x0B},     // VCO selection calibration on: needed below ~323 MHz (0x09 is the 433 MHz value)
@@ -107,8 +108,9 @@ void CC1101::configure(const RfProfile& p) {
   writeReg(AGCCTRL2, p.agcctrl2);
   writeReg(AGCCTRL1, p.agcctrl1);
   writeReg(AGCCTRL0, p.agcctrl0);
-  strobe(SCAL);
-  delay(1);
+  // Frequency offset compensation: FOC_LIMIT must be 0 for ASK/OOK (datasheet, FOCCFG); +-BW/4 for FSK
+  const bool ook = ((p.mdmcfg2 >> 4) & 0x07) == 0x03;
+  writeReg(FOCCFG, ook ? 0x14 : 0x16);
   rx();
 }
 
@@ -116,9 +118,20 @@ void CC1101::rx() { strobe(SRX); }   // the RX FIFO is unused in asynchronous se
 
 void CC1101::idle() { strobe(SIDLE); }
 
+// RSSI and MARCSTATE can change while they are read (errata SWRZ020): read until two reads agree.
+uint8_t CC1101::readStatusStable(uint8_t addr) {
+  uint8_t v = readStatus(addr);
+  for (int i = 0; i < 4; i++) {
+    const uint8_t again = readStatus(addr);
+    if (again == v) break;
+    v = again;
+  }
+  return v;
+}
+
 int CC1101::rssiDbm() {
-  const int raw = readStatus(RSSI);
+  const int raw = readStatusStable(RSSI);
   return (raw >= 128 ? raw - 256 : raw) / 2 - 74;   // datasheet 17.3, RSSI offset 74 dB
 }
 
-uint8_t CC1101::marcState() { return readStatus(MARCSTATE) & 0x1F; }
+uint8_t CC1101::marcState() { return readStatusStable(MARCSTATE) & 0x1F; }

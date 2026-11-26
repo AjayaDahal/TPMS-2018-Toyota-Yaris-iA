@@ -15,7 +15,7 @@
 //   takeSpeed(kmh, at)   true once per new speed reply
 //
 // Sequence (ELM327 datasheet, Elm Electronics): ATZ (reset; ~0.8 s to its "ELM327 v..." line), ATE0 (echo off),
-// ATS0 (spaces off), ATH0 (headers off), ATSP6 (ISO 15765-4 CAN, 11 bit, 500 kbit/s: no "SEARCHING..." on every
+// ATS0 (spaces off), ATH0 (headers off), ATSPA6 (ISO 15765-4 CAN, 11 bit, 500 kbit/s tried first, so no "SEARCHING..." on every
 // start), then "010D1" every pollMs. The trailing "1" makes the ELM327 return after the first reply instead of
 // waiting out its 200 ms timer; a clone that answers "?" to it is polled with plain "010D". The setup commands are
 // best effort: the reply parser copes with echo, spaces and headers. The speed is only ever requested, never
@@ -37,10 +37,14 @@ enum class ElmState : uint8_t { Disconnected, Resetting, Configuring, Polling };
 const char* elmStateName(ElmState s);
 
 struct ElmConfig {
-  uint32_t resetTimeoutMs = 3000;  // no prompt after ATZ within this: send it again
-  uint32_t cmdTimeoutMs = 1000;    // no prompt after any other command within this: it failed
-  uint32_t pollMs = 200;           // speed request period (5 Hz)
-  uint8_t maxFailures = 3;         // consecutive failed commands before a full reset (ATZ)
+  uint32_t resetTimeoutMs = 3000;   // no prompt after ATZ within this: send it again
+  uint32_t cmdTimeoutMs = 1000;     // no prompt after any other command within this: it failed
+  uint32_t searchTimeoutMs = 8000;  // ... once it answered "SEARCHING..." (protocol search, e.g. a clone that
+                                    //     rejected ATSPA6, or a car on 29-bit IDs): interrupting the search would restart it every time
+  uint32_t drainMs = 300;           // after a timeout, ignore late bytes this long before the next command, so a
+                                    // reply held up in the Bluetooth link isn't taken for the next one's
+  uint32_t pollMs = 200;            // speed request period (5 Hz)
+  uint8_t maxFailures = 3;          // consecutive failed commands before a full reset (ATZ)
 };
 
 class ElmClient {
@@ -58,6 +62,7 @@ class ElmClient {
   uint32_t replies() const { return replies_; }    // valid speed replies
   uint32_t failures() const { return failures_; }  // failed or timed-out commands
   uint32_t resets() const { return resets_; }      // ATZ sent
+  uint32_t noData() const { return noData_; }      // "NO DATA": the dongle works, the car didn't answer (key in ACC)
 
  private:
   void endLine();
@@ -72,9 +77,11 @@ class ElmClient {
   uint32_t sentMs_ = 0;
   bool pollSent_ = false;
   uint32_t lastPollMs_ = 0;
+  bool draining_ = false;
+  uint32_t drainUntil_ = 0;
   bool noCount_ = false;   // the dongle rejects the response-count digit
   uint8_t streak_ = 0;     // consecutive failures
-  bool gotId_ = false, gotSpeed_ = false, gotQuestion_ = false;
+  bool gotId_ = false, gotSpeed_ = false, gotQuestion_ = false, gotNoData_ = false, searching_ = false;
   uint8_t lineKmh_ = 0;
   char line_[kMaxLine + 1] = {};
   size_t n_ = 0;
@@ -82,7 +89,7 @@ class ElmClient {
   bool fresh_ = false;
   uint8_t speedKmh_ = 0;
   uint32_t speedMs_ = 0;
-  uint32_t replies_ = 0, failures_ = 0, resets_ = 0;
+  uint32_t replies_ = 0, failures_ = 0, resets_ = 0, noData_ = 0;
 };
 
 }  // namespace obd
