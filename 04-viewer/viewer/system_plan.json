@@ -242,10 +242,10 @@
     {
       "id": "usb_pass",
       "layer": "power",
-      "name": "Car USB passthrough (from v1) in the USB wing",
-      "route": "Socket in the printed wing on the bezel's right edge, facing the passenger → its own cable through the bezel's side wall → across the right cavity above the display's plugs → down through the plate's cable slot → the car's USB port in the pocket",
-      "cable": "The passthrough's own cable (Ø ~5.5 mm, measure it)",
-      "protection": "None needed: it only extends the car's own port. Plug it into the car's USB port before the unit goes home"
+      "name": "2× Car USB passthroughs (from v1) in the twin USB wing",
+      "route": "Both sockets stacked in the printed twin wing on the bezel's right edge (39 mm pitch), facing the passenger → lower cable climbs behind the centre screw post inside the wing; both enter the bezel through one side opening → cross above the display's plugs → drop through the plate's cable slot → car USB ports / flush 12 V charger in the pocket",
+      "cable": "Both passthrough cables (Ø ~5.5 mm each, measure them)",
+      "protection": "None needed: they only extend the car's own ports. Plug both into the pocket ports before the unit goes home"
     },
     {
       "id": "gps",
@@ -407,13 +407,13 @@
       "notes": "Lid fan, blowing out. Measure its thickness and hole spacing."
     },
     {
-      "item": "USB panel-mount passthrough cable (from v1)",
+      "item": "2× USB 3.0 panel-mount passthrough cables (ALTW, from v1)",
       "category": "Dash unit",
       "source": "INVENTORY",
-      "qty": 1,
-      "inv_stock": 1,
+      "qty": 2,
+      "inv_stock": 2,
       "cost_usd": 0,
-      "notes": "Reused from the v1 panel: it goes into the printed USB wing (the v1 Ø25.8 mm cut). Measure the collar, thread length, nut, cable and plug (PASS_* parameters) before printing the wing."
+      "notes": "Reused from the v1 panel: both stack in the printed twin USB wing (2× Ø25.8 × 23.8 mm double-D cuts; thread 25.16 and flats 23.28 measured from your photos). Measure collar, rear length, nut, cable and plug (PASS_*) before printing the wing."
     },
     {
       "item": "M3 / M4 screws and nuts (VIGRUE, Zuorery, Fgruh kits)",
@@ -666,7 +666,7 @@
     },
     {
       "id": "col_usbpass",
-      "text": "USB panel-mount passthrough cable from the v1 panel (goes into the USB wing)",
+      "text": "2× ALTW USB 3.0 panel-mount passthrough cables from the v1 panel (both go into the twin USB wing)",
       "where": "v1 panel"
     },
     {
@@ -755,7 +755,7 @@
     },
     {
       "id": "ms_piezo_usb",
-      "text": "The piezo's diameter / height (BUZ_D / BUZ_H); the USB passthrough: collar Ø and thickness, socket Ø and how far it stands out, thread length up to the cable, nut across corners and thickness, cable Ø, plug size (PASS_*); the flat trim right of the console opening for the USB wing (TRIM_RIGHT, ≥ 28 × 42 mm)",
+      "text": "The piezo's diameter / height (BUZ_D / BUZ_H); the ALTW USB passthroughs (thread 25.16 and flats 23.28 already measured): collar / flange Ø and thickness, front body Ø and projection, rear length up to the cable, nut across corners and thickness, cable Ø, plug size (PASS_*); the flat trim right of the console opening for the twin USB wing (TRIM_RIGHT, ≥ 33 × 82 mm)",
       "where": "Caliper, car"
     },
     {
@@ -957,7 +957,7 @@
     {
       "id": "st_13",
       "phase": "Phase 6 · Car install",
-      "text": "Enclosure into the pocket (or onto the RAM base): the USB passthrough's cable into the car's USB port first, 90° USB adapters, harness through the grommet, antenna lead out; VHB on the USB wing's back edges so it lands flat on the trim; never seal the gap round the plate."
+      "text": "Enclosure into the pocket (or onto the RAM base): both USB passthrough cables into the pocket USB ports / 12 V charger first, 90° USB adapters, harness through the grommet, antenna lead out; VHB on the twin USB wing's back edges so it lands flat on the trim; never seal the gap round the plate."
     },
     {
       "id": "st_14",
@@ -1759,7 +1759,7 @@
       "likelihood": "Medium-High",
       "title": "The enclosure is drawn from estimates: SunFounder publishes no drawing of the TS-7 and its listed height (121.0 mm) disagrees with its photos (~124.4 mm over the ears); the ear holes, sockets, back-part height and plug sizes come from photos too. Straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
       "cause": "",
-      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 62 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
+      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 63 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
       "status": "You (G6)",
       "status_keys": [
         "you"
@@ -1796,7 +1796,7 @@
       "likelihood": "Medium",
       "title": "The camera USB plugs, the display leads and the antenna lead don't fit beside the box in the pocket",
       "cause": "",
-      "fix": "Three 90° USB-A adapters (two cameras, the touch lead) and an SMA bulkhead. The display's flat cable and micro-USB lead rise inside the bezel to a 12.5 × 20 mm slot in the plate, inside the opening; the car-USB passthrough's cable goes down the same slot. The generator checks the plugs, the leads and the slot inside the opening's outline (3.0 mm margin at the tightest point)",
+      "fix": "Three 90° USB-A adapters (two cameras, the touch lead) and an SMA bulkhead. The display's flat cable and micro-USB lead rise inside the bezel to a 12.2 × 24 mm slot in the plate, inside the opening; both car-USB passthrough cables go down the same slot. The generator checks the plugs, the leads and the slot inside the opening's outline (2.6 mm margin at the tightest point)",
       "status": "Fixed (enclosure) + You (mock-up)",
       "status_keys": [
         "fixed",
@@ -1820,9 +1820,9 @@
       "id": "M15",
       "category": "Mechanical and installation",
       "likelihood": "Medium",
-      "title": "The USB passthrough doesn't fit its wing: the wing is drawn round the v1 3-D model's passthrough (collar Ø28.2, thread Ø25.16 × 22.4 mm, 36 mm nut), not a measured part",
+      "title": "The two USB passthroughs don't fit their twin wing: thread Ø25.16 and double-D flats 23.28 are measured from your caliper photos, but collar, rear length (22.4), nut (36), cable (5.5) and plug (16.5 × 8.5) are still from the v1 3-D model",
       "cause": "",
-      "fix": "Every size is a parameter (<code>PASS_*</code>): measure yours, regenerate, and the checks re-run (the v1 Ø25.8 cut, the nut held by the wing's front wall, the plug through the end hole, the bezel's side opening and the plate's slot)",
+      "fix": "Every size is a parameter (<code>PASS_*</code>): measure the remaining dimensions, regenerate, and the checks re-run (both Ø25.8 × 23.8 double-D cuts, both nuts spinning on the bench and clearing the trim, plug #2 passing alongside cable #1 through the side opening and plate slot)",
       "status": "You (G6)",
       "status_keys": [
         "you"
@@ -1832,9 +1832,9 @@
       "id": "M16",
       "category": "Mechanical and installation",
       "likelihood": "Medium",
-      "title": "No room for the USB wing on the trim right of the console opening (a vent, the glovebox, curved trim, the passenger's knee), or its front, 12.6 mm proud of the bezel, is in the way",
+      "title": "No room for the twin USB wing on the trim right of the console opening (a vent, the glovebox, curved trim, the passenger's knee), or its front, 15.1 mm proud of the bezel, is in the way",
       "cause": "",
-      "fix": "Tape a 28 × 42 mm cardboard wing to the trim during the mock-up. <code>TRIM_RIGHT</code> records the free space and the check fails if the wing doesn't fit. Without the nut (body glued in) the wing's front drops to ~7 mm",
+      "fix": "Tape a 33 × 81 mm cardboard wing to the trim during the mock-up. <code>TRIM_RIGHT</code> records the free space and the check fails if the wing doesn't fit",
       "status": "You (G5)",
       "status_keys": [
         "you"
@@ -2304,7 +2304,7 @@
         114.4
       ],
       "screws": "4× M3 × 6 from behind, through the ears into the bezel's bosses",
-      "cable_slot": "12 × 20 mm in the plate, 76.2-88.7 mm right of centre, 43-63 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
+      "cable_slot": "12 × 24 mm in the plate, 75.5-87.7 mm right of centre, 39-63 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
       "intake_slots_mm2": 771
     },
     "pcb_constraints": {
@@ -2324,18 +2324,18 @@
       "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
       "amps": "4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
       "piezo": "pressed into the 3 fingers on the bezel's skin (face on their 2 mm ledges), a dab of RTV on each; leads up the right cavity and out through the plate's slot",
-      "usb_wing": "2× M3 × 10 socket cap from inside the bezel's right cavity (before the display goes in), VHB on its back to the trim",
-      "usb_passthrough": "its own nut, held by the wing: turn the socket from outside to tighten"
+      "usb_wing": "3× M3 × 10 socket cap from inside the bezel's right cavity (before the display goes in), VHB on its back to the trim",
+      "usb_passthrough": "2× ALTW USB 3.0 passthroughs with their own hex nuts, tightened on the bench before the wing screws onto the bezel (the double-D flats stop them turning)"
     },
     "volumes_cm3": {
-      "bezel": 47.4,
-      "housing": 138.9,
+      "bezel": 47.1,
+      "housing": 138.8,
       "lid": 35.2,
-      "usb_wing": 10.6
+      "usb_wing": 20.3
     },
     "checks": {
-      "passed": 62,
-      "total": 62,
+      "passed": 63,
+      "total": 63,
       "all_ok": true
     },
     "assembly": [
@@ -2403,19 +2403,19 @@
         "name": "usb_wing",
         "file": "../../01-hardware/enclosure/stl/asm_usb_wing.stl",
         "color": "#1f2937",
-        "label": "USB wing: holds the car's USB passthrough beside the bezel, v1's Ø25.8 cut (print front face down)"
+        "label": "Twin USB wing: holds both car USB passthroughs beside the bezel, v1's Ø25.8 × 23.8 double-D cuts (print front face down)"
       },
       {
         "name": "usb_pass",
         "file": "../../01-hardware/enclosure/stl/asm_usb_pass.stl",
         "color": "#94a3b8",
-        "label": "The v1 USB passthrough: socket facing right, nut held by the wing, cable into the pocket (dummy)"
+        "label": "Both v1 USB passthroughs (ALTW 25.16 / 23.28 double-D): sockets facing right, both cables into the pocket (dummy)"
       },
       {
         "name": "wing_screws",
         "file": "../../01-hardware/enclosure/stl/asm_wing_screws.stl",
         "color": "#cbd5e1",
-        "label": "2× M3 × 10 from inside the bezel into the wing's tabs (dummy)"
+        "label": "3× M3 × 10 from inside the bezel into the wing's top, centre and bottom bosses (dummy)"
       }
     ],
     "print_files": [

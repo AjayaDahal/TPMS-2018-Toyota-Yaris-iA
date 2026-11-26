@@ -13,7 +13,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 10477 >>
+<< /Length 9845 >>
 stream
 BT 0.000 0.000 0.000 rg /F2 11.0 Tf 28.346 586.488 Td (v2 fit template 1:1  \267  SunFounder TS-7 7" display in the Yaris iA console) Tj ET
 BT 0.000 0.000 0.000 rg /F1 7.0 Tf 28.346 572.315 Td (Front view from the driver's seat. Lay the display face up on this page: its board must cover the blue outline and its ear holes the orange circles. Dashed = behind the display.) Tj ET
@@ -27,25 +27,27 @@ BT 0.800 0.100 0.100 rg /F1 5.8 Tf 145.417 170.929 Td (console opening 191 / 123
 BT 0.450 0.450 0.450 rg /F1 5.6 Tf 163.843 192.472 Td (rear box 112 \327 124, 50.5 deep \(needs 56 mm of pocket depth\)) Tj ET
 0.800 0.100 0.100 RG 0.800 0.100 0.100 rg 0.850 w
 [2.83 2.27] 0 d
-532.772 542.551 m 568.205 542.551 l 568.205 485.858 l 532.772 485.858 l h S
-BT 0.800 0.100 0.100 rg /F1 5.6 Tf 571.039 539.717 Td (cable slot:) Tj ET
-BT 0.800 0.100 0.100 rg /F1 5.6 Tf 571.039 532.346 Td (display leads) Tj ET
-BT 0.800 0.100 0.100 rg /F1 5.6 Tf 571.039 524.976 Td (+ car USB) Tj ET
+530.787 542.551 m 565.370 542.551 l 565.370 474.520 l 530.787 474.520 l h S
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 568.205 539.717 Td (cable slot:) Tj ET
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 568.205 532.346 Td (display leads) Tj ET
+BT 0.800 0.100 0.100 rg /F1 5.6 Tf 568.205 524.976 Td (+ car USB) Tj ET
 0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 1.276 w
 [] 0 d
 25.512 546.803 m 608.315 546.803 l 608.315 181.134 l 25.512 181.134 l h S
 BT 0.000 0.000 0.000 rg /F1 6.5 Tf 29.764 551.339 Td (printed bezel 205.6 \327 129.0) Tj ET
-608.315 545.102 m 687.402 545.102 l 687.402 426.614 l 608.315 426.614 l h S
+608.315 545.669 m 701.575 545.669 l 701.575 315.496 l 608.315 315.496 l h S
 0.450 0.450 0.450 RG 0.450 0.450 0.450 rg 0.850 w
 [] 0 d
-687.402 525.827 m 695.906 525.827 l 695.906 445.890 l 687.402 445.890 l h S
-695.906 520.157 m 710.079 520.157 l 710.079 451.559 l 695.906 451.559 l h S
-BT 0.000 0.000 0.000 rg /F1 5.6 Tf 611.150 416.976 Td (USB wing 28 \327 42 on the trim:) Tj ET
-BT 0.000 0.000 0.000 rg /F1 5.6 Tf 611.150 409.606 Td (the car's USB faces right \(\33025.8 v1 cut\)) Tj ET
+701.575 525.827 m 710.079 525.827 l 710.079 445.890 l 701.575 445.890 l h S
+710.079 520.157 m 724.252 520.157 l 724.252 451.559 l 710.079 451.559 l h S
+701.575 415.276 m 710.079 415.276 l 710.079 335.339 l 701.575 335.339 l h S
+710.079 409.606 m 724.252 409.606 l 724.252 341.008 l 710.079 341.008 l h S
+BT 0.000 0.000 0.000 rg /F1 5.6 Tf 611.150 305.858 Td (twin USB wing 33 \327 81 on the trim:) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.6 Tf 611.150 298.488 Td (2\327 \33025.8 \327 23.8 double-D \(facing right\)) Tj ET
 0.450 0.450 0.450 RG 0.450 0.450 0.450 rg 0.709 w
 [2.83 2.27] 0 d
-597.487 316.913 m 597.487 298.753 582.765 284.031 564.605 284.031 c 546.444 284.031 531.723 298.753 531.723 316.913 c 531.723 335.074 546.444 349.795 564.605 349.795 c 582.765 349.795 597.487 335.074 597.487 316.913 c S
-BT 0.450 0.450 0.450 rg /F1 5.4 Tf 531.723 275.528 Td (piezo \(behind\)) Tj ET
+597.487 273.260 m 597.487 255.099 582.765 240.378 564.605 240.378 c 546.444 240.378 531.723 255.099 531.723 273.260 c 531.723 291.421 546.444 306.142 564.605 306.142 c 582.765 306.142 597.487 291.421 597.487 273.260 c S
+BT 0.450 0.450 0.450 rg /F1 5.4 Tf 531.723 231.874 Td (piezo \(behind\)) Tj ET
 0.100 0.300 0.800 RG 0.100 0.300 0.800 rg 0.992 w
 [] 0 d
 59.953 540.283 m 81.496 540.283 l 81.496 514.772 l 506.976 514.772 l 506.976 540.283 l 528.520 540.283 l 528.520 187.654 l 506.976 187.654 l 506.976 213.165 l 81.496 213.165 l 81.496 187.654 l 59.953 187.654 l h S
@@ -97,34 +99,26 @@ BT 0.850 0.450 0.000 rg /F1 5.4 Tf 533.622 349.795 Td (90\260 micro-USB) Tj ET
 147.402 195.307 m 147.402 192.646 145.244 190.488 142.583 190.488 c 139.921 190.488 137.764 192.646 137.764 195.307 c 137.764 197.969 139.921 200.126 142.583 200.126 c 145.244 200.126 147.402 197.969 147.402 195.307 c S
 496.063 195.307 m 496.063 192.646 493.906 190.488 491.244 190.488 c 488.583 190.488 486.425 192.646 486.425 195.307 c 486.425 197.969 488.583 200.126 491.244 200.126 c 493.906 200.126 496.063 197.969 496.063 195.307 c S
 51.364 293.102 m 51.364 290.441 49.206 288.283 46.545 288.283 c 43.883 288.283 41.726 290.441 41.726 293.102 c 41.726 295.764 43.883 297.921 46.545 297.921 c 49.206 297.921 51.364 295.764 51.364 293.102 c S
-594.142 236.409 m 594.142 233.748 591.984 231.591 589.323 231.591 c 586.661 231.591 584.504 233.748 584.504 236.409 c 584.504 239.071 586.661 241.228 589.323 241.228 c 591.984 241.228 594.142 239.071 594.142 236.409 c S
-BT 0.000 0.000 0.000 rg /F2 8.0 Tf 617.953 385.228 Td (BEFORE PRINTING THE ENCLOSURE) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 373.890 Td (1. Lay the display face up on this page. If its) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 364.535 Td (board or ear holes miss the blue outline or the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 355.181 Td (orange circles by more than 0.5 mm, measure them) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 345.827 Td (with calipers and regenerate \(enclosure/README.md,) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 336.472 Td (Measure first\).) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 323.150 Td (2. Measure: board height over the ears \(SunFounder) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 313.795 Td (lists 121, its photos say ~124.4\), ear holes, the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 304.441 Td (HDMI and micro-USB socket centres, the tallest) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 295.087 Td (part on the back, your HDMI adapter and micro-USB) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 285.732 Td (plug.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 272.409 Td (3. Mock-up: cut out the bezel outline, glue it to) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 263.055 Td (foam board with a 112 \327 124 \327 50 mm block behind) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 253.701 Td (it. Check the shifter through P-R-N-D-M, the HVAC) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 244.346 Td (knobs and the view. It stands 22 mm proud of the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 234.992 Td (trim.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 221.669 Td (4. IPS panel: readable from any angle, so it) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 212.315 Td (mounts the normal way up.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 198.992 Td (5. Rated -10 to +60 \260C \(storage +70 \260C\): keep it) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 189.638 Td (out of direct sun; 250 cd/m\262 is dim in daylight.) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 176.315 Td (6. USB wing: 28 \327 42 mm on the trim right of the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 166.961 Td (bezel, its front 13 mm proud of the bezel's; the) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 157.606 Td (socket ends 36 mm right of the bezel. Check that) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 148.252 Td (trim is flat and free, and measure your) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 138.898 Td (passthrough \(enclosure/README.md\).) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 125.575 Td (Sources: SunFounder TS-7 parameters and product) Tj ET
-BT 0.000 0.000 0.000 rg /F1 6.4 Tf 617.953 116.220 Td (photos; enclosure_report.json; v1 panel_config.py.) Tj ET
+594.142 220.819 m 594.142 218.157 591.984 216.000 589.323 216.000 c 586.661 216.000 584.504 218.157 584.504 220.819 c 584.504 223.480 586.661 225.638 589.323 225.638 c 591.984 225.638 594.142 223.480 594.142 220.819 c S
+BT 0.000 0.000 0.000 rg /F2 7.2 Tf 612.283 286.016 Td (BEFORE PRINTING THE ENCLOSURE) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 276.945 Td (1. Lay the display face up on this page: board on the) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 269.575 Td (blue outline, ear holes on the orange circles \(within 0.5) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 262.205 Td (mm\). Measure with calipers and regenerate if off) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 254.835 Td (\(enclosure/README.md\).) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 244.630 Td (2. Measure: board height over ears \(listed 121, photos) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 237.260 Td (~124.4\), ear holes, HDMI / micro-USB sockets, tallest) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 229.890 Td (back part, HDMI adapter, micro-USB plug.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 219.685 Td (3. Mock-up: cut out the bezel, glue to foam board with a) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 212.315 Td (112 \327 124 \327 50 mm block behind it. Check shifter) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 204.945 Td (P-R-N-D-M and HVAC knobs \(22 mm proud of trim\).) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 194.740 Td (4. IPS panel: normal way up. Rated -10..+60 \260C \(250) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 187.370 Td (cd/m\262\): keep out of direct sun.) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 177.165 Td (5. Twin USB wing: 33 \327 81 mm on the right trim, 15 mm) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 169.795 Td (proud of bezel; sockets end 41 mm right of bezel. Check) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 162.425 Td (free trim and remaining passthrough dims) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 155.055 Td (\(enclosure/README.md\).) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 144.850 Td (Sources: TS-7 photos; enclosure_report.json; v1) Tj ET
+BT 0.000 0.000 0.000 rg /F1 5.8 Tf 612.283 137.480 Td (panel_config.py.) Tj ET
 0.000 0.000 0.000 RG 0.000 0.000 0.000 rg 0.992 w
 [] 0 d
 34.016 56.409 m 317.480 56.409 l S
@@ -243,11 +237,11 @@ xref
 0000000127 00000 n 
 0000000224 00000 n 
 0000000326 00000 n 
-0000010856 00000 n 
-0000010998 00000 n 
-0000017898 00000 n 
+0000010223 00000 n 
+0000010365 00000 n 
+0000017265 00000 n 
 trailer
 << /Size 9 /Root 1 0 R >>
 startxref
-18040
+17407
 %%EOF

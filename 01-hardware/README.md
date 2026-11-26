@@ -1,7 +1,7 @@
 # TPMS Monitor Panel: KiCad project
 
 > **v2 (blind-spot cameras + 7" touch display + 100 × 100 mm 6-layer carrier):** the electrical design, the pin map and the printed enclosure are done; the carrier PCB is **not ready to order yet**. The open gates are in [PREMORTEM_v2.md](../00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb).
-> - [enclosure/](enclosure/README.md): parametric 3D-printed bezel, housing, lid and USB wing for the SunFounder TS-7 display, the Pi 4, the carrier PCB, the piezo and the car's USB passthrough, with 62 fit checks and the PCB keep-outs; also the mirror camera pods and the door LED pods (`make_mounts.py`).
+> - [enclosure/](enclosure/README.md): parametric 3D-printed bezel, housing, lid and twin USB wing for the SunFounder TS-7 display, the Pi 4, the carrier PCB, the piezo and both car USB passthroughs, with 63 fit checks and the PCB keep-outs; also the mirror camera pods and the door LED pods (`make_mounts.py`).
 > - [v2/check_pinmap.py](v2/check_pinmap.py): audit of [pins_v2.h](../02-firmware/v2/include/pins_v2.h). Run it as is, and with `--selftest`.
 > - [scripts/make_v2_fit_template.py](scripts/make_v2_fit_template.py): writes [docs/v2_fit_template_1to1.pdf](docs/v2_fit_template_1to1.pdf), the 1:1 display, enclosure and PCB-zone mock-up for the car.
 >

@@ -160,13 +160,14 @@ def page_display():
     label(bx0 + 1.5, by1 + 1.6, f"printed bezel {bx1 - bx0:.1f} × {by1 - by0:.1f}", 6.5, BLACK)
     box(FV["usb_wing"])
     wx0, wx1, wy0, wy1 = FV["usb_wing"]
-    hx, hy, hd = FV["usb_hole"]
     (col_d, col_t), (fr_d, fr_l) = E["PASS_COLLAR"], E["PASS_FRONT"]
     pg.style(GREY, 0.3)
-    box([hx, hx + col_t, hy - col_d / 2, hy + col_d / 2])
-    box([hx + col_t, hx + fr_l, hy - fr_d / 2, hy + fr_d / 2])
-    label(wx0 + 1, wy0 - 3.4, f"USB wing {wx1 - wx0:.0f} × {wy1 - wy0:.0f} on the trim:", 5.6, BLACK)
-    label(wx0 + 1, wy0 - 6.0, f"the car's USB faces right (Ø{hd:g} v1 cut)", 5.6, BLACK)
+    for hx, hy, hd in FV["usb_holes"]:
+        box([hx, hx + col_t, hy - col_d / 2, hy + col_d / 2])
+        box([hx + col_t, hx + fr_l, hy - fr_d / 2, hy + fr_d / 2])
+    hd = FV["usb_holes"][0][2]
+    label(wx0 + 1, wy0 - 3.4, f"twin USB wing {wx1 - wx0:.0f} × {wy1 - wy0:.0f} on the trim:", 5.6, BLACK)
+    label(wx0 + 1, wy0 - 6.0, f"2× Ø{hd:g} × {E['PASS_FLAT_W']:g} double-D (facing right)", 5.6, BLACK)
     pg.style(GREY, 0.25, (1.0, 0.8))
     zx, zy, zd = FV["buzzer"]
     pg.circle(*pt(zx, zy), zd / 2, cross=False)
@@ -218,26 +219,25 @@ def page_display():
     for x, y in FV["bezel_screws"]:
         pg.circle(*pt(x, y), 1.7, cross=False)
 
-    x, y, w = 218.0, 80.0, 57.0
-    y = pg.wrapped(x, y, w, "BEFORE PRINTING THE ENCLOSURE", 8, True, 4)
+    x, y, w = 216.0, 115.0, 59.0
+    y = pg.wrapped(x, y, w, "BEFORE PRINTING THE ENCLOSURE", 7.2, True, 3.2)
     notes = [
-        "1. Lay the display face up on this page. If its board or ear holes miss the blue outline or the orange "
-        "circles by more than 0.5 mm, measure them with calipers and regenerate (enclosure/README.md, Measure first).",
-        "2. Measure: board height over the ears (SunFounder lists 121, its photos say ~124.4), ear holes, the "
-        "HDMI and micro-USB socket centres, the tallest part on the back, your HDMI adapter and micro-USB plug.",
-        f"3. Mock-up: cut out the bezel outline, glue it to foam board with a {ENC['box_mm']['width']:.0f} × "
-        f"{ENC['box_mm']['height']:.0f} × {ENC['box_mm']['behind_plate']:.0f} mm block behind it. Check the shifter "
-        f"through P-R-N-D-M, the HVAC knobs and the view. It stands {ENC['proud_of_trim_mm']:.0f} mm proud of the trim.",
-        "4. IPS panel: readable from any angle, so it mounts the normal way up.",
-        "5. Rated -10 to +60 °C (storage +70 °C): keep it out of direct sun; 250 cd/m² is dim in daylight.",
-        f"6. USB wing: {ENC['usb_passthrough']['wing_mm'][0]:.0f} × {ENC['usb_passthrough']['wing_mm'][1]:.0f} mm "
-        f"on the trim right of the bezel, its front {ENC['usb_passthrough']['wing_front_proud_of_bezel_mm']:.0f} mm "
-        f"proud of the bezel's; the socket ends {ENC['usb_passthrough']['socket_reach_right_of_bezel_mm']:.0f} mm "
-        "right of the bezel. Check that trim is flat and free, and measure your passthrough (enclosure/README.md).",
-        "Sources: SunFounder TS-7 parameters and product photos; enclosure_report.json; v1 panel_config.py.",
+        "1. Lay the display face up on this page: board on the blue outline, ear holes on the orange circles "
+        "(within 0.5 mm). Measure with calipers and regenerate if off (enclosure/README.md).",
+        "2. Measure: board height over ears (listed 121, photos ~124.4), ear holes, HDMI / micro-USB sockets, "
+        "tallest back part, HDMI adapter, micro-USB plug.",
+        f"3. Mock-up: cut out the bezel, glue to foam board with a {ENC['box_mm']['width']:.0f} × "
+        f"{ENC['box_mm']['height']:.0f} × {ENC['box_mm']['behind_plate']:.0f} mm block behind it. Check shifter "
+        f"P-R-N-D-M and HVAC knobs ({ENC['proud_of_trim_mm']:.0f} mm proud of trim).",
+        "4. IPS panel: normal way up. Rated -10..+60 °C (250 cd/m²): keep out of direct sun.",
+        f"5. Twin USB wing: {ENC['usb_passthrough']['wing_mm'][0]:.0f} × {ENC['usb_passthrough']['wing_mm'][1]:.0f} mm "
+        f"on the right trim, {ENC['usb_passthrough']['wing_front_proud_of_bezel_mm']:.0f} mm proud of bezel; "
+        f"sockets end {ENC['usb_passthrough']['socket_reach_right_of_bezel_mm']:.0f} mm right of bezel. "
+        "Check free trim and remaining passthrough dims (enclosure/README.md).",
+        "Sources: TS-7 photos; enclosure_report.json; v1 panel_config.py.",
     ]
     for n in notes:
-        y = pg.wrapped(x, y, w, n, 6.4) + 1.4
+        y = pg.wrapped(x, y, w, n, 5.8, lead=2.6) + 1.0
     pg.scale_bar(12, 196)
     return pg
 

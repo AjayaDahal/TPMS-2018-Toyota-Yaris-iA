@@ -541,9 +541,9 @@ function buildDisplayAndElectronics(parent, pickables) {
   piezoWave.userData.pickId = "dash_piezo";
   displayGroup.add(piezoWave);
 
-  // USB wing on the bezel's right edge: the car's USB socket, facing the passenger (stand-in box until the STL loads)
-  const wing = new THREE.Mesh(new THREE.BoxGeometry(0.0279, 0.0344, 0.0418), plastic);
-  wing.position.set(0.1168, -0.0053, 0.043);
+  // Twin USB wing on the bezel's right edge: both car USB sockets, facing the passenger (stand-in box until the STL loads)
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(0.0329, 0.0369, 0.0812), plastic);
+  wing.position.set(0.1193, -0.0066, 0.0235);
   wing.userData.pickId = "usb_wing";
   displayGroup.add(wing);
 
@@ -561,12 +561,12 @@ function buildDisplayAndElectronics(parent, pickables) {
     {
       id: "usb_wing",
       mesh: wing,
-      title: "USB wing: the car's USB socket, moved to the unit's side",
-      category: "Printed part + the v1 USB passthrough",
-      source: "PRINT (make_enclosure.py: print_usb_wing) + the v1 panel-mount USB extension",
-      location: "On the trim against the bezel's right (passenger) edge; the socket faces the passenger, its end ~36 mm right of the bezel",
-      mount: "2 × M3 × 10 from inside the bezel's right cavity into its tabs, VHB on its back to the trim. The v1 panel's Ø25.8 cut; its front wall holds the nut, so the socket tightens from outside.",
-      wiring: "Its cable enters the bezel through the side wall behind the wing, crosses above the display's plugs and drops through the plate's cable slot into the pocket, to the car's own USB port. Measure your passthrough before printing (enclosure README).",
+      title: "Twin USB wing: both car USB sockets, moved to the unit's side",
+      category: "Printed part + both v1 USB passthroughs",
+      source: "PRINT (make_enclosure.py: print_usb_wing) + 2× ALTW USB 3.0 panel-mount passthroughs",
+      location: "On the trim against the bezel's right (passenger) edge; both sockets face the passenger (39 mm apart), ending ~41 mm right of the bezel",
+      mount: "3 × M3 × 10 from inside the bezel's right cavity into its top, centre and bottom bosses, VHB on its back to the trim. 2× v1 Ø25.8 × 23.8 mm double-D cuts (measured 25.16 thread / 23.28 flats) lock both sockets against twisting.",
+      wiring: "The lower cable climbs behind the centre screw post inside the wing; both cables enter the bezel through one side opening, cross above the display's plugs and drop through the plate's cable slot into the pocket (car USB port + second USB / flush 12 V charger). Measure the remaining passthrough dimensions before printing (enclosure README).",
     }
   );
 

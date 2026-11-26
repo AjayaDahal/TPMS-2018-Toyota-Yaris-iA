@@ -8,7 +8,7 @@
 
 | Check | Evidence | Result |
 |---|---|---|
-| One command re-runs every check | [run_checks.py](run_checks.py) (new): v2 logic tests (166), v1 decoder tests, pin-map audit + self-test, enclosure (62 checks) and mounts (28) regeneration compared byte-for-byte with the committed STLs, STL watertightness, viewer data sync, viewer JS syntax (4 files), markdown links, repo hygiene, the carrier's JLCPCB files, v1 and v2 carrier KiCad ERC/DRC | All 13 pass (2026-11-26) |
+| One command re-runs every check | [run_checks.py](run_checks.py) (new): v2 logic tests (166), v1 decoder tests, pin-map audit + self-test, enclosure (63 checks) and mounts (28) regeneration compared byte-for-byte with the committed STLs, STL watertightness, viewer data sync, viewer JS syntax (4 files), markdown links, repo hygiene, the carrier's JLCPCB files, v1 and v2 carrier KiCad ERC/DRC | All 13 pass (2026-11-26) |
 | v1 board is what the repo says | KiCad 10 `kicad-cli`, run on a copy: ERC 0, DRC 0 including unconnected items and schematic parity | OK (independent of the earlier claim) |
 | Generated files are current | Re-running `make_enclosure.py --out <temp>` reproduces every committed STL and the report exactly | OK: the generator is deterministic |
 | Nothing private in the public repo | Scan of every tracked text file for local paths (`C:\Users\…`, `/home/…`, the OneDrive folder name) and secrets; binaries checked byte-exact when pushed | OK |
