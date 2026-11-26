@@ -1,9 +1,13 @@
-# TPMS monitor panel (2018 Toyota Yaris iA)
+# TPMS monitor panel + blind-spot cameras (2018 Toyota Yaris iA)
 
-A dash panel that receives the car's 315 MHz tyre-pressure (TPMS) sensors and shows the pressures on an OLED display, with four tyre LEDs and a rotary encoder. It is based on my ECE 6723 Embedded Systems project ([report](00-project-management/TPMS_project_report_ECE6723.pdf)).
+A dash unit for the Yaris iA in two stages:
+
+- **v1, TPMS panel (done, orderable):** receives the car's 315 MHz tyre-pressure (TPMS) sensors and shows the pressures on an OLED display, with four tyre LEDs and a rotary encoder. It is based on my ECE 6723 Embedded Systems project ([report](00-project-management/TPMS_project_report_ECE6723.pdf)).
+- **v2, TPMS + blind-spot assist (designed, PCB not yet orderable):** adds two mirror cameras with car/motorcycle detection on a Raspberry Pi 4, shown on the Official 7" Touch Display. When a vehicle is in a blind spot, an amber LED lights in that door sail; signalling towards it sounds a sharp beep and shows that camera. The touch screen replaces the v1 encoder, buttons and OLED; one mute button and the buzzer sit in a small pod by the shifter. A 100 × 100 mm 6-layer ESP32 carrier board does the TPMS radio, the blinker inputs (wired to the lamp feeds), the speed gate (the car's own speed from your Bluetooth OBD-II dongle, GPS as the fallback), the alerts and the Pi's power sequencing. The display, the Pi and the board share one 3D-printed enclosure.
 
 ![front](04-viewer/renders/render_front.png)
 
+**v1 hardware:**
 - **Receiver:** CC1101 module (EBYTE E07-M1101D) on 315 MHz. The report's original MX-05V superregenerative receiver can still be fitted for comparison.
 - **MCU:** ESP32 DevKit V1 (DOIT, 30-pin).
 - **Display:** Newhaven NHD-2.7-12864WDW3 (128×64 OLED, SSD1322, SPI).
@@ -15,17 +19,23 @@ A dash panel that receives the car's 315 MHz tyre-pressure (TPMS) sensors and sh
 python3 04-viewer/serve_viewer.py    # -> http://127.0.0.1:28776/viewer/
 ```
 
+The viewer shows the car blueprint with both cameras, LEDs and harnesses and a live blind-spot simulator, the v2 6-layer board inside the printed enclosure, and the v1 panel. It also has the checklists (collect, buy, measure, bench tests, tools, build steps) and the v2 premortem with its order gate.
+
 ## Repository Map
 
 | Folder | Content |
 |---|---|
-| [00-project-management](00-project-management/README.md) | [PREMORTEM.md](00-project-management/PREMORTEM.md), [TPMS_project_report_ECE6723.pdf](00-project-management/TPMS_project_report_ECE6723.pdf) |
-| [01-hardware](01-hardware/README.md) | KiCad 10 project (schematic, PCB, libraries, `scripts/`), [design_audit.md](01-hardware/docs/design_audit.md), `tpms_panel.step`, [1:1 car fit template](01-hardware/docs/tpms_panel_fit_template_1to1.pdf) |
-| [02-firmware](02-firmware/README.md) | [bringup/](02-firmware/bringup/README.md) — ESP32 PlatformIO self-test & 315 MHz TPMS receiver decoder |
-| [03-manufacturing](03-manufacturing/README.md) | JLCPCB Gerber/drill zip (`production/tpms_panel_gerbers_jlcpcb.zip`) & BOM CSV |
-| [04-viewer](04-viewer/README.md) | Offline Three.js r160 Mach-X-template 3-D PCB viewer (`viewer/`), KiCad renders (`renders/`), `make_viewer.py`, `serve_viewer.py` |
+| [00-project-management](00-project-management/README.md) | [PREMORTEM.md](00-project-management/PREMORTEM.md) (v1), [PREMORTEM_v2.md](00-project-management/PREMORTEM_v2.md) (v2: corrections, ranked failure stories, order gate, bench tests, next steps), [TPMS_project_report_ECE6723.pdf](00-project-management/TPMS_project_report_ECE6723.pdf) |
+| [01-hardware](01-hardware/README.md) | v1: KiCad 10 project (schematic, PCB, libraries, `scripts/`), [design_audit.md](01-hardware/docs/design_audit.md), `tpms_panel.step`, [1:1 car fit template](01-hardware/docs/tpms_panel_fit_template_1to1.pdf). v2: [enclosure/](01-hardware/enclosure/README.md) (printed enclosure generator + STLs), [v2 fit template](01-hardware/docs/v2_fit_template_1to1.pdf), [pin-map audit](01-hardware/v2/check_pinmap.py) |
+| [02-firmware](02-firmware/README.md) | [bringup/](02-firmware/bringup/README.md): ESP32 PlatformIO self-test and 315 MHz TPMS decoder. [v2/](02-firmware/v2/README.md): v2 safety logic, pin map and host unit tests |
+| [03-manufacturing](03-manufacturing/README.md) | v1 JLCPCB Gerber/drill zip (`production/tpms_panel_gerbers_jlcpcb.zip`) & BOM CSV |
+| [04-viewer](04-viewer/README.md) | Offline Three.js r160 3-D viewer (`viewer/`), KiCad renders (`renders/`), `make_viewer.py`, `sync_plan.py`, `serve_viewer.py` |
 
 > **Sensors:** the Yaris iA's own TPMS is indirect (ABS-based, no wheel sensors). Four GM/Schrader EG53MA4 sensors were added to the tyres, and this panel is their receiver.
 
-> **Status: ready to order.** The outline was accepted from the in-car paper fit (board 1 mm smaller than the opening on the sides and bottom), and the USB holes are Ø25.8 mm for the measured 25.16 mm thread.
-> The order file is `03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`.
+> **v1 status: ready to order.** The outline was accepted from the in-car paper fit (board 1 mm smaller than the opening on the sides and bottom), and the USB holes are Ø25.8 mm for the measured 25.16 mm thread.
+> The order file is `03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip`. If the 7" display takes the console opening (v2 Option A), v1 has no place in the car: order it only for the dash-top option or as a TPMS-only first step.
+
+> **v2 status: not ready to order yet.**
+> - Done: the electrical design and pin map (audited), the safety logic (120 unit checks) and the printed enclosure (38 fit checks).
+> - Open: gates G3–G8 in [PREMORTEM_v2.md](00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). They need the parts on hand, a power-path breadboard test, a mock-up in the car, one display measurement (`PI_SEAT`), a test print, and then the KiCad layout and the quote.
