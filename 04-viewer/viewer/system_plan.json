@@ -58,13 +58,13 @@
     {
       "pin": "IO13",
       "v1": "Buzzer (5 V active, MMBT3904)",
-      "v2": "12 V active piezo in the alert pod (low-side MOSFET)",
+      "v2": "12 V active piezo inside the dash unit, behind the bezel's right slots (low-side MOSFET); its beeps stop by themselves",
       "match": "EXACT"
     },
     {
       "pin": "IO4",
       "v1": "Encoder push switch (10 k / 100 nF)",
-      "v2": "Mute / acknowledge button in the alert pod (same RC)",
+      "v2": "Spare button input on J4 (same RC): no button fitted, the touch screen mutes",
       "match": "EXACT"
     },
     {
@@ -232,12 +232,20 @@
       "protection": "Low-side MOSFET + series resistor; PWM level set by the Pi for night dimming. Steady = vehicle there, flashing = you are signalling towards it"
     },
     {
-      "id": "alert_pod",
+      "id": "piezo",
       "layer": "alerts",
-      "name": "Alert pod: mute button + 12 V piezo",
-      "route": "Carrier JST-GH (4 pins: BTN, GND, BUZ+, BUZ−) → under the console trim → printed pod by the shifter (VHB + 2 screws). Not on the steering column or the knee bolster",
-      "cable": "4-core 26 AWG, ~0.8 m",
-      "protection": "33 Ω + SMAJ18A on the 12 V feed; the v1 button RC. The button works with the Pi down: mute this turn, acknowledge a TPMS alarm"
+      "name": "12 V piezo (inside the dash unit)",
+      "route": "Carrier J4 JST-GH (BUZ+, BUZ−; the BTN pins stay free) → out of the box with the display leads → up the bezel's right cavity → the piezo on three fingers behind the right intake slots. No lead outside the unit",
+      "cable": "2-core 26 AWG, ~0.3 m",
+      "protection": "33 Ω + SMAJ18A on the 12 V feed. Danger beeps at once and after 3 s, then the LED alone from 4 s; TPMS beeps and reminds twice; a fault beeps once. Mute from the touch screen"
+    },
+    {
+      "id": "usb_pass",
+      "layer": "power",
+      "name": "Car USB passthrough (from v1) in the USB wing",
+      "route": "Socket in the printed wing on the bezel's right edge, facing the passenger → its own cable through the bezel's side wall → across the right cavity above the display's plugs → down through the plate's cable slot → the car's USB port in the pocket",
+      "cable": "The passthrough's own cable (Ø ~5.5 mm, measure it)",
+      "protection": "None needed: it only extends the car's own port. Plug it into the car's USB port before the unit goes home"
     },
     {
       "id": "gps",
@@ -399,13 +407,13 @@
       "notes": "Lid fan, blowing out. Measure its thickness and hole spacing."
     },
     {
-      "item": "Panel-mount round pushbutton",
-      "category": "Alert pod",
+      "item": "USB panel-mount passthrough cable (from v1)",
+      "category": "Dash unit",
       "source": "INVENTORY",
       "qty": 1,
       "inv_stock": 1,
       "cost_usd": 0,
-      "notes": "Mute / acknowledge. Measure its thread for BUTTON_D."
+      "notes": "Reused from the v1 panel: it goes into the printed USB wing (the v1 Ø25.8 mm cut). Measure the collar, thread length, nut, cable and plug (PASS_* parameters) before printing the wing."
     },
     {
       "item": "M3 / M4 screws and nuts (VIGRUE, Zuorery, Fgruh kits)",
@@ -486,16 +494,16 @@
       "qty": 1,
       "inv_stock": 0,
       "cost_usd": 14,
-      "notes": "2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, pod, Pi UART and GPS"
+      "notes": "2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, the piezo, Pi UART and GPS"
     },
     {
-      "item": "12 V active piezo (3–24 V, sharp tone)",
-      "category": "Alert pod",
+      "item": "12 V active piezo (3–24 V, sharp tone, ~23 mm)",
+      "category": "Audio alert",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
       "cost_usd": 3,
-      "notes": "Measure it for POD_BUZ_D / POD_BUZ_H."
+      "notes": "Goes inside the dash unit, on three fingers behind the bezel's right slots. Measure it for BUZ_D / BUZ_H; ≥ 85 dB at 10 cm."
     },
     {
       "item": "2 × amber 5 mm LEDs + bezels",
@@ -657,9 +665,9 @@
       "where": "Cases & enclosures"
     },
     {
-      "id": "col_btn",
-      "text": "Panel-mount round pushbutton (alert pod)",
-      "where": "Components"
+      "id": "col_usbpass",
+      "text": "USB panel-mount passthrough cable from the v1 panel (goes into the USB wing)",
+      "where": "v1 panel"
     },
     {
       "id": "col_fast",
@@ -746,9 +754,9 @@
       "where": "Caliper, bench"
     },
     {
-      "id": "ms_btn",
-      "text": "Pushbutton thread (BUTTON_D) and the piezo's diameter / height (POD_BUZ_D / POD_BUZ_H)",
-      "where": "Caliper"
+      "id": "ms_piezo_usb",
+      "text": "The piezo's diameter / height (BUZ_D / BUZ_H); the USB passthrough: collar Ø and thickness, socket Ø and how far it stands out, thread length up to the cable, nut across corners and thickness, cable Ø, plug size (PASS_*); the flat trim right of the console opening for the USB wing (TRIM_RIGHT, ≥ 28 × 42 mm)",
+      "where": "Caliper, car"
     },
     {
       "id": "ms_fan",
@@ -944,12 +952,12 @@
     {
       "id": "st_12",
       "phase": "Phase 6 · Car install",
-      "text": "One Add-A-Circuit on an ACC fuse slot metered in ACC, ON and START (hot side feeding both fuses) + chassis ground stud; blinker feeds from the wiring diagram, metered (G9); GPS on the dash top (fallback speed); the OBD dongle in its port if it passed B8; alert pod by the shifter."
+      "text": "One Add-A-Circuit on an ACC fuse slot metered in ACC, ON and START (hot side feeding both fuses) + chassis ground stud; blinker feeds from the wiring diagram, metered (G9); GPS on the dash top (fallback speed); the OBD dongle in its port if it passed B8."
     },
     {
       "id": "st_13",
       "phase": "Phase 6 · Car install",
-      "text": "Enclosure into the pocket (or onto the RAM base): 90° USB adapters, harness through the grommet, antenna lead out; never seal the gap round the plate."
+      "text": "Enclosure into the pocket (or onto the RAM base): the USB passthrough's cable into the car's USB port first, 90° USB adapters, harness through the grommet, antenna lead out; VHB on the USB wing's back edges so it lands flat on the trim; never seal the gap round the plate."
     },
     {
       "id": "st_14",
@@ -1053,7 +1061,7 @@
       "likelihood": "Caught",
       "title": "Piezo under the steering-column lower shroud",
       "cause": "Next to the collapsible column and the knee-bolster area",
-      "fix": "In the alert pod with the mute button, near the shifter: one 4-wire lead",
+      "fix": "Inside the dash unit, on three fingers behind the bezel's right intake slots: no lead outside the unit (it first went into a wired pod by the shifter, now dropped)",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1149,7 +1157,7 @@
       "likelihood": "Caught",
       "title": "v2 still listed the v1 front-panel controls (EC11 encoder, menu buttons) plus a \"camera toggle\" button",
       "cause": "The 7\" touch screen does menus, settings, TPMS pairing and camera calibration; the 2.7\" OLED and the 4 tyre LEDs are redundant too",
-      "fix": "All removed. One mute/acknowledge button stays (IO4, same RC as v1), in the alert pod with the buzzer: it works while the Pi is down, and you can find it without looking",
+      "fix": "All removed, the mute button too. The touch screen mutes and acknowledges, and every beep stops by itself (danger after 4 s while the LED keeps flashing, TPMS after two reminders, a fault beeps once), so nothing nags while the Pi boots or after it crashes. J4 keeps the button input (IO4, the v1 RC) as a spare",
       "status": "Fixed",
       "status_keys": [
         "fixed"
@@ -1580,8 +1588,8 @@
       "likelihood": "Medium",
       "title": "Distraction: touching the screen while driving",
       "cause": "",
-      "fix": "Nothing needs touch while moving; camera view only on blinker or danger; the one action you need while driving (mute) is the physical pod button",
-      "status": "Fixed (design) + Pi software",
+      "fix": "Nothing needs touch while moving; camera view only on blinker or danger; the beeps stop by themselves (a danger episode after 4 s), so you never reach for a mute",
+      "status": "Fixed (design + firmware) + Pi software",
       "status_keys": [
         "fixed",
         "plan"
@@ -1605,8 +1613,8 @@
       "likelihood": "Medium",
       "title": "Touch-only controls: no way to silence an alarm while the Pi boots (20–35 s) or after it crashes; gloves",
       "cause": "",
-      "fix": "Mute/acknowledge button in the alert pod, wired to the ESP32 (IO4), which also drives the buzzer and the TPMS logic on its own",
-      "status": "Fixed (design + firmware)",
+      "fix": "Every alarm silences itself on the ESP32, with or without the Pi: a danger episode beeps at once and after 3 s and is quiet from 4 s (the LED keeps flashing), a TPMS warning reminds twice, a fault beeps once. Touch mutes the rest: the Pi sends a mute counter in every <code>$BSM</code> line, and the ESP32 acts on it even if the vision loop has frozen. J4 keeps a spare button input (IO4)",
+      "status": "Fixed (firmware, 166 checks)",
       "status_keys": [
         "fixed"
       ]
@@ -1654,7 +1662,7 @@
       "likelihood": "High",
       "title": "The enclosure's rear box (112 × 124 × 51 mm) is deeper than the pocket or hits the car's USB/12 V strip, which sits behind the panel ~34 mm below the top of the opening",
       "cause": "",
-      "fix": "Measure ≥ 56 mm clear depth (55.5 needed) with the mock-up. If not: the car's USB moves to a passthrough, or the PCB goes in its own box (same 92 × 92 posts) and the enclosure gets shallower",
+      "fix": "Measure ≥ 56 mm clear depth (55.5 needed) with the mock-up. The car's USB is reached through the v1 passthrough in the USB wing: its cable drops through the plate's slot and plugs into the car's port in the pocket, so the port itself stays hidden. If the depth isn't there: the PCB goes in its own box (same 92 × 92 posts) and the enclosure gets shallower",
       "status": "You (G5)",
       "status_keys": [
         "you"
@@ -1751,7 +1759,7 @@
       "likelihood": "Medium-High",
       "title": "The enclosure is drawn from estimates: SunFounder publishes no drawing of the TS-7 and its listed height (121.0 mm) disagrees with its photos (~124.4 mm over the ears); the ear holes, sockets, back-part height and plug sizes come from photos too. Straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
       "cause": "",
-      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 43 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
+      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 62 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
       "status": "You (G6)",
       "status_keys": [
         "you"
@@ -1788,7 +1796,7 @@
       "likelihood": "Medium",
       "title": "The camera USB plugs, the display leads and the antenna lead don't fit beside the box in the pocket",
       "cause": "",
-      "fix": "Three 90° USB-A adapters (two cameras, the touch lead) and an SMA bulkhead. The display's flat cable and micro-USB lead rise inside the bezel to a 9 × 20 mm slot in the plate, inside the opening. The generator checks the plugs, the leads and the slot inside the opening's outline (3.0 mm margin at the tightest point)",
+      "fix": "Three 90° USB-A adapters (two cameras, the touch lead) and an SMA bulkhead. The display's flat cable and micro-USB lead rise inside the bezel to a 12.5 × 20 mm slot in the plate, inside the opening; the car-USB passthrough's cable goes down the same slot. The generator checks the plugs, the leads and the slot inside the opening's outline (3.0 mm margin at the tightest point)",
       "status": "Fixed (enclosure) + You (mock-up)",
       "status_keys": [
         "fixed",
@@ -1805,6 +1813,42 @@
       "status": "Fixed (procedure) + You (assembly)",
       "status_keys": [
         "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "M15",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The USB passthrough doesn't fit its wing: the wing is drawn round the v1 3-D model's passthrough (collar Ø28.2, thread Ø25.16 × 22.4 mm, 36 mm nut), not a measured part",
+      "cause": "",
+      "fix": "Every size is a parameter (<code>PASS_*</code>): measure yours, regenerate, and the checks re-run (the v1 Ø25.8 cut, the nut held by the wing's front wall, the plug through the end hole, the bezel's side opening and the plate's slot)",
+      "status": "You (G6)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M16",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "No room for the USB wing on the trim right of the console opening (a vent, the glovebox, curved trim, the passenger's knee), or its front, 12.6 mm proud of the bezel, is in the way",
+      "cause": "",
+      "fix": "Tape a 28 × 42 mm cardboard wing to the trim during the mock-up. <code>TRIM_RIGHT</code> records the free space and the check fails if the wing doesn't fit. Without the nut (body glued in) the wing's front drops to ~7 mm",
+      "status": "You (G5)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M17",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The piezo inside the unit is too quiet behind the slots, or it blocks the intake air",
+      "cause": "",
+      "fix": "Three fingers hold its face 2 mm off the skin behind five slots (~148 mm² open), so the sound and the air both pass (checked by the generator); bench test with the fan on and the windows up; <code>BUZ_GAP=1</code> or a louder part of the same size if needed",
+      "status": "You (bench)",
+      "status_keys": [
         "you"
       ]
     },
@@ -2044,7 +2088,7 @@
       "likelihood": "High",
       "title": "Nuisance alerts in parking lots, drive-thrus and queues",
       "cause": "",
-      "fix": "No alerts below 8 mph, on again at 12 mph (hysteresis); hazards silent; the mute button silences the current turn only; at most one danger beep per 3 s, and a flickering detection can't beep more than once a second",
+      "fix": "No alerts below 8 mph, on again at 12 mph (hysteresis); hazards silent; a danger episode goes quiet after 4 s and touch mute silences the current turn; at most one danger beep per 3 s, and a flickering detection can't beep more than once a second",
       "status": "Fixed (firmware)",
       "status_keys": [
         "fixed"
@@ -2095,6 +2139,18 @@
       "cause": "",
       "fix": "Priorities: danger, then fault, then TPMS. Each pattern plays for its full length; only a higher priority cuts it, and the cut one is played again. TPMS repeats at most every 10 minutes; a tyre hovering at the threshold re-raises the alarm once (audit FW-08/09)",
       "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "S6",
+      "category": "Safety and nuisance",
+      "likelihood": "Medium",
+      "title": "The auto-mute hides a danger: you miss the first beeps, the car stays in your blind spot, the beep stops after 4 s",
+      "cause": "",
+      "fix": "The door LED keeps flashing as long as the danger lasts and the screen shows that camera; signalling again, or the lane clearing for 2 s and the danger coming back (another car), starts a new episode that beeps again. A flickering detection stays one episode",
+      "status": "Fixed (firmware, tested)",
       "status_keys": [
         "fixed"
       ]
@@ -2171,7 +2227,7 @@
       "id": "G2",
       "needed": "Safety logic written and unit-tested (power-up, blinker, alerts, Pi link, OBD-II speed)",
       "status": "done",
-      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/README.md\" target=\"_blank\">02-firmware/v2</a>, 154 host checks pass; removing the hazard fixes, the stuck-input fault, PGOOD, the fault-beep rules, the beep priorities, the TPMS acknowledge or the OBD fallbacks makes them fail. The <a href=\"../../05-Audit-Subsystems/README.md\" target=\"_blank\">subsystem audit</a> found and fixed 1 critical and 3 high logic bugs that the first 120 checks missed"
+      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/README.md\" target=\"_blank\">02-firmware/v2</a>, 166 host checks pass; removing the hazard fixes, the stuck-input fault, PGOOD, the fault-beep rules, the beep priorities, the danger auto-mute, the touch screen's mute counter, the TPMS acknowledge or the OBD fallbacks makes them fail. The <a href=\"../../05-Audit-Subsystems/README.md\" target=\"_blank\">subsystem audit</a> found and fixed 1 critical and 3 high logic bugs that the first 120 checks missed"
     },
     {
       "id": "G3",
@@ -2248,7 +2304,7 @@
         114.4
       ],
       "screws": "4× M3 × 6 from behind, through the ears into the bezel's bosses",
-      "cable_slot": "9 × 20 mm in the plate, 76.2-85.2 mm right of centre, 38-58 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
+      "cable_slot": "12 × 20 mm in the plate, 76.2-88.7 mm right of centre, 43-63 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
       "intake_slots_mm2": 771
     },
     "pcb_constraints": {
@@ -2267,18 +2323,19 @@
       "pcb_to_posts": "4× M3 × 6",
       "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
       "amps": "4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
-      "pod": "2× M3 × 8, VHB tape under the base"
+      "piezo": "pressed into the 3 fingers on the bezel's skin (face on their 2 mm ledges), a dab of RTV on each; leads up the right cavity and out through the plate's slot",
+      "usb_wing": "2× M3 × 10 socket cap from inside the bezel's right cavity (before the display goes in), VHB on its back to the trim",
+      "usb_passthrough": "its own nut, held by the wing: turn the socket from outside to tighten"
     },
     "volumes_cm3": {
-      "bezel": 47.7,
-      "housing": 139.2,
+      "bezel": 47.4,
+      "housing": 138.9,
       "lid": 35.2,
-      "pod_shell": 14.3,
-      "pod_base": 4.5
+      "usb_wing": 10.6
     },
     "checks": {
-      "passed": 43,
-      "total": 43,
+      "passed": 62,
+      "total": 62,
       "all_ok": true
     },
     "assembly": [
@@ -2286,7 +2343,7 @@
         "name": "bezel",
         "file": "../../01-hardware/enclosure/stl/asm_bezel.stl",
         "color": "#1f2937",
-        "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen (print face down)"
+        "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen; 3 fingers hold the piezo behind the right slots (print face down)"
       },
       {
         "name": "housing",
@@ -2335,14 +2392,37 @@
         "file": "../../01-hardware/enclosure/stl/asm_fan.stl",
         "color": "#111827",
         "label": "30 mm fan (dummy)"
+      },
+      {
+        "name": "buzzer",
+        "file": "../../01-hardware/enclosure/stl/asm_buzzer.stl",
+        "color": "#e11d48",
+        "label": "12 V active piezo, behind the right intake slots (dummy)"
+      },
+      {
+        "name": "usb_wing",
+        "file": "../../01-hardware/enclosure/stl/asm_usb_wing.stl",
+        "color": "#1f2937",
+        "label": "USB wing: holds the car's USB passthrough beside the bezel, v1's Ø25.8 cut (print front face down)"
+      },
+      {
+        "name": "usb_pass",
+        "file": "../../01-hardware/enclosure/stl/asm_usb_pass.stl",
+        "color": "#94a3b8",
+        "label": "The v1 USB passthrough: socket facing right, nut held by the wing, cable into the pocket (dummy)"
+      },
+      {
+        "name": "wing_screws",
+        "file": "../../01-hardware/enclosure/stl/asm_wing_screws.stl",
+        "color": "#cbd5e1",
+        "label": "2× M3 × 10 from inside the bezel into the wing's tabs (dummy)"
       }
     ],
     "print_files": [
       "../../01-hardware/enclosure/stl/print_bezel.stl",
       "../../01-hardware/enclosure/stl/print_housing.stl",
       "../../01-hardware/enclosure/stl/print_lid.stl",
-      "../../01-hardware/enclosure/stl/print_pod_shell.stl",
-      "../../01-hardware/enclosure/stl/print_pod_base.stl"
+      "../../01-hardware/enclosure/stl/print_usb_wing.stl"
     ]
   }
 }

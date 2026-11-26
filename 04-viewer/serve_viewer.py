@@ -67,8 +67,14 @@ class Handler(SimpleHTTPRequestHandler):
         # Explicit: Python reads the Windows registry, where .js is sometimes text/plain (module scripts then fail)
         ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".css": "text/css",
         ".html": "text/html", ".svg": "image/svg+xml", ".md": "text/plain; charset=utf-8",
-        ".csv": "text/plain; charset=utf-8", ".stl": "model/stl",
+        ".csv": "text/plain; charset=utf-8", ".stl": "model/stl", ".glb": "model/gltf-binary", ".wrl": "model/vrml",
     }
+
+    def end_headers(self):
+        # Revalidate on every load (a 304 when unchanged): without it the browser runs an old module for hours after
+        # an edit (heuristic caching from Last-Modified)
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
 
     def host_ok(self):
         host = (self.headers.get("Host") or "").lower()

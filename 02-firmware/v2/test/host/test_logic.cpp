@@ -388,7 +388,8 @@ void testAlerts() {
     r.step(1000, Turn::Off, 0, &s, 600);
     CHECK(r.last.left == LedMode::Off && r.last.right == LedMode::Off, "lamp test must end after 1 s");
   }
-  {  // occupied left at 60 mph: steady, no beep; signalling left: flash + danger beep, repeated every 3 s
+  {  // occupied left at 60 mph: steady, no beep; signalling left: flash + danger beeps at 0 and 3 s, then the beeps
+     // mute themselves (4 s) while the LED keeps flashing
     AlertRun r;
     PiStatus s = ready(true, false);
     r.step(2000, Turn::Off, 0, &s, 600);
@@ -396,7 +397,33 @@ void testAlerts() {
     CHECK(r.last.level == 200, "LED level must follow the Pi");
     r.step(7000, Turn::Left, 1, &s, 600);
     CHECK(r.last.left == LedMode::Flash && r.last.dangerLeft, "left danger must flash");
-    CHECK(r.count(Beep::BsmDanger) == 3, "danger beeps at 0, 3 and 6 s: got %d", r.count(Beep::BsmDanger));
+    CHECK(r.count(Beep::BsmDanger) == 2, "danger beeps at 0 and 3 s, then auto-mute: got %d", r.count(Beep::BsmDanger));
+    r.step(20000, Turn::Left, 1, &s, 600);
+    CHECK(r.count(Beep::BsmDanger) == 2 && r.last.left == LedMode::Flash,
+          "a long danger must stay quiet after the auto-mute (%d beeps), the LED flashing", r.count(Beep::BsmDanger));
+  }
+  {  // auto-mute re-arms: the lane clear for 2 s, then another car while still signalling, beeps again; a gap
+     // shorter than that (the same car, a flickering detection) doesn't; nor does a short clear and a new car
+    AlertRun r;
+    PiStatus occ = ready(true, false), clear = ready(false, false);
+    r.step(2000, Turn::Off, 0, &clear, 600);
+    r.step(6000, Turn::Left, 1, &occ, 600);
+    CHECK(r.count(Beep::BsmDanger) == 2, "first episode: %d beeps", r.count(Beep::BsmDanger));
+    r.step(1500, Turn::Left, 1, &clear, 600);
+    r.step(3000, Turn::Left, 1, &occ, 600);
+    CHECK(r.count(Beep::BsmDanger) == 2, "a 1.5 s gap must stay muted (%d beeps)", r.count(Beep::BsmDanger));
+    r.step(2500, Turn::Left, 1, &clear, 600);
+    r.step(500, Turn::Left, 1, &occ, 600);
+    CHECK(r.count(Beep::BsmDanger) == 3, "another car after 2.5 s clear must beep again (%d)", r.count(Beep::BsmDanger));
+  }
+  {  // ... and a new turn activation always starts a new episode, even right after the last one
+    AlertRun r;
+    PiStatus s = ready(true, false);
+    r.step(2000, Turn::Off, 0, &s, 600);
+    r.step(6000, Turn::Left, 1, &s, 600);
+    r.step(300, Turn::Off, 1, &s, 600);
+    r.step(1500, Turn::Left, 2, &s, 600);
+    CHECK(r.count(Beep::BsmDanger) == 3, "signalling again must beep again (%d)", r.count(Beep::BsmDanger));
   }
   {  // signalling right with the left lane occupied: no danger
     AlertRun r;
@@ -469,7 +496,7 @@ void testAlerts() {
     v.step(10, Turn::Off, 0, &s, 600);
     CHECK(v.last.speedSource == SpeedSource::Gps, "an invalid OBD report must hand over at once");
   }
-  {  // mute: silences the rest of this activation only
+  {  // mute from the touch screen: silences the rest of this activation only
     AlertRun r;
     PiStatus s = ready(true, false);
     r.step(2000, Turn::Off, 0, &s, 600);
@@ -483,7 +510,25 @@ void testAlerts() {
     r.step(500, Turn::Left, 2, &s, 600);
     CHECK(r.count(Beep::BsmDanger) == 2, "a new activation must beep again");
   }
-  {  // flickering detection must not machine-gun the buzzer
+  {  // the touch screen's mute arrives as a counter in $BSM: a change is one press; the first report, and the first
+     // after a gap (a restarted Pi counts from 0 again), only learn it
+    AlertRun r;
+    PiStatus s = ready(true, false);
+    s.mutes = 5;
+    r.step(2000, Turn::Off, 0, &s, 600);
+    r.step(500, Turn::Left, 1, &s, 600);
+    CHECK(r.count(Beep::BsmDanger) == 1, "a learned counter must not count as a press");
+    s.mutes = 6;
+    r.step(7000, Turn::Left, 1, &s, 600);
+    CHECK(r.count(Beep::BsmDanger) == 1, "a counter change must mute this activation (%d beeps)",
+          r.count(Beep::BsmDanger));
+    r.step(3000, Turn::Off, 1, nullptr, 600);
+    s.mutes = 0;
+    r.step(2000, Turn::Left, 2, &s, 600);
+    CHECK(r.count(Beep::BsmDanger) == 2, "a restarted Pi's counter must not count as a press (%d beeps)",
+          r.count(Beep::BsmDanger));
+  }
+  {  // flickering detection must not machine-gun the buzzer: one episode, beeps at 0 and 3 s only
     AlertRun r;
     PiStatus occ = ready(true, false), clear = ready(false, false);
     r.step(2000, Turn::Off, 0, &clear, 600);
@@ -491,7 +536,7 @@ void testAlerts() {
       r.step(100, Turn::Left, 1, &occ, 600);
       r.step(100, Turn::Left, 1, &clear, 600);
     }
-    CHECK(r.count(Beep::BsmDanger) <= 5, "flicker gave %d beeps in 4 s", r.count(Beep::BsmDanger));
+    CHECK(r.count(Beep::BsmDanger) == 2, "flicker gave %d beeps in 4 s", r.count(Beep::BsmDanger));
   }
   {  // Pi link lost after being ready: fault LEDs and exactly one fault beep
     AlertRun r;
@@ -522,13 +567,18 @@ void testAlerts() {
     r.step(60000, Turn::Off, 0, &s, 600);
     CHECK(r.count(Beep::TpmsLow) == 1, "TPMS must not repeat within 10 min");
   }
-  {  // no acknowledge: a reminder every 10 min
+  {  // no acknowledge: two reminders, 10 min apart, then quiet (the screen keeps showing the low tyre)
     AlertRun r;
     r.a.tpmsAlarm(true);
     r.step(1300000, Turn::Off, 0, nullptr, -1);
     CHECK(r.count(Beep::TpmsLow) == 3, "TPMS reminders at 0, 10 and 20 min: got %d", r.count(Beep::TpmsLow));
+    r.step(2400000, Turn::Off, 0, nullptr, -1);
+    CHECK(r.count(Beep::TpmsLow) == 3, "TPMS must go quiet after two reminders: got %d", r.count(Beep::TpmsLow));
+    r.a.tpmsAlarm(true, 0x3);
+    r.step(100, Turn::Off, 0, nullptr, -1);
+    CHECK(r.count(Beep::TpmsLow) == 4, "another low tyre must raise it again: got %d", r.count(Beep::TpmsLow));
   }
-  {  // the pod button acknowledges a TPMS alarm with the Pi down; another low tyre or a new alarm sounds again
+  {  // an acknowledge (the touch screen) works with the Pi down; another low tyre or a new alarm sounds again
     AlertRun r;
     r.a.tpmsAlarm(true, 0x1);
     r.step(100, Turn::Off, 0, nullptr, -1);
@@ -701,9 +751,10 @@ bool feedAll(link::LineReader& r, const std::string& bytes, std::vector<std::str
 void testLink() {
   uint32_t seq = 0;
   PiStatus s;
-  std::string good = withChecksum("$BSM,42,1,1,0,0,1,128");
+  std::string good = withChecksum("$BSM,42,1,1,0,0,1,128,7");
   CHECK(link::parseBsm(good.c_str(), seq, s), "valid BSM rejected: %s", good.c_str());
-  CHECK(seq == 42 && s.ready && s.occLeft && !s.occRight && !s.camFaultLeft && s.camFaultRight && s.ledLevel == 128,
+  CHECK(seq == 42 && s.ready && s.occLeft && !s.occRight && !s.camFaultLeft && s.camFaultRight && s.ledLevel == 128 &&
+            s.mutes == 7,
         "BSM fields wrong");
 
   std::string lower = good;
@@ -714,13 +765,15 @@ void testLink() {
   std::string corrupt = good;
   corrupt[8] = corrupt[8] == '1' ? '0' : '1';  // the "ready" flag
   CHECK(!link::parseBsm(corrupt.c_str(), seq, s), "corrupted line accepted");
-  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1").c_str(), seq, s), "missing field accepted");
-  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1,300").c_str(), seq, s), "level 300 accepted");
-  CHECK(!link::parseBsm(withChecksum("$BSM,1,2,1,0,0,1,10").c_str(), seq, s), "flag 2 accepted");
-  CHECK(!link::parseBsm(withChecksum("$BSM,x,1,1,0,0,1,10").c_str(), seq, s), "non-numeric seq accepted");
-  CHECK(!link::parseBsm(withChecksum("$ESP,1,1,1,0,0,1,10").c_str(), seq, s), "wrong type accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1,10").c_str(), seq, s), "missing field accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1,10,0,0").c_str(), seq, s), "extra field accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1,300,0").c_str(), seq, s), "level 300 accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,1,1,1,0,0,1,10,256").c_str(), seq, s), "mute counter 256 accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,1,2,1,0,0,1,10,0").c_str(), seq, s), "flag 2 accepted");
+  CHECK(!link::parseBsm(withChecksum("$BSM,x,1,1,0,0,1,10,0").c_str(), seq, s), "non-numeric seq accepted");
+  CHECK(!link::parseBsm(withChecksum("$ESP,1,1,1,0,0,1,10,0").c_str(), seq, s), "wrong type accepted");
   CHECK(!link::parseBsm((good + "Z").c_str(), seq, s), "trailing garbage accepted");
-  CHECK(!link::parseBsm("BSM,1,1,1,0,0,1,10*00", seq, s), "missing $ accepted");
+  CHECK(!link::parseBsm("BSM,1,1,1,0,0,1,10,0*00", seq, s), "missing $ accepted");
 
   {  // the reader resyncs on '$', handles CR/LF and drops overlong lines
     link::LineReader r;

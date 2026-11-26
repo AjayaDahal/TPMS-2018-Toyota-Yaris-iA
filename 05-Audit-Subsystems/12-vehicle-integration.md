@@ -5,7 +5,7 @@
 - the blinker taps;
 - the routes through the doors, kick panels and console;
 - drilling the mirror caps;
-- the LED, GPS and alert-pod locations;
+- the LED and GPS locations, and the USB wing beside the console opening (the car's own USB port, extended by the v1 passthrough);
 - the OBD-II dongle;
 - the airbag keep-outs;
 - reversibility.

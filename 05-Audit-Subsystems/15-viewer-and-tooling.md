@@ -19,7 +19,7 @@ All fixed and re-tested. The camera view cone also drew a geometry that no real 
 | Check | Evidence | Result |
 |---|---|---|
 | Data sync and counts | `sync_plan.py --check`; pinout rows vs `pins_v2.h`; rail totals; BOM totals; 67 checklist ids, 96 premortem items, 8 gates, scene pick ids: no duplicates | OK |
-| Reproducibility | `make_enclosure.py` rebuilds the report and 14 STLs byte-identical; `make_viewer.py` rebuilds `manifest.json` byte-identical | OK |
+| Reproducibility | `make_enclosure.py` rebuilds the report and 17 STLs byte-identical, `make_mounts.py` its report and 13 STLs; `make_viewer.py` rebuilds `manifest.json` byte-identical | OK |
 | Syntax and load | `node --check` on the three scripts; a cache-free reload in the browser: no console errors or warnings | OK |
 | Inspector Hide/Show (after the fix) | At 487 px and at 1400 px: collapsed, the Show button stays on screen (a rail at the right edge on desktop), `aria-expanded` follows, the stage widens from 1010 to 1356 px, Show restores the panel | OK |
 | v1 race (after the fix) | Switch to v1, back to the car within 30 ms, wait for the 43 STLs: car mode, car tab, car camera; a later v1 visit loads normally | OK |

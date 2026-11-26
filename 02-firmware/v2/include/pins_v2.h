@@ -38,13 +38,15 @@ constexpr int PIN_I2C_SDA = 21;     // [io,v1]
 constexpr int PIN_I2C_SCL = 22;     // [io,v1]
 
 // Alerts
-constexpr int PIN_BUZZER = 13;      // [out,v1,pulldown]  12 V active piezo in the alert pod, low-side MOSFET, active high
+constexpr int PIN_BUZZER = 13;      // [out,v1,pulldown]  12 V active piezo inside the dash unit (behind the bezel's right
+                                    //                    slots), low-side MOSFET, active high; the beeps mute themselves
 constexpr int PIN_LED_L = 25;       // [out,pulldown]     left amber BSM LED, PWM through a low-side MOSFET
 constexpr int PIN_LED_R = 14;       // [out,pulldown]     right amber BSM LED; GPIO14's boot-time PWM only flickers it
 constexpr int PIN_STATUS_LED = 2;   // [out,bootlow]      DevKit blue LED; its resistor holds GPIO2 low at reset
 
 // Inputs
-constexpr int PIN_BTN = 4;          // [in,v1,pullup]     mute / acknowledge button in the alert pod, active low (v1 RC)
+constexpr int PIN_BTN = 4;          // [in,v1,pullup]     optional mute / acknowledge button, active low (v1 RC). v2 fits
+                                    //                    none: the beeps mute themselves, the touch screen mutes
 constexpr int PIN_BLINK_L = 36;     // [in,poll,pullup]   LTV-357T opto output, active low (left lamp lit = low)
 constexpr int PIN_BLINK_R = 39;     // [in,poll,pullup]   LTV-357T opto output, active low (right lamp lit = low)
 constexpr int PIN_ACC_SENSE = 32;   // [analog]           ADC1_CH4: 100 k / 10 k divider from 12V_PROT, clamped

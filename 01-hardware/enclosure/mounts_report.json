@@ -1,0 +1,484 @@
+{
+  "generator": "01-hardware/enclosure/make_mounts.py",
+  "camera_pod": {
+    "aim_deg": {
+      "outward_of_straight_back": 39.0,
+      "down": 10.0
+    },
+    "cap_slope_deg": {
+      "pitch_front_up": 0.0,
+      "roll_outer_up": 0.0
+    },
+    "fov_deg": {
+      "horizontal": 95.0,
+      "vertical_16_9": 63.1
+    },
+    "frame_to_car": {
+      "right": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "left": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    "right_pod_mm": {
+      "lens_centre": [
+        8.68,
+        -13.17,
+        -17.94
+      ],
+      "axis": [
+        0.61976,
+        -0.76534,
+        -0.17365
+      ],
+      "channel_exit": [
+        -10.08,
+        10.0,
+        0.0
+      ],
+      "pilots": [
+        [
+          -14.34,
+          -18.15
+        ],
+        [
+          17.16,
+          10.35
+        ]
+      ]
+    },
+    "size_mm": [
+      45.7,
+      50.3,
+      33.2
+    ],
+    "below_cap_mm": 33.2,
+    "cap_holes": {
+      "cable": "Ø21 mm (step drill), where the channel meets the cap: 19.2 × 19.8 mm",
+      "screws": "2 × Ø3.4 mm, 42.5 mm apart",
+      "screw": "2 × M3 × 12 pan head from inside the mirror into the pod's pilots, plus 3M 5952 VHB",
+      "guide": "print_cam_drill_guide.stl, the arrow points rearward and its flat side faces the car"
+    },
+    "camera": {
+      "body_d": 19.0,
+      "lip_d": 24.0,
+      "lip_t": 3.0,
+      "body_l": 30.0,
+      "plug_pass_d": 18.0
+    },
+    "set_screw": "M3 × 6 set screw (or M3 × 8 with a dab of RTV under its head) against the body; then a bead of neutral-cure RTV round the lip"
+  },
+  "led_pods": {
+    "left": {
+      "frame_to_car": [
+        [
+          0.42262,
+          0.15738,
+          0.89254
+        ],
+        [
+          0.90631,
+          -0.07339,
+          -0.4162
+        ],
+        [
+          0.0,
+          0.98481,
+          -0.17365
+        ]
+      ],
+      "at_m": [
+        -0.7,
+        0.52,
+        0.97
+      ],
+      "axis": [
+        -0.6317,
+        0.34724,
+        0.69309
+      ],
+      "axis_car": [
+        0.40629,
+        -0.88646,
+        0.22162
+      ],
+      "tilt_from_sail_deg": 46.1,
+      "led_tip_mm": [
+        -2.82,
+        1.55,
+        8.27
+      ],
+      "size_mm": [
+        20.6,
+        18.0,
+        14.1
+      ]
+    },
+    "right": {
+      "frame_to_car": [
+        [
+          0.42262,
+          -0.15738,
+          -0.89254
+        ],
+        [
+          -0.90631,
+          -0.07339,
+          -0.4162
+        ],
+        [
+          0.0,
+          0.98481,
+          -0.17365
+        ]
+      ],
+      "at_m": [
+        0.7,
+        0.52,
+        0.97
+      ],
+      "axis": [
+        0.15385,
+        0.30602,
+        0.93951
+      ],
+      "axis_car": [
+        -0.82169,
+        -0.55291,
+        0.13823
+      ],
+      "tilt_from_sail_deg": 20.0,
+      "led_tip_mm": [
+        0.5,
+        1.0,
+        8.98
+      ],
+      "size_mm": [
+        15.3,
+        16.8,
+        13.6
+      ]
+    }
+  },
+  "eye_m": [
+    -0.37,
+    -0.2,
+    1.15
+  ],
+  "sail_deg": {
+    "yaw_toward_rear": 25.0,
+    "lean": 10.0
+  },
+  "parameters": {
+    "CAM_D": 19.0,
+    "CAM_LIP_D": 24.0,
+    "CAM_LIP_T": 3.0,
+    "CAM_BODY_L": 30.0,
+    "CAM_FIT": 0.4,
+    "CAM_LENS_D": 9.0,
+    "CABLE_D": 4.5,
+    "PLUG_PASS_D": 18.0,
+    "CAM_YAW": 39.0,
+    "CAM_PITCH": 10.0,
+    "CAM_HFOV": 95.0,
+    "CAP_PITCH": 0.0,
+    "CAP_ROLL": 0.0,
+    "WALL": 3.0,
+    "PLATE_T": 3.0,
+    "SEAT_RING": 3.5,
+    "MARGIN": 2.0,
+    "CHANNEL_SLOPE": 60.0,
+    "TEAR": 40.0,
+    "SET_SCREW_AT": 8.0,
+    "PILOT_D": 2.6,
+    "PILOT_DEPTH": 10.0,
+    "SCREW_CLEAR": 3.4,
+    "VHB_T": 1.1,
+    "GUIDE_T": 1.6,
+    "LED_D": 5.0,
+    "LED_FLANGE_D": 5.8,
+    "LED_FLANGE_T": 1.0,
+    "LED_L": 8.6,
+    "LED_FIT": 0.15,
+    "LED_RECESS": 3.0,
+    "LED_WALL": 2.2,
+    "LED_BASE_T": 2.5,
+    "LED_AT_L": [
+      -0.7,
+      0.52,
+      0.97
+    ],
+    "LED_AT_R": [
+      0.7,
+      0.52,
+      0.97
+    ],
+    "EYE": [
+      -0.37,
+      -0.2,
+      1.15
+    ],
+    "SAIL_YAW": 25.0,
+    "SAIL_LEAN": 10.0,
+    "BED": [
+      220.0,
+      220.0,
+      250.0
+    ],
+    "SEG": 64
+  },
+  "volumes_cm3": {
+    "cam_pod_left": 28.0,
+    "cam_pod_right": 28.0,
+    "cam_drill_guide": 2.8,
+    "led_pod_left": 2.3,
+    "led_pod_right": 1.8
+  },
+  "files": {
+    "print_cam_pod_left": {
+      "file": "stl/print_cam_pod_left.stl",
+      "triangles": 1296,
+      "label": "Left mirror camera pod (print cap face down)"
+    },
+    "print_cam_pod_right": {
+      "file": "stl/print_cam_pod_right.stl",
+      "triangles": 1296,
+      "label": "Right mirror camera pod (print cap face down)"
+    },
+    "print_cam_drill_guide": {
+      "file": "stl/print_cam_drill_guide.stl",
+      "triangles": 608,
+      "label": "Drill guide for the 3 holes in each mirror cap (flip it over for the left)"
+    },
+    "print_led_pod_left": {
+      "file": "stl/print_led_pod_left.stl",
+      "triangles": 656,
+      "label": "Left door-sail LED pod (print base down)"
+    },
+    "print_led_pod_right": {
+      "file": "stl/print_led_pod_right.stl",
+      "triangles": 656,
+      "label": "Right door-sail LED pod (print base down)"
+    },
+    "asm_cam_pod_left": {
+      "file": "stl/asm_cam_pod_left.stl",
+      "triangles": 1296,
+      "color": "#1f2937",
+      "label": "Left mirror camera pod (print cap face down)"
+    },
+    "asm_cam_pod_right": {
+      "file": "stl/asm_cam_pod_right.stl",
+      "triangles": 1296,
+      "color": "#1f2937",
+      "label": "Right mirror camera pod (print cap face down)"
+    },
+    "asm_led_pod_left": {
+      "file": "stl/asm_led_pod_left.stl",
+      "triangles": 656,
+      "color": "#1f2937",
+      "label": "Left door-sail LED pod (print base down)"
+    },
+    "asm_led_pod_right": {
+      "file": "stl/asm_led_pod_right.stl",
+      "triangles": 656,
+      "color": "#1f2937",
+      "label": "Right door-sail LED pod (print base down)"
+    },
+    "asm_cam_left": {
+      "file": "stl/asm_cam_left.stl",
+      "triangles": 1466,
+      "color": "#0f172a",
+      "label": "USB UVC camera and its lead (dummy)"
+    },
+    "asm_cam_right": {
+      "file": "stl/asm_cam_right.stl",
+      "triangles": 1466,
+      "color": "#0f172a",
+      "label": "USB UVC camera and its lead (dummy)"
+    },
+    "asm_led_left": {
+      "file": "stl/asm_led_left.stl",
+      "triangles": 714,
+      "color": "#f59e0b",
+      "label": "5 mm amber LED (dummy)"
+    },
+    "asm_led_right": {
+      "file": "stl/asm_led_right.stl",
+      "triangles": 730,
+      "color": "#f59e0b",
+      "label": "5 mm amber LED (dummy)"
+    }
+  },
+  "checks": [
+    {
+      "check": "cam_pod_left: valid solid",
+      "ok": true,
+      "detail": "NoError, 28.0 cm³, genus 3"
+    },
+    {
+      "check": "cam_pod_left: fits a 220 × 220 bed, flat face down",
+      "ok": true,
+      "detail": "print size 45.7 × 50.3 × 33.2 mm"
+    },
+    {
+      "check": "cam_pod_left: prints without supports",
+      "ok": true,
+      "detail": "10.7 mm² steeper than 50° from vertical (small hole ends only)"
+    },
+    {
+      "check": "cam_pod_right: valid solid",
+      "ok": true,
+      "detail": "NoError, 28.0 cm³, genus 3"
+    },
+    {
+      "check": "cam_pod_right: fits a 220 × 220 bed, flat face down",
+      "ok": true,
+      "detail": "print size 45.7 × 50.3 × 33.2 mm"
+    },
+    {
+      "check": "cam_pod_right: prints without supports",
+      "ok": true,
+      "detail": "10.7 mm² steeper than 50° from vertical (small hole ends only)"
+    },
+    {
+      "check": "cam_drill_guide: valid solid",
+      "ok": true,
+      "detail": "NoError, 2.8 cm³, genus 4"
+    },
+    {
+      "check": "cam_drill_guide: fits a 220 × 220 bed, flat face down",
+      "ok": true,
+      "detail": "print size 45.7 × 50.3 × 1.6 mm"
+    },
+    {
+      "check": "led_pod_left: valid solid",
+      "ok": true,
+      "detail": "NoError, 2.3 cm³, genus 1"
+    },
+    {
+      "check": "led_pod_left: fits a 220 × 220 bed, flat face down",
+      "ok": true,
+      "detail": "print size 20.6 × 18.0 × 14.1 mm"
+    },
+    {
+      "check": "led_pod_left: prints without supports",
+      "ok": true,
+      "detail": "0.0 mm² steeper than 50° from vertical (small hole ends only)"
+    },
+    {
+      "check": "led_pod_right: valid solid",
+      "ok": true,
+      "detail": "NoError, 1.8 cm³, genus 1"
+    },
+    {
+      "check": "led_pod_right: fits a 220 × 220 bed, flat face down",
+      "ok": true,
+      "detail": "print size 15.3 × 16.8 × 13.6 mm"
+    },
+    {
+      "check": "led_pod_right: prints without supports",
+      "ok": true,
+      "detail": "8.3 mm² steeper than 50° from vertical (small hole ends only)"
+    },
+    {
+      "check": "cam_pod_right: camera and its cable clear the pod",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "cam_pod_left: camera and its cable clear the pod",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "camera aim as mounted (cap slope included)",
+      "ok": true,
+      "detail": "39.0° outward of straight back, 10.0° down; cap slope +0° pitch, +0° roll"
+    },
+    {
+      "check": "nothing of the pod in front of the lens",
+      "ok": true,
+      "detail": "pod's rearmost point +0.00 mm along the camera axis from the lens face"
+    },
+    {
+      "check": "≥ 2.7 mm of plastic round the bore and the cable channel",
+      "ok": true,
+      "detail": "wall shortfall 0.00 mm³ (bore), 0.00 mm³ (channel)"
+    },
+    {
+      "check": "two M3 pilots in solid plastic, clear of the cavities",
+      "ok": true,
+      "detail": "10 mm deep, ≥ 2 mm from the bore and the channel, 42.5 mm apart"
+    },
+    {
+      "check": "cable channel passes the USB plug and climbs steeply",
+      "ok": true,
+      "detail": "Ø18.0 mm at 60° above horizontal; the cable turns 50° out of the camera"
+    },
+    {
+      "check": "pod stays compact under the mirror",
+      "ok": true,
+      "detail": "33.2 mm below the cap (+1.1 mm of VHB)"
+    },
+    {
+      "check": "led_pod_left: LED clears its bore",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "led_pod_left: aimed at the driver's eyes",
+      "ok": true,
+      "detail": "0.27° off; tilted 46° from the sail"
+    },
+    {
+      "check": "led_pod_left: no direct light on the side window or the windscreen",
+      "ok": true,
+      "detail": "light leaves within 59° of the axis; side window 114°, windscreen 152° off"
+    },
+    {
+      "check": "led_pod_right: LED clears its bore",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "led_pod_right: aimed at the driver's eyes",
+      "ok": true,
+      "detail": "0.09° off; tilted 20° from the sail"
+    },
+    {
+      "check": "led_pod_right: no direct light on the side window or the windscreen",
+      "ok": true,
+      "detail": "light leaves within 59° of the axis; side window 145°, windscreen 124° off"
+    }
+  ],
+  "all_ok": true
+}

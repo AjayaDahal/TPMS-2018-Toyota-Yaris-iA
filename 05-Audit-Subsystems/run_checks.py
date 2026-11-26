@@ -69,24 +69,31 @@ def sha(p):
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def check_enclosure(tmp):
+def check_generator(tmp, script, report, label):
+    """Run a printed-parts generator into tmp: its checks must pass and its outputs match the committed files."""
     try:
         import manifold3d  # noqa: F401
     except ImportError:
-        return record("enclosure: fit checks, outputs up to date", None, "manifold3d not installed")
-    out_dir = pathlib.Path(tmp) / "enclosure"
-    code, out = run([sys.executable, "01-hardware/enclosure/make_enclosure.py", "--out", str(out_dir)], timeout=900)
+        return record(label, None, "manifold3d not installed")
+    out_dir = pathlib.Path(tmp) / pathlib.Path(script).stem
+    code, out = run([sys.executable, f"01-hardware/enclosure/{script}", "--out", str(out_dir)], timeout=900)
     checks = next((l for l in out.splitlines() if "checks passed" in l), "")
     committed = ROOT / "01-hardware" / "enclosure"
     stale = [p.name for p in sorted((out_dir / "stl").glob("*.stl"))
              if not (committed / "stl" / p.name).exists() or sha(p) != sha(committed / "stl" / p.name)]
-    new_rep = json.loads((out_dir / "enclosure_report.json").read_text(encoding="utf-8"))
-    old_rep = json.loads((committed / "enclosure_report.json").read_text(encoding="utf-8"))
+    if not (out_dir / report).exists():
+        return record(label, False, f"{script} wrote no {report}: " + out[-200:])
+    new_rep = json.loads((out_dir / report).read_text(encoding="utf-8"))
+    old_rep = json.loads((committed / report).read_text(encoding="utf-8"))
     if new_rep != old_rep:
-        stale.append("enclosure_report.json")
+        stale.append(report)
     ok = code == 0 and not stale
-    record("enclosure: fit checks, outputs up to date", ok,
-           checks.split("->")[0].strip() + ("; stale: " + ", ".join(stale) if stale else "; committed STLs match"))
+    record(label, ok, checks.split("->")[0].strip() + ("; stale: " + ", ".join(stale) if stale else "; committed STLs match"))
+
+
+def check_enclosure(tmp):
+    check_generator(tmp, "make_enclosure.py", "enclosure_report.json", "enclosure: fit checks, outputs up to date")
+    check_generator(tmp, "make_mounts.py", "mounts_report.json", "mirror + LED mounts: checks, outputs up to date")
 
 
 def check_stl_watertight():
@@ -123,13 +130,14 @@ def check_js(tmp):
     if not shutil.which("node"):
         return record("viewer JavaScript syntax", None, "node not installed")
     errs = []
-    for f in ("app.js", "car_scene.js", "pcb6_scene.js"):
+    files = ("app.js", "car_scene.js", "pcb6_scene.js", "products_scene.js")
+    for f in files:
         dst = pathlib.Path(tmp) / (f[:-3] + ".mjs")
         shutil.copy(ROOT / "04-viewer" / "viewer" / f, dst)
         code, out = run(["node", "--check", str(dst)])
         if code:
             errs.append(f"{f}: {out[-200:]}")
-    record("viewer JavaScript syntax", not errs, "3 files parse" if not errs else "; ".join(errs))
+    record("viewer JavaScript syntax", not errs, f"{len(files)} files parse" if not errs else "; ".join(errs))
 
 
 def slug(h):
@@ -170,7 +178,7 @@ def check_repo_hygiene():
         if p.suffix.lower() not in (".md", ".py", ".js", ".json", ".h", ".cpp", ".html", ".css", ".csv", ".ini", ".txt"):
             continue
         t = p.read_text(encoding="utf-8", errors="replace")
-        if re.search(r"[A-Za-z]:[\\/]+Users[\\/]+\w|/home/\w+/|OneDrive -", t):
+        if re.search(r"[A-Za-z]:[\\/]+Users[\\/]+\w|/home/\w+/|OneDrive[ ]-", t):   # [ ]: don't match this line
             leaks.append(rel)
     ignored = run(["git", "check-ignore", "-q", "01-hardware/build/x.net"])[0] == 0
     # Anything `git add -A` would pick up that is build output or personal KiCad state (a *_route.ses is a

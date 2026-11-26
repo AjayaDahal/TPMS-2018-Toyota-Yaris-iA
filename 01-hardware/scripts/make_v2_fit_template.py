@@ -152,12 +152,25 @@ def page_display():
     box(FV["cable_slot"])
     cx0, cx1, cy0, cy1 = FV["cable_slot"]
     label(cx1 + 1, cy1 - 1, "cable slot:", 5.6, RED)
-    label(cx1 + 1, cy1 - 3.6, "HDMI + USB go", 5.6, RED)
-    label(cx1 + 1, cy1 - 6.2, "back here", 5.6, RED)
+    label(cx1 + 1, cy1 - 3.6, "display leads", 5.6, RED)
+    label(cx1 + 1, cy1 - 6.2, "+ car USB", 5.6, RED)
 
     pg.style(BLACK, 0.45)
     box(FV["bezel"])
     label(bx0 + 1.5, by1 + 1.6, f"printed bezel {bx1 - bx0:.1f} × {by1 - by0:.1f}", 6.5, BLACK)
+    box(FV["usb_wing"])
+    wx0, wx1, wy0, wy1 = FV["usb_wing"]
+    hx, hy, hd = FV["usb_hole"]
+    (col_d, col_t), (fr_d, fr_l) = E["PASS_COLLAR"], E["PASS_FRONT"]
+    pg.style(GREY, 0.3)
+    box([hx, hx + col_t, hy - col_d / 2, hy + col_d / 2])
+    box([hx + col_t, hx + fr_l, hy - fr_d / 2, hy + fr_d / 2])
+    label(wx0 + 1, wy0 - 3.4, f"USB wing {wx1 - wx0:.0f} × {wy1 - wy0:.0f} on the trim:", 5.6, BLACK)
+    label(wx0 + 1, wy0 - 6.0, f"the car's USB faces right (Ø{hd:g} v1 cut)", 5.6, BLACK)
+    pg.style(GREY, 0.25, (1.0, 0.8))
+    zx, zy, zd = FV["buzzer"]
+    pg.circle(*pt(zx, zy), zd / 2, cross=False)
+    label(zx - zd / 2, zy - zd / 2 - 3.0, "piezo (behind)", 5.4, GREY)
 
     mx0, mx1, my0, my1 = FV["board"]
     mh, ew = FV["main_h"] / 2, FV["ear_w"]
@@ -205,7 +218,7 @@ def page_display():
     for x, y in FV["bezel_screws"]:
         pg.circle(*pt(x, y), 1.7, cross=False)
 
-    x, y, w = 218.0, 25.0, 57.0
+    x, y, w = 218.0, 80.0, 57.0
     y = pg.wrapped(x, y, w, "BEFORE PRINTING THE ENCLOSURE", 8, True, 4)
     notes = [
         "1. Lay the display face up on this page. If its board or ear holes miss the blue outline or the orange "
@@ -217,6 +230,10 @@ def page_display():
         f"through P-R-N-D-M, the HVAC knobs and the view. It stands {ENC['proud_of_trim_mm']:.0f} mm proud of the trim.",
         "4. IPS panel: readable from any angle, so it mounts the normal way up.",
         "5. Rated -10 to +60 °C (storage +70 °C): keep it out of direct sun; 250 cd/m² is dim in daylight.",
+        f"6. USB wing: {ENC['usb_passthrough']['wing_mm'][0]:.0f} × {ENC['usb_passthrough']['wing_mm'][1]:.0f} mm "
+        f"on the trim right of the bezel, its front {ENC['usb_passthrough']['wing_front_proud_of_bezel_mm']:.0f} mm "
+        f"proud of the bezel's; the socket ends {ENC['usb_passthrough']['socket_reach_right_of_bezel_mm']:.0f} mm "
+        "right of the bezel. Check that trim is flat and free, and measure your passthrough (enclosure/README.md).",
         "Sources: SunFounder TS-7 parameters and product photos; enclosure_report.json; v1 panel_config.py.",
     ]
     for n in notes:
@@ -280,8 +297,8 @@ def page_pcb():
         "at the board edges, so mated plugs stay under 16 mm. Under the lid fan (red square): parts max 6 mm.",
         "Antenna: the CC1101's own SMA takes a short RG316 lead to a bulkhead SMA in the enclosure wall (red strip: no "
         "parts), then a 30 cm lead takes the 315 MHz whip away from the Pi, the display and the camera cables.",
-        "Power on Micro-Fit 3.0 (5 A per contact, 18 AWG); signals on keyed JST-GH. The alert pod (mute button + "
-        "buzzer) plugs into one 4-pin JST-GH.",
+        "Power on Micro-Fit 3.0 (5 A per contact, 18 AWG); signals on keyed JST-GH. The piezo inside the dash unit "
+        "plugs into the 4-pin buzzer/button JST-GH (no button fitted: the touch screen mutes).",
         "Hand soldering a 6-layer board: through-hole pads on the inner planes need thermal reliefs (layout rule).",
     ]
     for n in notes:

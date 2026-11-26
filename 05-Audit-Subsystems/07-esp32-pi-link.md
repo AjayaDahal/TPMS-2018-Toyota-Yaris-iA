@@ -25,6 +25,7 @@
 | LNK-04 | Medium | The Pi's default image puts Bluetooth or a login console on that UART (premortem E3) | Set-up script: `enable_uart=1`, `dtoverlay=disable-bt`, no `console=serial0` | Open (Pi set-up) |
 | LNK-05 | Low | The XOR checksum catches every single-bit error and most bursts, but not two swapped characters. Over 10 cm inside the box at 115200 Bd that is acceptable; every field is also range-checked | Accepted | Accepted |
 | LNK-06 | Info | The 8-bit `ledLevel` from the Pi is now floored at 48 by the ESP32 ([ALR-07](05-alerts-and-alert-pod.md)) | — | OK |
+| LNK-07 | Medium | **The touch screen couldn't mute.** With the mute button dropped (2026-11-26), the docs said "touch mutes", but `$BSM` carried no mute and the ESP32 owns the buzzer | `$BSM` gains a 9th field, the touch screen's **mute counter** (+1 per tap, mod 256): each change is one `mutePressed()`. A lost line loses no tap and a repeated line adds none. The first report, and the first after a gap > 1 s (a restarted Pi counts from 0), only learn it. It works with a frozen vision loop too. Protocol section of the [v2 README](../02-firmware/v2/README.md#protocol-uart2-115200-bd-33-v-pi-gpio1415) updated | **Fixed**, 5 new checks; Pi side to implement |
 
 ## Premortem: the link failed. Why?
 

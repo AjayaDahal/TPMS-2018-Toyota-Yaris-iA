@@ -2,18 +2,24 @@
 // Blind-spot and TPMS alert arbiter: decides what the two amber LEDs and the buzzer do.
 //
 // Inputs: the turn state and input faults (BlinkerDetector), the latest Pi vision report, whether the Pi is powered
-// (PiPowerSequencer), the vehicle speed (OBD-II dongle and/or GPS), the mute button and the TPMS alarm. Rules (each
-// one is a premortem or audit fix, see 00-project-management/PREMORTEM_v2.md and 05-Audit-Subsystems/):
+// (PiPowerSequencer), the vehicle speed (OBD-II dongle and/or GPS), an optional mute (the touch screen) and the
+// TPMS alarm. Rules (each one is a premortem or audit fix, see 00-project-management/PREMORTEM_v2.md and
+// 05-Audit-Subsystems/):
 //   - a vehicle in a blind spot lights that side steady; signalling towards it flashes the LED and sounds the
-//     buzzer (repeated at most every dangerRepeatMs; a new event needs dangerMinGapMs after the last beep)
+//     buzzer. The beeps mute themselves: a danger episode beeps at once (dangerMinGapMs after any earlier beep),
+//     repeats every dangerRepeatMs and goes quiet dangerAutoMuteMs after it started, while the LED keeps
+//     flashing. An episode ends when the danger has been gone for dangerRearmMs, or with a new turn activation
 //   - nothing below 8 mph and nothing until 12 mph (hysteresis), so parking lots and drive-thrus stay quiet
 //   - speed: the car's own (OBD-II PID 0x0D) while it is fresh, else GPS. A dongle that stops answering hands over
 //     to the GPS, which then decides (inside the 8-12 mph hysteresis band the two can disagree)
 //   - no fresh speed for longer than gpsHoldMs: LEDs keep working, the buzzer stays quiet (no nuisance without speed)
 //   - hazard flashers never sound the buzzer; nor does signalling while a blinker input is faulted (a stuck input
 //     makes hazards and turns indistinguishable), and that side shows the fault pattern
-//   - the mute button silences the buzzer for the current turn activation only; it also acknowledges a TPMS
-//     alarm (no more reminders until it clears or another tyre goes low), which works while the Pi is down
+//   - a TPMS alarm beeps when it is raised and reminds tpmsReminders times, tpmsRepeatMs apart, then stays quiet
+//     (the screen keeps showing the low tyre). Another low tyre or a new alarm raises it again
+//   - mutePressed() (the touch screen, through the $BSM mute counter; v2 fits no button, the optional input is IO4)
+//     silences the buzzer for the current turn activation only and acknowledges a TPMS alarm (no more reminders
+//     until it is raised again)
 //   - a lamp test when the Pi first reports ready. A stale or frozen Pi link, a faulted camera, a faulted blinker
 //     input, or a Pi powered for piBootTimeoutMs that never became ready shows the fault pattern on that side and
 //     gives one fault beep. Another fault beep only after faultRearmMs without any fault, so a flapping link
@@ -38,6 +44,7 @@ struct PiStatus {
   bool occLeft = false, occRight = false;
   bool camFaultLeft = false, camFaultRight = false;  // camera missing, frozen or misaligned
   uint8_t ledLevel = 255;              // LED brightness 0-255 chosen by the Pi (night dimming), floored at minLedLevel
+  uint8_t mutes = 0;                   // the touch screen's mute counter (mod 256): each change is one press
 };
 
 struct AlertConfig {
@@ -50,8 +57,11 @@ struct AlertConfig {
   uint32_t gpsHoldMs = 10000;          // keep the last moving / slow decision this long without a fresh speed
   uint32_t dangerRepeatMs = 3000;
   uint32_t dangerMinGapMs = 1000;
+  uint32_t dangerAutoMuteMs = 4000;    // a danger episode beeps this long at most (at 0 and 3 s), then the LED alone
+  uint32_t dangerRearmMs = 2000;       // the danger gone this long ends the episode (a flicker doesn't re-arm it)
   uint32_t faultRearmMs = 30000;       // no fault for this long before another fault beep
   uint32_t tpmsRepeatMs = 600000;
+  uint8_t tpmsReminders = 2;           // reminders after the first TPMS beep, then quiet (the screen keeps it)
   uint32_t tpmsClearHoldMs = 60000;    // an alarm that clears and comes back within this is the same alarm
   uint32_t lampTestMs = 1000;
   uint32_t dangerBeepMs = 400;         // pattern lengths: the buzzer player must play each one for exactly this long
@@ -78,12 +88,16 @@ class AlertArbiter {
 
   // A $BSM report. seq is the Pi's vision frame counter (not a message counter): a report whose seq hasn't moved
   // doesn't count as fresh, so a frozen vision loop whose reporting thread still says "ready" shows as a fault.
+  // A change of status.mutes is one press of the touch screen's mute (mutePressed()); the first report, and the
+  // first after a gap longer than piStaleMs (a restarted Pi counts from 0 again), only learn the counter.
   void piReport(uint32_t nowMs, uint32_t seq, const PiStatus& status);
   // Whether the Pi's 5 V rail is on (PiPowerSequencer not inhibiting). Starts the boot timeout.
   void piPower(uint32_t nowMs, bool on);
   void gpsSpeed(uint32_t nowMs, bool fixValid, uint16_t speedDmph);
   // Vehicle speed from the OBD-II dongle (ELM327, PID 0x0D, see obd.h). valid = false when it stopped answering.
   void obdSpeed(uint32_t nowMs, bool valid, uint16_t speedDmph);
+  // The touch screen's mute (through piReport's counter; v2 fits no button, IO4 can take one): silences the buzzer
+  // for the current turn activation and acknowledges a TPMS alarm.
   void mutePressed();
   // lowWheels: bit mask of the low tyres (FL 1, FR 2, RL 4, RR 8). A tyre that wasn't low before in this alarm
   // re-raises it once. Apply per-wheel hysteresis in the caller; flapping is also limited here (tpmsClearHoldMs).
@@ -98,7 +112,7 @@ class AlertArbiter {
   AlertConfig cfg_;
   PiStatus pi_;
   bool havePi_ = false;
-  uint32_t piMs_ = 0, piSeq_ = 0;
+  uint32_t piMs_ = 0, piSeq_ = 0, piLineMs_ = 0;
   bool piPowered_ = false;
   uint32_t piPoweredMs_ = 0;
   bool everAvailable_ = false;
@@ -117,14 +131,16 @@ class AlertArbiter {
   uint32_t movingKnownMs_ = 0;
   bool mutePending_ = false, muted_ = false;
   uint32_t mutedActivation_ = 0;
-  bool dangerWas_ = false, everDangerBeep_ = false;
+  bool everDangerBeep_ = false;
   uint32_t lastDangerBeep_ = 0;
+  bool dangerEpisode_ = false, episodeBeeped_ = false;
+  uint32_t episodeStart_ = 0, episodeActivation_ = 0, dangerLastMs_ = 0;
   Beep playing_ = Beep::None;
   uint32_t playingUntil_ = 0;
   bool tpmsReq_ = false, tpmsReqActive_ = false;
   uint8_t tpmsReqMask_ = 0;
   bool tpmsActive_ = false, tpmsEverActive_ = false, tpmsPending_ = false, tpmsAcked_ = false;
-  uint8_t tpmsSeen_ = 0;
+  uint8_t tpmsSeen_ = 0, tpmsRemindersLeft_ = 0;
   uint32_t tpmsClearMs_ = 0, lastTpmsBeep_ = 0;
   uint8_t level_ = 255;
 };

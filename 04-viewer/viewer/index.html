@@ -16,7 +16,8 @@
       <div class="mode-switch" role="tablist" aria-label="3-D Scene Mode">
         <button class="hdr-btn active" id="mode-car" data-mode="car">1. Car Blueprint &amp; Wiring</button>
         <button class="hdr-btn" id="mode-pcb6" data-mode="pcb6">2. 6-Layer PCB (100×100 · $2)</button>
-        <button class="hdr-btn" id="mode-v1" data-mode="v1">3. v1 TPMS Panel (189×128)</button>
+        <button class="hdr-btn" id="mode-parts" data-mode="parts">3. Printed Parts &amp; Assembly</button>
+        <button class="hdr-btn" id="mode-v1" data-mode="v1">4. v1 TPMS Panel (189×128)</button>
       </div>
       <div class="hdr-actions">
         <a href="../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip" download>v1 Gerbers</a>
@@ -29,8 +30,8 @@
         <div class="stage-title">
           <small id="eyebrow">2018 TOYOTA YARIS iA (MAZDA2 DJ SEDAN) · FULL-CAR BLUEPRINT</small>
           <h1 id="stage-title">TPMS + Dual-Camera Blind-Spot System</h1>
+          <div id="dimension">4360 × 1695 × 1485 mm · WB 2570 mm · Mirrors 1983 mm</div>
         </div>
-        <div id="dimension">4360 × 1695 × 1485 mm · WB 2570 mm · Mirrors 1983 mm</div>
 
         <div id="hud-preview-box">
           <div class="hud-preview-bar">
@@ -112,7 +113,7 @@
               <label><input type="checkbox" id="h-cameras" checked /> Mirror USB Cams</label>
               <label><input type="checkbox" id="h-power" checked /> 12 V ACC / 5 V</label>
               <label><input type="checkbox" id="h-signals" checked /> Blinkers (+ CAN ph. 2)</label>
-              <label><input type="checkbox" id="h-alerts" checked /> Door LEDs &amp; Alert Pod</label>
+              <label><input type="checkbox" id="h-alerts" checked /> Door LEDs &amp; Piezo</label>
               <label><input type="checkbox" id="h-sensors" checked /> GPS + OBD speed</label>
               <label><input type="checkbox" id="h-rf" checked /> 315 MHz TPMS RF</label>
             </div>
@@ -138,6 +139,31 @@
             <div id="pcb6-layers" class="layer-list"></div>
             <h3>Click-to-Inspect PCB Blocks</h3>
             <div id="pcb6-blocks" class="scroll-list"></div>
+          </section>
+
+          <!-- PRINTED PARTS: every printed part from the generated STL files, assembled and on the print bed -->
+          <section id="tab-parts" hidden>
+            <h3>Product</h3>
+            <div class="buttons" id="parts-products"></div>
+            <h3>Views</h3>
+            <div class="buttons" id="parts-views"></div>
+            <label class="range">
+              Explode <output id="parts-explode-out">0%</output>
+              <input type="range" id="parts-explode" min="0" max="100" value="0" />
+            </label>
+            <div class="switches">
+              <label><input type="checkbox" id="parts-bought" checked /> Bought parts</label>
+              <label><input type="checkbox" id="parts-context" checked /> Car around it</label>
+              <label><input type="checkbox" id="parts-section" /> Section cut</label>
+              <label><input type="checkbox" id="parts-fov" checked /> Camera view / LED aim</label>
+              <label><input type="checkbox" id="parts-glow" checked /> LED blink</label>
+              <label><input type="checkbox" id="parts-xray" /> See-through shell</label>
+              <label><input type="checkbox" id="parts-spin" /> Turntable</label>
+            </div>
+            <button class="reset" id="parts-reset">Reset view</button>
+            <div id="parts-card" class="card">Loading the parts…</div>
+            <h3>Click-to-Inspect Parts</h3>
+            <div id="parts-list" class="scroll-list"></div>
           </section>
 
           <!-- TAB 3: WIRING, POWER & MOUNTING -->

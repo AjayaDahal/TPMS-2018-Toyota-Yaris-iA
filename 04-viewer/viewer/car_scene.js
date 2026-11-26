@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { STLLoader } from "three/addons/STLLoader.js";
 
 /**
  * 2018 Toyota Yaris iA (Mazda2 DJ Sedan) 3-D Blueprint, Mounting, Wiring & Live BSM+TPMS Scene.
@@ -303,6 +304,37 @@ function buildMirrorsAndCameras(parent, pickables) {
   parent.add(fovGroup);
 
   const blinkerMats = { L: null, R: null };
+  const mirrors = {};
+
+  // The lens's horizontal field of view on the road: a fan from the camera's ground point, HFOV wide, centred on the
+  // aim, and its edges up to the lens. Rebuilt with the real lens position once the printed pods load.
+  const fans = { L: [], R: [] };
+  function makeFan(side, gx, gy, gz) {
+    const sign = side === "L" ? -1 : 1;
+    for (const o of fans[side]) {
+      fovGroup.remove(o);
+      o.geometry.dispose();
+    }
+    const a0 = CAM.yawDeg - CAM.hfovDeg / 2, a1 = CAM.yawDeg + CAM.hfovDeg / 2;
+    const arc = [];
+    for (let i = 0; i <= 24; i++) {
+      const th = THREE.MathUtils.degToRad(a0 + (a1 - a0) * (i / 24));
+      arc.push([gx + sign * Math.sin(th) * CAM.rangeM, gy - Math.cos(th) * CAM.rangeM, 0.01]);
+    }
+    const fanVerts = [];
+    for (let i = 0; i < arc.length - 1; i++) fanVerts.push(gx, gy, 0.01, ...arc[i], ...arc[i + 1]);
+    const fanGeo = new THREE.BufferGeometry();
+    fanGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(fanVerts), 3));
+    const fan = new THREE.Mesh(fanGeo, side === "L" ? coneMatL : coneMatR);
+    const apex = [gx, gy, gz];
+    const edgeVerts = [...apex, ...arc[0], ...apex, ...arc[arc.length - 1]];
+    for (let i = 0; i < arc.length - 1; i++) edgeVerts.push(...arc[i], ...arc[i + 1]);
+    const coneEdgeGeo = new THREE.BufferGeometry();
+    coneEdgeGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(edgeVerts), 3));
+    const edges = new THREE.LineSegments(coneEdgeGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.42 }));
+    fans[side] = [fan, edges];
+    fovGroup.add(fan, edges);
+  }
 
   for (const side of ["L", "R"]) {
     const sign = side === "L" ? -1 : 1;
@@ -333,6 +365,7 @@ function buildMirrorsAndCameras(parent, pickables) {
     cam.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), axis);
     cam.userData.pickId = `cam_${side}`;
     parent.add(cam);
+    mirrors[side] = { housing, cam };
 
     pickables.push({
       id: `cam_${side}`,
@@ -340,33 +373,12 @@ function buildMirrorsAndCameras(parent, pickables) {
       title: `${side === "L" ? "Left (driver)" : "Right (passenger)"} mirror camera (USB UVC)`,
       category: "Mirror vision (BUY after the bench test)",
       source: "BUY (~$45 each)",
-      location: `Underside of the ${side === "L" ? "left" : "right"} mirror's lower cap, outer half`,
-      mount: `Measure the camera barrel first and practise on a spare cap; step drill; a printed wedge sets the aim: ~${CAM.yawDeg}° outward of straight back, ~${CAM.pitchDeg}° down. O-ring + neutral-cure (oxime) RTV. Keep a strip of the car's side in the frame: the Pi uses it to detect a folded or bumped mirror. Check with cones at the zone's four corners.`,
+      location: `In a printed pod under the ${side === "L" ? "left" : "right"} mirror's cap, outer half, its lens face at the mirror's rear edge`,
+      mount: `The pod (make_mounts.py) sets the aim: ${CAM.yawDeg}° outward of straight back, ${CAM.pitchDeg}° down; the camera's lip seats on the pod's lens face, a set screw and RTV hold it. Only the lead goes through the cap: one Ø21 mm hole and 2 × Ø3.4 mm from the printed drill guide. Practise on a spare cap. Keep a strip of the car's side in the frame: the Pi uses it to detect a folded or bumped mirror. Check with cones at the zone's four corners.`,
       wiring: `Acceptance: MJPEG 720p30 at full sensor width, HFOV ≥ ${CAM.hfovDeg}° measured (≥ 2.18 m of wall at 1 m), Starvis WDR, no IR LEDs, −20…+70 °C (+85 °C preferred), IP67, barrel ≤ 20 mm, ≥ 3.5 m lead, both cameras streaming at once on the Pi 4. Lead: service loop through the hinge → door harness → door boot → kick panel → the Pi's USB 2.0 port (no JST-GH in the data path).`,
     });
 
-    // The lens's horizontal field of view on the road: a fan from the camera's ground point, HFOV wide, centred
-    // on the aim. Its inner edge grazes the car's side (the reference strip).
-    const gx = mx + sign * 0.03, gy = my - 0.01;
-    const fanPts = [gx, gy, 0.01];
-    const a0 = CAM.yawDeg - CAM.hfovDeg / 2, a1 = CAM.yawDeg + CAM.hfovDeg / 2;
-    const arc = [];
-    for (let i = 0; i <= 24; i++) {
-      const th = THREE.MathUtils.degToRad(a0 + (a1 - a0) * (i / 24));
-      arc.push([gx + sign * Math.sin(th) * CAM.rangeM, gy - Math.cos(th) * CAM.rangeM, 0.01]);
-    }
-    const fanVerts = [];
-    for (let i = 0; i < arc.length - 1; i++) fanVerts.push(...fanPts, ...arc[i], ...arc[i + 1]);
-    const fanGeo = new THREE.BufferGeometry();
-    fanGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(fanVerts), 3));
-    fovGroup.add(new THREE.Mesh(fanGeo, side === "L" ? coneMatL : coneMatR));
-
-    const apex = [gx, gy, mz - 0.072];
-    const edgeVerts = [...apex, ...arc[0], ...apex, ...arc[arc.length - 1]];
-    for (let i = 0; i < arc.length - 1; i++) edgeVerts.push(...arc[i], ...arc[i + 1]);
-    const coneEdgeGeo = new THREE.BufferGeometry();
-    coneEdgeGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(edgeVerts), 3));
-    fovGroup.add(new THREE.LineSegments(coneEdgeGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.42 })));
+    makeFan(side, mx + sign * 0.03, my - 0.01, mz - 0.072);
 
     // Blind-spot zone painted on the road (ZONE): from the driver's seat back to 3 m behind the bumper,
     // 0.5-3.5 m out from the body side
@@ -398,7 +410,7 @@ function buildMirrorsAndCameras(parent, pickables) {
     }
   }
 
-  return { fovGroup, roiMatL, roiMatR, coneMatL, coneMatR, blinkerMats };
+  return { fovGroup, roiMatL, roiMatR, coneMatL, coneMatR, blinkerMats, mirrors, makeFan };
 }
 
 function buildDisplayAndElectronics(parent, pickables) {
@@ -458,8 +470,8 @@ function buildDisplayAndElectronics(parent, pickables) {
       category: "Display + enclosure",
       source: "INVENTORY display (SunFounder TS-7, 1024 × 600 IPS) + printed parts",
       location: "Option A: in front of the console opening, rear box in the pocket · Option B: dash top on a RAM / AMPS base",
-      mount: "The display hangs by its four ears on bosses in the bezel (M3 × 6 from behind); the lip covers 2 mm of the glass, 0.3 mm clear of it. Normal way up (IPS). 205.6 × 129.0 × 70.3 mm, 21.8 mm proud of the trim; make_enclosure.py runs 43 fit checks. Measure the display first: SunFounder lists 121 mm tall, its photos ~124.4.",
-      wiring: "HDMI flat cable and a split micro-USB lead (5 V from J5, touch data to a Pi USB port) leave the display's right edge, go back through the plate's cable slot and into the box. Inside: the Pi on 4 posts, the carrier PCB behind it. Air: slots beside the screen → behind the display → lid fan. Cameras plug into the Pi through the box window (90° adapters); harness through the lid grommet; antenna on an SMA bulkhead.",
+      mount: "The display hangs by its four ears on bosses in the bezel (M3 × 6 from behind); the lip covers 2 mm of the glass, 0.3 mm clear of it. Normal way up (IPS). 205.6 × 129.0 × 70.3 mm, 21.8 mm proud of the trim, plus the USB wing on its right edge; make_enclosure.py checks every fit. Measure the display first: SunFounder lists 121 mm tall, its photos ~124.4.",
+      wiring: "HDMI flat cable and a split micro-USB lead (5 V from J5, touch data to a Pi USB port) leave the display's right edge, go back through the plate's cable slot and into the box. Inside: the Pi on 4 posts, the carrier PCB behind it, and the 12 V piezo behind the right slots. Air: slots beside the screen → behind the display → lid fan. Cameras plug into the Pi through the box window (90° adapters); harness through the lid grommet; antenna on an SMA bulkhead.",
     },
     {
       id: "enclosure_box",
@@ -485,16 +497,17 @@ function buildDisplayAndElectronics(parent, pickables) {
       id: "pcb6_carrier",
       mesh: pcb6,
       title: "100 × 100 mm 6-layer carrier PCB (ESP32 + CC1101 + power)",
-      category: "Custom PCB (layout pending, gate G7)",
-      source: "JLCPCB 6-layer (promo price to confirm)",
+      category: "Custom PCB, rev A (routed, DRC clean)",
+      source: "JLCPCB 6-layer + Economic PCBA (promo price to confirm)",
       location: "Inside the rear box, on 4 posts behind the Pi; parts face the lid",
-      mount: "4 × M3 on 92 × 92 into the housing's posts. Its underside is 3 mm above the Pi's tallest part. Switch to the 6-layer mode at the top for the layers and the keep-outs.",
-      wiring: "P1 power, ACC only: fuse, SMCJ22CA, P-MOSFET, π filter → Pololu 5V_PI (on by default) + TSR 5V_ESP → 3V3. ESP32 pins from pins_v2.h (audited).",
+      mount: "4 × M3 on 92 × 92 into the housing's posts. Its underside is 3 mm above the Pi's tallest part. The real board with every part: 3. Printed Parts → Dash unit (see-through shell).",
+      wiring: "12 V ACC in (J1): 4 A fuse, SMCJ24CA, SUD50P06 P-FET (reverse battery), π filter → two TPS54560B bucks: 5V_PI 5.17 V / 5 A for the Pi and the display (J5), 5V_ESP 1 A for the DevKit; XC6206 → 3V3. INA226 monitors, blinker optos, LED / piezo / fan drivers. ESP32 pins from pins_v2.h (audited).",
     }
   );
 
   // Amber blind-spot LEDs on the inner door sails (door side, not the A-pillar trim: curtain airbag)
   const ledMats = {};
+  const ledMeshes = {};
   for (const side of ["L", "R"]) {
     const sign = side === "L" ? -1 : 1;
     const mat = new THREE.MeshStandardMaterial({ color: 0x334155, emissive: 0xf59e0b, emissiveIntensity: 0.0, roughness: 0.2 });
@@ -503,6 +516,7 @@ function buildDisplayAndElectronics(parent, pickables) {
     m.userData.pickId = `door_led_${side}`;
     parent.add(m);
     ledMats[side] = mat;
+    ledMeshes[side] = m;
     pickables.push({
       id: `door_led_${side}`,
       mesh: m,
@@ -510,47 +524,51 @@ function buildDisplayAndElectronics(parent, pickables) {
       category: "Visual alert",
       source: "BUY (amber 5 mm + bezel)",
       location: `Inside the ${side === "L" ? "driver's" : "passenger's"} door, at the mirror's base, facing the driver`,
-      mount: "On the door's inner sail, inside the cabin, facing the driver. Not in the A-pillar trim (the Yaris iA has side-curtain airbags behind it) and not on the outside of the mirror (an amber light seen from behind isn't allowed). The wires ride with the camera cable through the door boot.",
+      mount: "In a small printed pod on the door's inner sail (make_mounts.py), inside the cabin, aimed at the driver's eyes; the LED sits 3 mm deep so no light reaches the side window or the windscreen. VHB + a Ø4 mm wire hole. Not in the A-pillar trim (the Yaris iA has side-curtain airbags behind it) and not on the outside of the mirror (an amber light seen from behind isn't allowed). The wires ride with the camera cable through the door boot.",
       wiring: `Low-side MOSFET on ${side === "L" ? "IO25" : "IO14"}. Steady = vehicle in the blind spot; flashing = you are signalling towards it. PWM level from the Pi (night dimming).`,
     });
   }
 
-  // Alert pod next to the shifter: mute / acknowledge button + 12 V active piezo
-  const podG = new THREE.Group();
-  const pod = new THREE.Mesh(new THREE.BoxGeometry(0.060, 0.030, 0.028), plastic);
-  pod.userData.pickId = "alert_pod";
-  podG.add(pod);
-  const btn = new THREE.Mesh(new THREE.CylinderGeometry(0.0062, 0.0062, 0.006, 20), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.3 }));
-  btn.rotation.x = Math.PI / 2;
-  btn.position.set(-0.016, 0, 0.017);
-  btn.userData.pickId = "alert_pod";
-  podG.add(btn);
+  // 12 V piezo inside the dash unit, behind the bezel's right intake slots: the ring in front of the slots shows its
+  // beeps (moved onto the real spot once the STLs load)
   const piezoMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, emissive: 0xf43f5e, emissiveIntensity: 0.15 });
-  const grille = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.002, 20), piezoMat);
-  grille.rotation.x = Math.PI / 2;
-  grille.position.set(0.014, 0, 0.0145);
-  grille.userData.pickId = "alert_pod";
-  podG.add(grille);
-  podG.position.set(-0.085, 0.33, 0.585);
-  parent.add(podG);
-
   const piezoWave = new THREE.Mesh(
     new THREE.RingGeometry(0.012, 0.02, 24),
-    new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.0, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: false })
   );
-  piezoWave.position.set(-0.071, 0.33, 0.605);
-  parent.add(piezoWave);
+  piezoWave.rotation.x = Math.PI / 2;                       // faces the driver (-Y)
+  piezoWave.position.set(0.0874, -0.0111, -0.0166);
+  piezoWave.userData.pickId = "dash_piezo";
+  displayGroup.add(piezoWave);
 
-  pickables.push({
-    id: "alert_pod",
-    mesh: pod,
-    title: "Alert pod: mute button + 12 V piezo (wired)",
-    category: "Audio alert + the one physical control",
-    source: "INVENTORY button + BUY piezo + printed pod",
-    location: "On the console next to the shifter, where your hand falls (not on the steering column or the knee bolster)",
-    mount: "Printed pod (make_enclosure.py: pod_shell + pod_base), VHB tape + 2 × M3; one 4-pin JST-GH lead to the carrier.",
-    wiring: "Button → IO4 (v1 RC): mutes the current turn and acknowledges a TPMS alarm, even while the Pi boots or after it crashes. Piezo ← IO13 low-side MOSFET from 12 V. Danger: short triple beep, at most every 3 s; hazards silent; quiet below 8 mph.",
-  });
+  // USB wing on the bezel's right edge: the car's USB socket, facing the passenger (stand-in box until the STL loads)
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(0.0279, 0.0344, 0.0418), plastic);
+  wing.position.set(0.1168, -0.0053, 0.043);
+  wing.userData.pickId = "usb_wing";
+  displayGroup.add(wing);
+
+  pickables.push(
+    {
+      id: "dash_piezo",
+      mesh: piezoWave,
+      title: "12 V active piezo (inside the dash unit)",
+      category: "Audio alert",
+      source: "BUY (12 V active piezo, ~23 mm)",
+      location: "Inside the bezel's right cavity, below the display's plugs, firing through the right intake slots",
+      mount: "Three printed fingers on the bezel's skin hold it with its face 2 mm behind the slots (the cabin air still flows); a dab of RTV. No separate pod, no physical button: mute from the touch screen.",
+      wiring: "The carrier's 4-pin buzzer JST-GH: IO13 low-side MOSFET from 12 V (the button pins, IO4, stay unused). Danger: a short triple beep, repeated after 3 s, then quiet after 4 s while the door LED keeps flashing; it re-arms after 2 s clear or a new signal. TPMS: two reminders, then only the screen. Hazards silent; quiet below 8 mph.",
+    },
+    {
+      id: "usb_wing",
+      mesh: wing,
+      title: "USB wing: the car's USB socket, moved to the unit's side",
+      category: "Printed part + the v1 USB passthrough",
+      source: "PRINT (make_enclosure.py: print_usb_wing) + the v1 panel-mount USB extension",
+      location: "On the trim against the bezel's right (passenger) edge; the socket faces the passenger, its end ~36 mm right of the bezel",
+      mount: "2 × M3 × 10 from inside the bezel's right cavity into its tabs, VHB on its back to the trim. The v1 panel's Ø25.8 cut; its front wall holds the nut, so the socket tightens from outside.",
+      wiring: "Its cable enters the bezel through the side wall behind the wing, crosses above the display's plugs and drops through the plate's cable slot into the pocket, to the car's own USB port. Measure your passthrough before printing (enclosure README).",
+    }
+  );
 
   // u-blox NEO-M8N GPS on the dash top (speed gate)
   const gps = new THREE.Mesh(
@@ -617,7 +635,10 @@ function buildDisplayAndElectronics(parent, pickables) {
     wiring: "ACC only: zero draw when parked. The OBD-II port nearby takes your Bluetooth dongle (optional speed source); listening to CAN is phase 2 (USB adapter on the Pi, listen-only).",
   });
 
-  return { displayGroup, hudCanvas, hudTex, ledMats, piezoMat, piezoWave };
+  return {
+    displayGroup, hudCanvas, hudTex, ledMats, piezoMat, piezoWave,
+    prims: { bezel, screenPlane, rearBox, rpi4, pcb6, fan, ledMeshes, wing, plastic },
+  };
 }
 
 function buildHarnesses(parent, pickables) {
@@ -661,7 +682,7 @@ function buildHarnesses(parent, pickables) {
   sigBlinker.userData.pickId = "harness_sig";
   groups.signals.add(sigBlinker);
 
-  // Door-sail LEDs ride with the camera cables through the door boots; the alert pod lead runs under the trim
+  // Door-sail LEDs ride with the camera cables through the door boots (the piezo is inside the dash unit)
   const ledL = makeTube([
     [-0.70, 0.52, 0.97], [-0.785, 0.51, 0.86], [-0.775, 0.53, 0.66], [-0.785, 0.62, 0.62],
     [-0.735, 0.66, 0.68], [-0.675, 0.64, 0.64], [-0.42, 0.61, 0.69], [-0.12, 0.57, 0.63], [-0.02, 0.535, 0.625],
@@ -670,13 +691,9 @@ function buildHarnesses(parent, pickables) {
     [0.70, 0.52, 0.97], [0.785, 0.51, 0.86], [0.775, 0.53, 0.66], [0.785, 0.62, 0.62],
     [0.735, 0.66, 0.68], [0.675, 0.64, 0.64], [0.42, 0.61, 0.68], [0.12, 0.57, 0.64], [0.02, 0.535, 0.625],
   ], 0.0055, 0xe879f9);
-  const podWire = makeTube([
-    [-0.085, 0.345, 0.585], [-0.08, 0.42, 0.575], [-0.04, 0.50, 0.60], [-0.02, 0.53, 0.62],
-  ], 0.0055, 0xf43f5e);
   ledL.userData.pickId = "harness_alerts";
   ledR.userData.pickId = "harness_alerts";
-  podWire.userData.pickId = "harness_alerts";
-  groups.alerts.add(ledL, ledR, podWire);
+  groups.alerts.add(ledL, ledR);
 
   // GPS lead behind the instrument panel
   const gpsWire = makeTube([
@@ -726,7 +743,7 @@ function buildHarnesses(parent, pickables) {
       category: "Power harness", source: "BUY Add-A-Circuit + 18 AWG TXL",
       location: "Driver's fuse box → under the dash → J1 Micro-Fit on the carrier (lid grommet)",
       mount: "Add-A-Circuit (5 A) on a metered, non-critical ACC fuse + chassis ground stud.",
-      wiring: "On the board: 4 A fuse, SMCJ22CA, P-MOSFET reverse protection, π filter. No latch, no battery feed: everything is off with the key out.",
+      wiring: "On the board: 4 A fuse, SMCJ24CA, SUD50P06 P-FET reverse protection, π filter. No latch, no battery feed: everything is off with the key out.",
     },
     {
       id: "harness_sig", mesh: sigBlinker, title: "Turn-signal sense (2 × 22 AWG)",
@@ -736,11 +753,11 @@ function buildHarnesses(parent, pickables) {
       wiring: "PC817 optos (~6 mA each) → IO36 / IO39, polled at 1 kHz; PWM gaps bridged, spikes ignored, hazards = both lamps lit together ≥ 50 ms, an input lit > 1.5 s is flagged as a fault. Not from OBD-II: standard OBD-II has no turn-signal data (a CAN cross-check is phase 2).",
     },
     {
-      id: "harness_alerts", mesh: ledL, title: "Door LEDs + alert pod leads",
-      category: "Alert harness", source: "BUY LEDs + piezo",
-      location: "Carrier → door boots → inner door sails; carrier → under the console trim → pod",
+      id: "harness_alerts", mesh: ledL, title: "Door LED leads",
+      category: "Alert harness", source: "BUY LEDs",
+      location: "Carrier → door boots → inner door sails",
       mount: "The LED pairs ride with the camera cables through the door boots; nothing in the A-pillar trim.",
-      wiring: "LEDs on IO25 / IO14 (PWM, low-side MOSFETs); pod on one 4-pin JST-GH: button IO4, piezo IO13 (12 V).",
+      wiring: "LEDs on IO25 / IO14 (PWM, low-side MOSFETs). The piezo needs no lead out: it sits inside the dash unit on the carrier's 4-pin buzzer JST-GH (IO13, 12 V; the button pins stay unused).",
     },
     {
       id: "harness_sensors", mesh: gpsWire, title: "GPS lead",
@@ -841,6 +858,119 @@ function buildBlueprintDimensions(parent) {
   return g;
 }
 
+// The real printed parts (01-hardware/enclosure: make_enclosure.py and make_mounts.py) replace the stand-in boxes
+// once their STL files load; if they don't load, the boxes stay.
+const ENC_DIR = "../../01-hardware/enclosure/";
+const MM = 0.001;
+
+async function loadPrintedParts(parent, pickables, disp, mir) {
+  const stl = new STLLoader();
+  const get = async (url) => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+    return res;
+  };
+  const geo = async (rel) => {
+    const g = stl.parse(await (await get(ENC_DIR + rel)).arrayBuffer());
+    g.scale(MM, MM, MM);
+    g.computeVertexNormals();
+    return g;
+  };
+  const rot = (r) => new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().set(
+    r[0][0], r[0][1], r[0][2], 0, r[1][0], r[1][1], r[1][2], 0, r[2][0], r[2][1], r[2][2], 0, 0, 0, 0, 1));
+  const [enc, mr] = await Promise.all([(await get(ENC_DIR + "enclosure_report.json")).json(),
+    (await get(ENC_DIR + "mounts_report.json")).json()]);
+  const { prims } = disp;
+  const plastic = prims.plastic;
+
+  // Dash unit: the generator's assembly frame (PCB centre, parts up +Z) -> the display group (X right, Y depth with
+  // the screen toward -Y, Z up; origin at the bezel's centre, mid-way through the bezel + plate)
+  const fv = enc.front_view_mm, zl = enc.z_levels_mm;
+  const [cx, cy] = enc.viewer_frame.pcb_center_mm;
+  const cz = enc.viewer_frame.z_mid_mm;
+  const bx = (fv.bezel[0] + fv.bezel[1]) / 2, bz = (fv.bezel[2] + fv.bezel[3]) / 2;
+  const yMid = -(zl.lip_front + zl.plate_back) / 2;
+  const asm = new THREE.Group();
+  new THREE.Matrix4().set(-1, 0, 0, (cx - bx) * MM, 0, 0, 1, (-cz - yMid) * MM, 0, 1, 0, (cy - bz) * MM, 0, 0, 0, 1)
+    .decompose(asm.position, asm.quaternion, asm.scale);
+  const shell = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.72, transparent: true, opacity: 0.5, depthWrite: false });
+  const dash = [
+    ["bezel", plastic, "rpi_display"], ["housing", shell, "enclosure_box"], ["lid", shell, "enclosure_box"],
+    ["display", new THREE.MeshStandardMaterial({ color: 0x0b1220, roughness: 0.4 }), "rpi_display"],
+    ["cables", new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.5 }), "rpi_display"],
+    ["pi", new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.45 }), "rpi4_sbc"],
+    ["pcb", prims.pcb6.material, "pcb6_carrier"],
+    ["pcb_parts", new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 }), "pcb6_carrier"],
+    ["fan", new THREE.MeshStandardMaterial({ color: 0x111827 }), "enclosure_box"],
+    ["buzzer", disp.piezoMat, "dash_piezo"],
+    ["usb_wing", plastic, "usb_wing"],
+    ["usb_pass", new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.6, roughness: 0.35 }), "usb_wing"],
+  ];
+  const dashGeos = await Promise.all(dash.map(([n]) => geo(enc.files[`asm_${n}`].file)));
+  dash.forEach(([, mat, id], k) => {
+    const m = new THREE.Mesh(dashGeos[k], mat);
+    m.userData.pickId = id;
+    asm.add(m);
+  });
+  disp.displayGroup.add(asm);
+  for (const p of [prims.bezel, prims.rearBox, prims.rpi4, prims.pcb6, prims.fan, prims.wing]) p.visible = false;
+  prims.screenPlane.position.y = -(yMid * MM) - 0.0002;        // just in front of the glass, behind the bezel's lip
+  const [pzx, pzy] = fv.buzzer;                                // the beep ring: in front of the slots over the piezo
+  disp.piezoWave.position.set((pzx - bx) * MM, (-zl.lip_front - yMid) * MM - 0.0012, (pzy - bz) * MM);
+
+  // Mirror camera pods: cap face on the mirror's underside (+ the VHB), outer half, lens face 4 mm behind the glass
+  const cp = mr.camera_pod, rp = cp.right_pod_mm;
+  const [podL, podR, camL, camR] = await Promise.all(["asm_cam_pod_left", "asm_cam_pod_right", "asm_cam_left", "asm_cam_right"]
+    .map((k) => geo(mr.files[k].file)));
+  const camMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.4 });
+  for (const side of ["L", "R"]) {
+    const s = side === "L" ? -1 : 1;
+    const { housing, cam } = mir.mirrors[side];
+    const g = new THREE.Group();
+    g.quaternion.copy(rot(cp.frame_to_car[side === "L" ? "left" : "right"]));
+    const lens = new THREE.Vector3(s * rp.lens_centre[0], rp.lens_centre[1], rp.lens_centre[2]).multiplyScalar(MM)
+      .applyQuaternion(g.quaternion);
+    const hp = housing.position, hb = housing.geometry.parameters;
+    g.position.set(hp.x + s * 0.03, hp.y - hb.height / 2 - 0.004 - lens.y, hp.z - hb.depth / 2 - mr.parameters.VHB_T * MM);
+    const pod = new THREE.Mesh(side === "L" ? podL : podR, plastic);
+    pod.userData.pickId = `cam_pod_${side}`;
+    const camM = new THREE.Mesh(side === "L" ? camL : camR, camMat);
+    camM.userData.pickId = `cam_${side}`;
+    g.add(pod, camM);
+    parent.add(g);
+    cam.visible = false;
+    const lw = lens.clone().add(g.position);
+    mir.makeFan(side, lw.x, lw.y, lw.z);
+    pickables.push({
+      id: `cam_pod_${side}`,
+      mesh: pod,
+      title: `${side === "L" ? "Left" : "Right"} mirror camera pod (printed)`,
+      category: "Printed mount (make_mounts.py)",
+      source: "PRINT (ASA / ABS, cap face down, no supports)",
+      location: `Under the mirror's cap, outer half: ${cp.size_mm.join(" × ")} mm, ${cp.below_cap_mm} mm below the cap`,
+      mount: `${cp.cap_holes.screw}. Cap: ${cp.cap_holes.cable}; ${cp.cap_holes.screws}. Its flat side faces the car.`,
+      wiring: `Aims the camera ${cp.aim_deg.outward_of_straight_back}° outward of straight back, ${cp.aim_deg.down}° down (audit CAM-02). The lead climbs a Ø${mr.parameters.PLUG_PASS_D} mm channel into the mirror, then the hinge, the door and the door boot. See 3. Printed Parts → Mirror cameras.`,
+    });
+  }
+
+  // Door-sail LED pods: base on the sail at at_m, the LED (driven by the door LED's material) aimed at the eyes
+  for (const side of ["L", "R"]) {
+    const key = side === "L" ? "left" : "right";
+    const L = mr.led_pods[key];
+    const [pg, lg] = await Promise.all([geo(mr.files[`asm_led_pod_${key}`].file), geo(mr.files[`asm_led_${key}`].file)]);
+    const g = new THREE.Group();
+    g.quaternion.copy(rot(L.frame_to_car));
+    g.position.set(...L.at_m);
+    const pod = new THREE.Mesh(pg, plastic);
+    const led = new THREE.Mesh(lg, disp.ledMats[side]);
+    pod.userData.pickId = `door_led_${side}`;
+    led.userData.pickId = `door_led_${side}`;
+    g.add(pod, led);
+    parent.add(g);
+    prims.ledMeshes[side].visible = false;
+  }
+}
+
 export function createCarBlueprintScene(parentGroup) {
   const group = new THREE.Group();
   parentGroup.add(group);
@@ -855,11 +985,13 @@ export function createCarBlueprintScene(parentGroup) {
   const { shellMat, wireMat } = buildSedanBody(group);
   const rfRings = buildWheelsAndTpms(group, pickables);
   buildCockpit(group, pickables);
-  const { fovGroup, roiMatL, roiMatR, coneMatL, coneMatR, blinkerMats } = buildMirrorsAndCameras(group, pickables);
-  const { displayGroup, hudCanvas, hudTex, ledMats, piezoMat, piezoWave } = buildDisplayAndElectronics(group, pickables);
+  const { fovGroup, roiMatL, roiMatR, coneMatL, coneMatR, blinkerMats, mirrors, makeFan } = buildMirrorsAndCameras(group, pickables);
+  const { displayGroup, hudCanvas, hudTex, ledMats, piezoMat, piezoWave, prims } = buildDisplayAndElectronics(group, pickables);
   const harnesses = buildHarnesses(group, pickables);
   const target = buildTargetVehicle(group);
   const dimGroup = buildBlueprintDimensions(group);
+  loadPrintedParts(group, pickables, { displayGroup, ledMats, piezoMat, piezoWave, prims }, { mirrors, makeFan })
+    .catch((err) => console.warn(`car scene: printed parts not loaded, keeping the stand-ins (${err.message})`));
 
   // Simulator state
   const sim = {
@@ -878,8 +1010,10 @@ export function createCarBlueprintScene(parentGroup) {
 
   // Web Audio stand-in for the 12 V active piezo: one fixed tone, alerts differ by pattern
   let audioCtx = null;
-  let dangerWas = false;
   let lastDangerBeep = -1e9;
+  // Danger episodes mute themselves, as AlertArbiter does: one starts with a new turn signal, or when the danger comes
+  // back after 2 s without it; it beeps at once, again 3 s later, and is quiet from 4 s on (the door LED keeps flashing)
+  let lastBlinker = "OFF", activation = 0, episodeActivation = -1, episodeStart = -1e9, dangerLast = -1e9, episodeBeeped = false;
   function playPiezoBeep(freq = 3000, dur = 0.08, delay = 0) {
     if (!sim.audioOn) return;
     try {
@@ -1156,22 +1290,35 @@ export function createCarBlueprintScene(parentGroup) {
     coneMatL.color.setHex(dangerL ? 0xef4444 : 0x06b6d4);
     coneMatR.color.setHex(dangerR ? 0xef4444 : 0x06b6d4);
 
-    // Alert pod: triple beep when danger starts, repeated at most every 3 s (as AlertArbiter does)
+    // Piezo (inside the dash unit): a triple beep when a danger episode starts, once more after 3 s, then quiet
+    if (sim.blinker !== lastBlinker) {
+      if (sim.blinker === "L" || sim.blinker === "R") activation++;
+      lastBlinker = sim.blinker;
+    }
     if (danger) {
+      if (activation !== episodeActivation || nowMs - dangerLast >= 2000) {
+        episodeActivation = activation;
+        episodeStart = nowMs;
+        episodeBeeped = false;
+      }
+      dangerLast = nowMs;
+    }
+    const autoMuted = nowMs - episodeStart >= 4000;
+    if (danger && !autoMuted) {
       const pulse = (nowMs % 320) / 320;
       piezoMat.emissiveIntensity = pulse < 0.45 ? 3.5 : 0.2;
       piezoWave.material.opacity = Math.max(0, 0.85 - pulse * 1.1);
       const s = 1 + pulse * 3.8;
       piezoWave.scale.set(s, s, 1);
-      if (!dangerWas || nowMs - lastDangerBeep >= 3000) {
+      if (nowMs - lastDangerBeep >= (episodeBeeped ? 3000 : 1000)) {
         lastDangerBeep = nowMs;
+        episodeBeeped = true;
         for (const d of [0, 0.14, 0.28]) playPiezoBeep(3000, 0.08, d);
       }
     } else {
       piezoMat.emissiveIntensity = 0.15;
       piezoWave.material.opacity = 0;
     }
-    dangerWas = danger;
 
     // Subtle pulsing 315 MHz TPMS rings on wheels
     const rfPhase = (nowMs * 0.0014) % 1;
@@ -1184,7 +1331,7 @@ export function createCarBlueprintScene(parentGroup) {
 
     // Active camera display logic
     const activeCam = sim.blinker === "L" ? "L" : (sim.blinker === "R" ? "R" : null);
-    const status = { occL, occR, dangerL, dangerR, danger, activeCam, speedGateOk, hazard };
+    const status = { occL, occR, dangerL, dangerR, danger, activeCam, speedGateOk, hazard, beepMuted: danger && autoMuted };
     drawDisplayHud(nowMs, status);
     return status;
   }
@@ -1216,7 +1363,7 @@ export function createCarBlueprintScene(parentGroup) {
   }
 
   function triggerTpmsChime() {
-    // TPMS reminder: two longer beeps on the same piezo (the real one repeats at most every 10 min)
+    // TPMS warning: two longer beeps on the same piezo (the real one reminds twice, 10 min apart, then only the screen)
     playPiezoBeep(3000, 0.2, 0);
     playPiezoBeep(3000, 0.2, 0.35);
   }

@@ -5,7 +5,7 @@ The ESP32 is the real-time half of v2. It receives the TPMS sensors, reads the b
 The Pi 4 runs the cameras, the vehicle detector and the 7" touch screen, and reports to the ESP32 over a UART. The alerts are decided on the ESP32, so they keep working, and fail loudly, while the Pi boots or if it crashes.
 
 **Status:**
-- **Done:** the safety logic and the pin map. The logic is written and unit-tested on a PC: 154 checks, no ESP32 needed. The pin map passes the audit (gate G1). This is gate G2 of the [v2 order gate](../../00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). The [subsystem audit](../../05-Audit-Subsystems/README.md) (2026-11-25) found and fixed one critical and three high bugs in it: see [blinker](../../05-Audit-Subsystems/03-blinker-sensing.md) and [alerts](../../05-Audit-Subsystems/05-alerts-and-alert-pod.md).
+- **Done:** the safety logic and the pin map. The logic is written and unit-tested on a PC: 166 checks, no ESP32 needed. The pin map passes the audit (gate G1). This is gate G2 of the [v2 order gate](../../00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). The [subsystem audit](../../05-Audit-Subsystems/README.md) (2026-11-25) found and fixed one critical and three high bugs in it: see [blinker](../../05-Audit-Subsystems/03-blinker-sensing.md) and [alerts](../../05-Audit-Subsystems/05-alerts-and-alert-pod.md).
 - **Next, phase 1 of the [build steps](../../00-project-management/PREMORTEM_v2.md#what-to-do-next-in-order):**
   - the ESP32 application around the logic: the CC1101 driver and EG53MA4 decoder from [bringup/](../bringup/README.md), unchanged because the pins are the same, plus GPS NMEA, LEDC PWM, UART2 and `BluetoothSerial` for the OBD-II dongle;
   - the Pi vision app.
@@ -44,14 +44,13 @@ The logic files are pure C++17 with no hardware access. The ESP32 application ca
 - In a hot car the start waits for the board to cool from 60 °C to 55 °C, but at most 10 min. Every hold has a deadline.
 
 **Alerts** (`AlertArbiter`):
-- A vehicle in a blind spot lights that side's LED steady. Signalling towards it flashes the LED and sounds the buzzer. The beep repeats every 3 s at most, and a new event needs 1 s after the last beep.
+- A vehicle in a blind spot lights that side's LED steady. Signalling towards it flashes the LED and sounds the buzzer.
+- **The beeps mute themselves** (there is no mute button): a danger episode beeps at once, again after 3 s, and goes quiet 4 s after it started, while the LED keeps flashing. A new turn-signal activation starts a new episode, and so does the danger coming back after the lane was clear for 2 s (another car). A flickering detection or the same car dropping out for a moment stays one episode. A new episode needs 1 s after the last beep.
 - Speed gate with hysteresis: nothing below 8 mph, nothing until 12 mph. Parking lots and drive-thrus stay quiet.
 - Speed source: the car's own speed from the OBD-II dongle while it is under 1 s old (exact at walking pace, no sky needed), else the GPS. With neither for more than 10 s, the LEDs keep working and the buzzer stays quiet. A dongle that stops answering hands over to the GPS, which then decides; inside the 8–12 mph band the two can disagree.
 - Hazard flashers never sound the buzzer. Nor does signalling while a blinker input is faulted: a stuck input makes hazards and turns impossible to tell apart.
-- **Mute/acknowledge button** (in the alert pod):
-  - silences the blind-spot buzzer for the current turn-signal activation only;
-  - acknowledges a TPMS alarm: no more reminders until the alarm clears or another tyre goes low. An unacknowledged alarm reminds every 10 min. A tyre that hovers at the threshold re-raises the alarm once, not at every crossing, and an alarm that clears and comes back within a minute is the same alarm.
-  - Both work while the Pi is down.
+- **TPMS alarm:** one beep when a tyre goes low, then two reminders 10 min apart, then quiet; the screen keeps showing the low tyre. Another low tyre, or a new alarm after it stayed clear for a minute, sounds again. A tyre that hovers at the threshold re-raises the alarm once, not at every crossing.
+- `mutePressed()` is the touch screen's mute (it arrives as the `$BSM` mute counter; an optional button on IO4 could call it too, but v2 fits none): it silences the blind-spot buzzer for the current turn-signal activation and acknowledges a TPMS alarm (no more reminders). Once pressed, it works while the Pi is down.
 - Lamp test when the Pi first reports ready. A side shows the fault pattern when:
   - the Pi link is stale for over 1 s, or its vision frame counter stops moving;
   - that side's camera is faulted;
@@ -76,12 +75,16 @@ NMEA-style text lines: `$TYPE,field,...*HH\n`, where `HH` is the XOR of every ch
 
 ```
 Pi -> ESP32, 10-20 Hz:
-  $BSM,<seq>,<ready>,<occL>,<occR>,<camFaultL>,<camFaultR>,<ledLevel 0-255>*HH
+  $BSM,<seq>,<ready>,<occL>,<occR>,<camFaultL>,<camFaultR>,<ledLevel 0-255>,<mutes 0-255>*HH
   (seq = the vision loop's frame counter, not a message counter: a report whose seq hasn't moved doesn't count
    as fresh, so a frozen vision loop shows as a fault even if its reporting thread still sends ready = 1)
+  (mutes = the touch screen's mute counter: +1 per tap, mod 256. Each change is one mutePressed(); a lost line
+   loses no tap and a repeated line adds none. The first report, and the first after a gap > 1 s (a restarted
+   Pi starts again from 0), only learn it)
 ESP32 -> Pi, 10 Hz and on every turn change:
   $ESP,<seq>,<turn O/L/R/H>,<speed deci-mph, -1 = unknown>,<ACC mV>,<Pi PGOOD>,<button presses>,<BSM available>,
        <speed source N/G/O = none / GPS / OBD-II>*HH
+  (button presses: the optional button on IO4; 0 when none is fitted, as in v2)
 ESP32 -> Pi, when a learned tyre sensor is heard:
   $TPM,<slot 0-3>,<sensor id hex>,<kPa x10>,<temp C>,<RSSI dBm>,<age s>*HH
 ```
@@ -96,14 +99,14 @@ From this folder (`02-firmware/v2`), with any C++17 compiler (`pip install zigla
 python -m ziglang c++ -std=c++17 -O2 -Wall -Wextra -Isrc/logic test/host/test_logic.cpp \
     src/logic/blinker.cpp src/logic/pi_power.cpp src/logic/alerts.cpp src/logic/link.cpp src/logic/obd.cpp \
     -o test_logic.exe
-./test_logic.exe        # -> all 154 v2 logic checks passed (exit code 0)
+./test_logic.exe        # -> all 166 v2 logic checks passed (exit code 0)
 ```
 
 The tests cover:
 - PWM, spikes and hazards on the blinker, including hazards pressed in the middle of a turn signal's flash (every press time across a flash), a body control module that restarts both lamps, a quick left → right change at any point of a flash, 100–150 ms of skew, a stuck-lit input, and the `millis()` wrap;
 - the crank, ACC-only and hot-car holds and their deadlines, and an ESP32 reset while the Pi runs (PGOOD);
-- the speed gate, GPS loss, OBD speed winning over GPS and handing over when it goes silent or invalid, mute per activation, the TPMS acknowledge (and a new low tyre re-raising it, once), a flapping TPMS alarm, lamp test, fault beeps (camera, frozen vision loop, a Pi that never boots, a stuck blinker input, a flapping link) and beep priorities over time;
-- protocol framing, checksums, overflow, the format/parse round trips and the speed-source field;
+- the speed gate, GPS loss, OBD speed winning over GPS and handing over when it goes silent or invalid, the danger beeps muting themselves (a long danger, the lane clearing and another car, a flickering detection, a new activation), mute per activation and the touch screen's mute counter (a change is one press; a restarted Pi's counter isn't), the TPMS reminders stopping after two, the TPMS acknowledge (and a new low tyre re-raising it, once), a flapping TPMS alarm, lamp test, fault beeps (camera, frozen vision loop, a Pi that never boots, a stuck blinker input, a flapping link) and beep priorities over time;
+- protocol framing, checksums, overflow, the format/parse round trips, the mute counter and the speed-source field;
 - the ELM327 client against a simulated dongle (as its datasheet describes, plus clone quirks): setup order, 5 Hz polling, the plain-`010D` fallback, `NO DATA` with the key in ACC, a hung dongle, a slow reply (`STOPPED`), a reply delayed in the Bluetooth link, an odd banner, a protocol search, a dropped link, noise; and the reply parser.
 
 Breaking the hazard handling, the stuck-input fault, PGOOD, the frozen-frame check, the fault-beep re-arm, the beep priorities, the TPMS acknowledge and flapping limits, the OBD priority, its fallbacks and clone handling, or the new protocol field makes them fail (checked by mutation: 16 of 17 mutants of the audit fixes are caught; the survivor, a wrap-unsafe timestamp comparison, only moves the hazard onset by a few ms).

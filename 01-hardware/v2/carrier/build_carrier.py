@@ -1874,6 +1874,18 @@ def set_stackup(path):
         fh.write(txt)
 
 
+def export_glb():
+    """The assembled board as binary glTF for the viewer (04-viewer, Printed Parts mode): the fitted and hand-soldered
+    parts (not DNP), solder mask and silkscreen; origin at the board's centre, glTF Y up. KiCad's glTF export takes
+    STEP models only, so the DevKit and the CC1101 (our VRML models in lib/3d) come out as empty nodes named A1 and A2:
+    the viewer reads those two .wrl files and fills them in."""
+    out = os.path.join(DOCS, NAME + ".glb")
+    kicad_cli("pcb", "export", "glb", "--no-dnp", "--subst-models", "--include-soldermask", "--include-silkscreen",
+              "--user-origin", f"{X0 + LAY.BOARD_W / 2:g}x{Y0 + LAY.BOARD_H / 2:g}mm", "-f", "-o", out, PCB,
+              check=False)
+    return out
+
+
 def export_fab(render=True):
     os.makedirs(PROD, exist_ok=True)
     gdir = os.path.join(PROD, "gerbers")
@@ -1899,6 +1911,7 @@ def export_fab(render=True):
     kicad_cli("pcb", "export", "pdf", "-o", os.path.join(DOCS, NAME + "_copper_layers.pdf"), "--layers",
               ",".join(LAYERS6), "--common-layers", "Edge.Cuts", "--mode-multipage", "--scale", "0", PCB,
               check=False)
+    export_glb()
     if render:
         common = ["--width", "2000", "--height", "1600", "--quality", "high", "--background", "opaque",
                   "--use-board-stackup-colors"]

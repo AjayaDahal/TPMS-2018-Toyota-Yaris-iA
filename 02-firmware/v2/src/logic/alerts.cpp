@@ -35,8 +35,12 @@ const char* speedSourceName(SpeedSource s) {
 AlertArbiter::AlertArbiter(const AlertConfig& cfg) : cfg_(cfg) {}
 
 void AlertArbiter::piReport(uint32_t now, uint32_t seq, const PiStatus& status) {
+  // The touch screen's mute counter: a change is one press. After a gap (a restarted Pi counts from 0 again) the
+  // first report only learns it. Any line counts here, so the mute works even with a frozen vision loop.
+  if (havePi_ && (uint32_t)(now - piLineMs_) <= cfg_.piStaleMs && status.mutes != pi_.mutes) mutePressed();
   // Only a moving frame counter refreshes the link: a frozen vision loop goes stale like a silent one.
   if (!havePi_ || seq != piSeq_) piMs_ = now;
+  piLineMs_ = now;
   piSeq_ = seq;
   pi_ = status;
   havePi_ = true;
@@ -94,6 +98,7 @@ AlertOutput AlertArbiter::update(uint32_t now, Turn turn, uint32_t activation, u
       if (newAlarm || (tpmsReqMask_ & ~tpmsSeen_) != 0) {
         tpmsPending_ = true;
         tpmsAcked_ = false;
+        tpmsRemindersLeft_ = cfg_.tpmsReminders;
       }
       tpmsSeen_ |= tpmsReqMask_;
       tpmsActive_ = tpmsEverActive_ = true;
@@ -138,7 +143,8 @@ AlertOutput AlertArbiter::update(uint32_t now, Turn turn, uint32_t activation, u
   const bool visualAllowed = movingKnown_ ? moving_ : true;
   const bool audioAllowed = movingKnown_ && moving_;
 
-  // Mute lasts for the current turn activation only. It also acknowledges a TPMS alarm; neither needs the Pi.
+  // Mute (the touch screen) lasts for the current turn activation only. It also acknowledges a TPMS alarm; neither
+  // needs the Pi.
   if (mutePending_) {
     mutePending_ = false;
     if (turn == Turn::Left || turn == Turn::Right) {
@@ -187,22 +193,37 @@ AlertOutput AlertArbiter::update(uint32_t now, Turn turn, uint32_t activation, u
   // Buzzer, highest priority first: blind-spot danger, fault, TPMS. A pattern plays for its full length.
   if (playing_ != Beep::None && (int32_t)(playingUntil_ - now) <= 0) playing_ = Beep::None;
   const bool danger = out.dangerLeft || out.dangerRight;
-  if (danger && audioAllowed && !muted_ && blinkerFault == 0) {
+  // Danger episodes mute themselves: one starts with a new turn activation, or when the danger comes back after
+  // dangerRearmMs without it (so a flickering detection stays one episode). It beeps at once (dangerMinGapMs after
+  // any earlier beep), repeats every dangerRepeatMs and goes quiet dangerAutoMuteMs after it started.
+  if (danger) {
+    if (!dangerEpisode_ || activation != episodeActivation_ || (uint32_t)(now - dangerLastMs_) >= cfg_.dangerRearmMs) {
+      dangerEpisode_ = true;
+      episodeBeeped_ = false;
+      episodeStart_ = now;
+      episodeActivation_ = activation;
+    }
+    dangerLastMs_ = now;
+  }
+  const bool autoMuted = (uint32_t)(now - episodeStart_) >= cfg_.dangerAutoMuteMs;
+  if (danger && audioAllowed && !muted_ && !autoMuted && blinkerFault == 0) {
     const uint32_t since = now - lastDangerBeep_;
-    const bool due = !everDangerBeep_ || since >= (dangerWas_ ? cfg_.dangerRepeatMs : cfg_.dangerMinGapMs);
+    const bool due = episodeBeeped_ ? since >= cfg_.dangerRepeatMs : (!everDangerBeep_ || since >= cfg_.dangerMinGapMs);
     if (due && playing_ != Beep::BsmDanger) {
       startBeep(out, Beep::BsmDanger, cfg_.dangerBeepMs, now);
       lastDangerBeep_ = now;
       everDangerBeep_ = true;
+      episodeBeeped_ = true;
     }
   }
-  dangerWas_ = danger;
   if (out.beep == Beep::None && faultBeepPending_ && playing_ != Beep::BsmDanger && playing_ != Beep::Fault) {
     faultBeepPending_ = false;
     startBeep(out, Beep::Fault, cfg_.faultBeepMs, now);
   }
-  if (tpmsActive_ && !tpmsAcked_ && !tpmsPending_ && (uint32_t)(now - lastTpmsBeep_) >= cfg_.tpmsRepeatMs) {
+  if (tpmsActive_ && !tpmsAcked_ && !tpmsPending_ && tpmsRemindersLeft_ > 0 &&
+      (uint32_t)(now - lastTpmsBeep_) >= cfg_.tpmsRepeatMs) {
     tpmsPending_ = true;
+    tpmsRemindersLeft_--;
   }
   if (out.beep == Beep::None && tpmsPending_ && playing_ == Beep::None) {
     tpmsPending_ = false;

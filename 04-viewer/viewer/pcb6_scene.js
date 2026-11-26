@@ -266,10 +266,10 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
 
   addPart({
     id: "p6_jst", zone: ZONES.jst, h: 4.3, color: 0x10b981, subsystem: "signals",
-    title: "J4, J2, J3, J6, J7: JST-GH — pod, doors L / R, Pi UART, GPS",
+    title: "J4, J2, J3, J6, J7: JST-GH — piezo (\"POD\"), doors L / R, Pi UART, GPS",
     category: "Connectors", source: "JLCPCB assembly (SMD)",
     mount: "Keyed, latching; mouths on the bottom edge next to the cable exit.",
-    wiring: "POD (4-pin): mute button IO4, GND, 12 V piezo ±. DOOR L / R (4-pin): blinker sense pair + amber LED. PI (4-pin): GND, TXD, RXD, GPIO18 (1 kΩ / 4.7 kΩ). GPS (6-pin Pixhawk): 5 V, TX, RX, SCL, SDA, GND; swap TX/RX with R907/R908.",
+    wiring: "POD (4-pin): the 12 V piezo inside the dash unit on its ± pins; the button pins (IO4, GND) stay unused (the touch screen mutes). DOOR L / R (4-pin): blinker sense pair + amber LED. PI (4-pin): GND, TXD, RXD, GPIO18 (1 kΩ / 4.7 kΩ). GPS (6-pin Pixhawk): 5 V, TX, RX, SCL, SDA, GND; swap TX/RX with R907/R908.",
   });
 
   addPart({

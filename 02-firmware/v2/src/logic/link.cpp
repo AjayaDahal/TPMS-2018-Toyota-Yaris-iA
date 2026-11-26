@@ -100,16 +100,17 @@ bool split(const char* line, Frame& out) {
 
 bool parseBsm(const char* line, uint32_t& seq, PiStatus& status) {
   Frame f;
-  if (!split(line, f) || f.count != 8 || !f.is(0, "BSM")) return false;
+  if (!split(line, f) || f.count != 9 || !f.is(0, "BSM")) return false;
   PiStatus s;
-  uint32_t level;
+  uint32_t level, mutes;
   if (!parseUint(f.field[1], f.len[1], 0xFFFFFFFFu, seq)) return false;
   if (!parseFlag(f, 2, s.ready) || !parseFlag(f, 3, s.occLeft) || !parseFlag(f, 4, s.occRight) ||
       !parseFlag(f, 5, s.camFaultLeft) || !parseFlag(f, 6, s.camFaultRight)) {
     return false;
   }
-  if (!parseUint(f.field[7], f.len[7], 255, level)) return false;
+  if (!parseUint(f.field[7], f.len[7], 255, level) || !parseUint(f.field[8], f.len[8], 255, mutes)) return false;
   s.ledLevel = (uint8_t)level;
+  s.mutes = (uint8_t)mutes;
   status = s;
   return true;
 }

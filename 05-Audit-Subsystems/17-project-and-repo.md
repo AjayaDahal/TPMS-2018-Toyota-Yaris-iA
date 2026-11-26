@@ -8,7 +8,7 @@
 
 | Check | Evidence | Result |
 |---|---|---|
-| One command re-runs every check | [run_checks.py](run_checks.py) (new): v2 logic tests (154), v1 decoder tests, pin-map audit + self-test, enclosure regeneration (43 checks) compared byte-for-byte with the committed STLs, STL watertightness, viewer data sync, viewer JS syntax, markdown links, repo hygiene, v1 KiCad ERC/DRC | All pass after this audit's fixes |
+| One command re-runs every check | [run_checks.py](run_checks.py) (new): v2 logic tests (166), v1 decoder tests, pin-map audit + self-test, enclosure (62 checks) and mounts (28) regeneration compared byte-for-byte with the committed STLs, STL watertightness, viewer data sync, viewer JS syntax (4 files), markdown links, repo hygiene, the carrier's JLCPCB files, v1 and v2 carrier KiCad ERC/DRC | All 13 pass (2026-11-26) |
 | v1 board is what the repo says | KiCad 10 `kicad-cli`, run on a copy: ERC 0, DRC 0 including unconnected items and schematic parity | OK (independent of the earlier claim) |
 | Generated files are current | Re-running `make_enclosure.py --out <temp>` reproduces every committed STL and the report exactly | OK: the generator is deterministic |
 | Nothing private in the public repo | Scan of every tracked text file for local paths (`C:\Users\…`, `/home/…`, the OneDrive folder name) and secrets; binaries checked byte-exact when pushed | OK |
@@ -34,7 +34,7 @@
 | SunFounder TS-7 7" DIY touchscreen | **The display on hand**: the design now uses it | [DSP-01](09-display-and-ui.md) |
 | NXP NavQPlus (i.MX 8M Plus, NPU, 4 GB) | A much stronger vision computer than the Pi 4 if the bench test V1 fails; different software stack and power | [CAM-04](08-cameras-and-vision.md) |
 | Board-level camera, M12 lens, 3-pin JST | Probably composite video: a bench part for the plan's analog/AHD fallback; identify its output first | [08-cameras](08-cameras-and-vision.md) |
-| DFRobot Gravity LED buttons (white, yellow) | An illuminated mute button you can find at night (PCB-mounted: the pod cut-out would change) | [05-alerts](05-alerts-and-alert-pod.md) |
+| DFRobot Gravity LED buttons (white, yellow) | Not used: v2 has no physical button (the touch screen mutes, and the beeps stop by themselves) | [05-alerts](05-alerts-and-alert-pod.md) |
 | DFPlayer PRO + mini cavity speaker | Optional spoken alerts from the Pi; the ESP32's piezo stays as the fail-safe | [05-alerts](05-alerts-and-alert-pod.md) |
 | Stubby articulated SMA/RP-SMA antenna | Band unknown; probably 2.4 GHz. Don't use it at 315 MHz without checking | [13-tpms-radio](13-tpms-radio.md) |
 | Thermal paste | For the Pi 4's heatsink | [06-raspberry-pi](06-raspberry-pi.md) |

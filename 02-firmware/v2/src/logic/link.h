@@ -5,7 +5,8 @@
 // HH = XOR of every character between '$' and '*', two upper-case hex digits (lower case accepted).
 //
 // Pi -> ESP32, 10-20 Hz:
-//   $BSM,<seq>,<ready 0/1>,<occL 0/1>,<occR 0/1>,<camFaultL 0/1>,<camFaultR 0/1>,<ledLevel 0-255>*HH
+//   $BSM,<seq>,<ready 0/1>,<occL 0/1>,<occR 0/1>,<camFaultL 0/1>,<camFaultR 0/1>,<ledLevel 0-255>,<mutes 0-255>*HH
+//   (mutes: the touch screen's mute counter, +1 per tap, mod 256; a change is one press)
 // ESP32 -> Pi, 10 Hz and on every turn change:
 //   $ESP,<seq>,<turn O/L/R/H>,<speed deci-mph, -1 = unknown>,<ACC mV>,<Pi PGOOD 0/1>,<button presses>,<BSM available 0/1>,
 //        <speed source N/G/O = none / GPS / OBD-II>*HH

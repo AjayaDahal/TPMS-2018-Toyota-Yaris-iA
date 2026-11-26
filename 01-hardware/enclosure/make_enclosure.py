@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """3-D printed enclosure for the v2 build: the SunFounder TS-7 7" HDMI touch display, the Raspberry Pi 4 behind it
-and the 100 x 100 mm carrier PCB in one unit, plus a small wired "alert pod" for the mute button and the buzzer.
+and the 100 x 100 mm carrier PCB in one unit. The 12 V piezo sits inside it (behind the bezel's right intake slots,
+firing at the driver; the beeps mute themselves, so there is no button), and a printed wing on the bezel's right
+side holds the panel-mount USB passthrough from the v1 panel (the same 25.8 mm cut), which gives back the car's own
+USB port that the unit covers.
 
     python 01-hardware/enclosure/make_enclosure.py                       # STLs + report, runs every check
     python 01-hardware/enclosure/make_enclosure.py --set MOD_H=124.6 HDMI_Y=23.5 HDMI_PLUG=22,21,7.5
@@ -67,7 +70,7 @@ P = dict(
     # carrier PCB (components face the lid)
     PCB_W=100.0, PCB_T=1.6, PCB_HOLE_IN=4.0,
     PCB_PIN_H=2.5,          # through-hole pins under the board
-    PCB_COMP_H=16.0,        # tallest part on the board (DevKit and Pololu on sockets ~14-15)
+    PCB_COMP_H=16.0,        # tallest part on the board (the DevKit and the CC1101 on their sockets, 15.5-15.8)
     PCB_EDGE=3.5,           # air gap between the board edge and the walls
     AIR_GAP=3.0,            # between the Pi's tallest part and the PCB's pins
     FAN_PCB_XY=(45.0, 46.0),  # fan centre over the PCB in fit-template coords (from the top-left, component side)
@@ -84,7 +87,9 @@ P = dict(
     BOSS_D=7.0,
     WALL=2.5, PLATE_T=3.0, LID_T=2.5, LID_GAP=1.5,
     BOX_TOP_GAP=4.0,        # box top below the bezel top (the console opening's top edge is just above it)
-    CSLOT=(1.5, 9.0, 38.0, 20.0),   # display cables through the plate: gap from the board edge, width, bottom Y, height
+    CSLOT=(1.5, 12.5, 43.0, 20.0),  # display leads + the USB passthrough's cable through the plate: gap from the
+                                    # board edge, width, bottom Y, height (20 long: the passthrough's plug passes)
+    CSLOT_R=2.5,                    # its corner radius (the fit template draws it as a plain rectangle)
     SIDE_SLOT=(16.0, 24.0),         # display cables into the box: height (Y) and depth (Z), above the USB window
     SLOT_W=2.5,             # every vent slot: the boards must stay out of reach of fingers
     PILOT_D=2.6,            # M3 machine screw driven into plastic (ASA)
@@ -94,10 +99,26 @@ P = dict(
     SMA_D=6.6,              # SMA bulkhead jack for the RG316 antenna lead
     CABLE_SLOT=(22.0, 8.0),
     AMPS=(38.0, 30.0), AMPS_D=4.4, M4_NUT_AF=7.0, M4_NUT_T=3.4,
-    # alert pod (mute button + buzzer, wired, near the shifter)
-    BUTTON_D=12.2,          # MEASURE: thread of the inventory panel-mount pushbutton
-    POD_BUZ_D=23.2, POD_BUZ_H=12.0,   # MEASURE: 12 V active piezo (3-24 V type)
-    POD=(60.0, 30.0, 28.0),
+    # 12 V active piezo (3-24 V type), inside the unit: on the plate's front in the bezel's right cavity, below the
+    # display's plugs, behind the intake slots there
+    BUZ_D=23.2, BUZ_H=12.0,           # MEASURE: the piezo you buy (diameter, height without its leads)
+    BUZ_RING=(1.2, 4.0),              # the 3 fingers on the bezel's skin that hold it: wall, how much of it they grip
+    BUZ_GAP=2.0,                      # its face to the skin: air still flows to the slots, the sound goes out
+    # Panel-mount USB passthrough from the v1 panel (female socket, M25-class thread, cable to a male plug): the
+    # same Ø25.8 mm cut, in a printed wing on the bezel's right side, the socket facing right. Its cable runs through
+    # the bezel's right cavity and the plate's cable slot to the car's own USB port in the pocket.
+    PASS_HOLE_D=CFG.USB_HOLE_DIAMETER,      # the v1 cut, for the measured 25.16 mm thread
+    PASS_THREAD_D=CFG.USB_THREAD_DIAMETER,
+    PASS_COLLAR=(28.2, 3.0),          # MEASURE: front collar, diameter and thickness (the v1 model's)
+    PASS_FRONT=(24.2, 8.0),           # MEASURE: the socket's body in front, diameter; how far it stands out in all
+    PASS_REAR_L=22.4,                 # MEASURE: thread + body behind the panel, up to where the cable leaves
+    PASS_NUT=(CFG.USB_NUT_DIAMETER, 5.0),   # MEASURE: nut across corners, thickness
+    PASS_CABLE_D=5.5,                 # MEASURE: the cable
+    PASS_PLUG=(16.5, 8.5),            # MEASURE: the male plug's moulding (every opening on the way passes it)
+    PASS_Y=43.0,                      # socket axis above the bezel's centre line
+    WING_WALL=2.5,
+    WING_SCREW=2.2,                   # wing screws: from the wall's inner face toward the axis
+    TRIM_RIGHT=(32.0, 46.0),          # MEASURE: flat trim right of the bezel's edge, where the wing lands: wide, tall
     BED=(220.0, 220.0, 250.0),
     SEG=40,
 )
@@ -151,16 +172,28 @@ def hex_y(cx, cz, y0, y1, af):
     return CrossSection([pts]).extrude(yb - ya).rotate((-90, 0, 0)).translate((cx, ya, cz))
 
 
-def stadium_z(x0, x1, y0, y1, z0, z1):
-    """Rounded slot (stadium) through Z, its long axis along the longer side."""
-    w, h = x1 - x0, y1 - y0
-    r = min(w, h) / 2
-    if w >= h:
-        a, b = (x0 + r, (y0 + y1) / 2), (x1 - r, (y0 + y1) / 2)
-    else:
-        a, b = ((x0 + x1) / 2, y0 + r), ((x0 + x1) / 2, y1 - r)
-    cs = CrossSection.batch_hull([CrossSection.circle(r, P["SEG"]).translate(a),
-                                  CrossSection.circle(r, P["SEG"]).translate(b)])
+def hex_x(cy, cz, x0, x1, af):
+    """Hex prism along X, flats level (Z extent = af, Y extent = across corners)."""
+    r = af / math.sqrt(3)
+    pts = [(r * math.cos(math.radians(30 + 60 * i)), r * math.sin(math.radians(30 + 60 * i))) for i in range(6)]
+    xa, xb = min(x0, x1), max(x0, x1)
+    return CrossSection([pts]).extrude(xb - xa).rotate((0, 90, 0)).translate((xa, cy, cz))
+
+
+def teardrop_x(cy, cz, x0, x1, d, n=64):
+    """Round hole along X for a wall printed upright: 45° flanks toward -Z (up on the bed) meeting a short flat
+    at the circle's own radius, so it bridges cleanly and stays inside the outline a collar or nut covers."""
+    r = d / 2
+    k, t = r / math.sqrt(2), (math.sqrt(2) - 1) * r
+    shape = CrossSection.circle(r, n) + CrossSection([[(0, -k), (k, -k), (r, -t), (r, t), (k, k), (0, k)]])
+    xa, xb = min(x0, x1), max(x0, x1)
+    return shape.extrude(xb - xa).rotate((0, 90, 0)).translate((xa, cy, cz))
+
+
+def rbox_z(x0, x1, y0, y1, z0, z1, r):
+    """Box through Z with rounded vertical corners."""
+    cs = CrossSection.batch_hull([CrossSection.circle(r, P["SEG"]).translate((x, y))
+                                  for x in (x0 + r, x1 - r) for y in (y0 + r, y1 - r)])
     za, zb = min(z0, z1), max(z0, z1)
     return cs.extrude(zb - za).translate((0, 0, za))
 
@@ -286,6 +319,44 @@ def build():
     bez_screws = [(-strip_x, strip_y), (strip_x, strip_y), (-strip_x, -strip_y), (strip_x, -strip_y),
                   ((cav[0] + mx0 - c) / 2, -25.0), (cav[1] - P["BOSS_D"] / 2 - 0.2, -45.0)]
 
+    # 12 V piezo: in the bezel's right cavity below the display's plugs, firing at the driver through the intake
+    # slots there. Three fingers on the bezel's skin hold it with its face 2 mm off the skin, so the cabin air still
+    # reaches those slots. Its two wires go up the cavity with the display leads.
+    bz_x = (mx1 + c + cav[1]) / 2
+    bz_y = P["USB_Y"] - upw / 2 - 3.0 - P["BUZ_D"] / 2
+    bz_z1 = z_lip0 - P["BUZ_GAP"]                          # its face
+    bz_z0 = bz_z1 - P["BUZ_H"]
+
+    # USB passthrough wing on the bezel's right side. The socket's axis runs along X, so its long body lies along
+    # the trim instead of needing depth behind it. The wing is open at the back (it goes on the trim with VHB) and
+    # holds the nut captive: its front wall stops the nut turning, so the socket is tightened from outside. It prints
+    # front face down (every wall upright, the open back on top). 2 x M3 from inside the bezel's right cavity go
+    # through the bezel's wall into the wing's tabs. The cable enters the bezel through its side wall (behind the
+    # wing), crosses the cavity above the display's plugs and goes down through the plate's cable slot into the
+    # pocket, to the car's USB port.
+    nut_ac, nut_t = P["PASS_NUT"]
+    nut_af = nut_ac * math.cos(math.pi / 6)
+    col_d, col_t = P["PASS_COLLAR"]
+    ww = P["WING_WALL"]
+    cd = P["PASS_CABLE_D"]
+    plug_w, plug_t = P["PASS_PLUG"]
+    z_trim = z_pb - 2.0                                    # the console trim, behind the plate's 2 mm bumps
+    pz = z_trim + 0.3 + nut_af / 2                         # socket axis
+    py = P["PASS_Y"]
+    in_h = nut_ac / 2 + 0.4                                # the nut's corners, up and down
+    in_t = max(nut_af / 2, col_d / 2, P["PASS_THREAD_D"] / 2) + 0.4
+    xw0, xw1 = bx, bx + 3.0 + P["PASS_REAR_L"] + ww        # bezel side, end face
+    wy0, wy1 = py - in_h - ww, py + in_h + ww
+    wz0, wz1 = z_trim, pz + in_t + ww
+    x_rear = xw1 - ww - P["PASS_REAR_L"]                   # where the cable leaves the passthrough's body
+    z_open = z_lip0 - 0.5 - (plug_t + 1.0) / 2             # cable opening in the bezel's side wall, under its skin
+    tab_z = z_lip0 - 0.6 - 5.5 / 2                         # wing screws: heads under the skin, above the HDMI adapter
+    tab_y = [py - in_h + P["WING_SCREW"], py + in_h - P["WING_SCREW"]]
+    tab_l = 8.0                                            # the tabs' length along X (M3 × 10: 7 mm in them)
+    tab_in = in_h - (P["PASS_THREAD_D"] / 2 + 0.4)          # how far a tab stands off its wall, clear of the body
+    x_drop = cs_x1 - 0.5 - cd / 2                          # the cable goes down through the plate's slot here
+    y_drop = cs_y0 + (cs_x1 - cs_x0) / 2 + cd / 2 + 0.3    # in its straight part
+
     # ================================================================ dummies (what goes inside)
     board = box(mx0, mx1, -mh, mh, z_bb, z_bf)
     for xa, xb in ((mx0, mx0 + ew), (mx1 - ew, mx1)):
@@ -306,7 +377,7 @@ def build():
         box(hface, hface + hl, P["HDMI_Y"] - hpw / 2, P["HDMI_Y"] + hpw / 2, zh - hpt / 2, top_h),     # HDMI FPC adapter
         box(hface + hl, hface + hl + 1.5, P["HDMI_Y"] - hpw / 2, plugs_y1 + 3.0, z_pf + 0.3, top_h),   # flat cable folds up
         box(cs_x0 + 1.0, hface + hl + 1.5, plugs_y1, plugs_y1 + 3.0, z_pf + 0.3, z_pf + 2.0),        # and runs over it
-        box(cs_x0 + 1.0, cs_x1 - 1.0, plugs_y1, cs_y1 - 1.0, z_pf + 0.3, z_pf + 5.0),                # to the slot
+        box(cs_x0 + 1.0, cs_x0 + 6.0, plugs_y1, cs_y1 - 1.0, z_pf + 0.3, z_pf + 5.0),                # to the slot
         box(uface, uface + ul, P["USB_Y"] - upw / 2, P["USB_Y"] + upw / 2, zu - upt / 2, zu + upt / 2),  # 90° micro-USB
         box(uface + 2.0, uface + 6.5, P["USB_Y"] + upw / 2, cs_y0 + 4.0, top_h + 0.3, -1.0),         # its lead, in front
         box(uface + 2.0, uface + 6.5, cs_y0, cs_y0 + 4.0, z_pf + 0.3, -1.0),                         # of the HDMI adapter
@@ -348,12 +419,27 @@ def build():
     sma_wall_x = ix0 if s > 0 else ix1
     g["sma"] = cyl_x(sma_y, sma_z, sma_wall_x, sma_wall_x + s * 9.0, 9.0)                 # bulkhead body + nut
     g["screws"] = union([cyl_z(X, Y, z_pb - 2.0, z_pb, 6.0) for X, Y in bez_screws])      # bezel screw heads
+    g["buzzer"] = cyl_z(bz_x, bz_y, bz_z0, bz_z1, P["BUZ_D"])
+    fr_d, fr_l = P["PASS_FRONT"]
+    g["usb_pass"] = union([
+        cyl_x(py, pz, xw1, xw1 + col_t, col_d),                                         # collar on the end face
+        cyl_x(py, pz, xw1 + col_t, xw1 + fr_l, fr_d),                                   # the socket
+        cyl_x(py, pz, x_rear, xw1, P["PASS_THREAD_D"]),                                 # thread + body
+        hex_x(py, pz, xw1 - ww - nut_t, xw1 - ww, nut_af),                              # nut, flats level
+        Manifold.batch_hull([cyl_x(py, pz, x_rear - 0.5, x_rear, cd),                    # cable: into the bezel,
+                             cyl_x(py, z_open, xw0, xw0 + 0.5, cd)]),
+        cyl_x(py, z_open, x_drop, xw0 + 0.5, cd),                                      # across the cavity,
+        cyl_y(x_drop, z_open, py, y_drop, cd),
+        cyl_z(x_drop, y_drop, z_pb - 12.0, z_open, cd),                                # down into the pocket
+    ])
+    g["wing_screws"] = union([cyl_x(Y, tab_z, cav[1] - 3.0, cav[1], 5.5) + cyl_x(Y, tab_z, cav[1], cav[1] + 10.0, 3.0)
+                              for Y in tab_y])                                          # M3 × 10 socket cap
 
     # ================================================================ bezel
     bez = box(-bx, bx, by0, by1, z_pf, z_lip1)
     bez = bez - box(cav[0], cav[1], cav[2], cav[3], z_pf - 1, z_lip0)                     # one cavity behind the skin
     bez = bez - box(win[0], win[1], win[2], win[3], z_lip0 - 1, z_lip1 + 1)               # window
-    slots = []                                                                            # cabin-air intake
+    slots, rslots = [], []                                                                # cabin-air intake
     lx0, lx1 = cav[0] + 1.2, mx0 - c - 1.2
     rx0, rx1 = mx1 + c + 1.5, bez_screws[5][0] - P["BOSS_D"] / 2 - 1.0
     y = cav[2] + 3.0
@@ -361,14 +447,37 @@ def build():
         if abs(y + P["SLOT_W"] / 2 - bez_screws[4][1]) > P["BOSS_D"] / 2 + 1.5:            # clear of the left boss
             slots.append(box(lx0, lx1, y, y + P["SLOT_W"], z_lip0 - 1, z_lip1 + 1))
         if y + P["SLOT_W"] <= P["USB_Y"] - upw / 2 - 3.0:                                 # below the plugs
-            slots.append(box(rx0, rx1, y, y + P["SLOT_W"], z_lip0 - 1, z_lip1 + 1))
+            rslots.append(box(rx0, rx1, y, y + P["SLOT_W"], z_lip0 - 1, z_lip1 + 1))
         y += 5.0
+    slots += rslots
     bez = bez - union(slots)
     intake_mm2 = sum((bb[3] - bb[0]) * (bb[4] - bb[1]) for bb in (sl.bounding_box() for sl in slots))
+    face = cyl_z(bz_x, bz_y, z_lip0 - 1, z_lip1 + 1, P["BUZ_D"])                         # the piezo's face, projected
+    buz_slots = sum(1 for sl in rslots if (sl ^ face).volume() > 1.0)
+    buz_open = (union(rslots) ^ face).volume() / (z_lip1 - z_lip0 + 2)
     for X, Y in holes_d:                  # the display hangs on these: M3 x 6 from behind, through its ears
         bez = bez + (cyl_z(X, Y, z_bf, z_lip0 + 0.01, P["BOSS_D"]) - cyl_z(X, Y, z_bf - 1, z_bf + 6.0, P["PILOT_D"]))
     for X, Y in bez_screws:               # the plate screws on from behind
         bez = bez + (cyl_z(X, Y, z_pf, z_lip0 + 0.01, P["BOSS_D"]) - cyl_z(X, Y, z_pf - 1, z_pf + 10.0, P["PILOT_D"]))
+    for Y in tab_y:                       # the USB wing: M3 from inside the cavity, heads on the wall's inner face
+        bez = bez - cyl_x(Y, tab_z, cav[1] - 1.0, bx + 1.0, P["CLEAR_D"])
+    # the piezo's 3 fingers: a 2 mm ledge on the skin under its face's edge, then 4 mm of grip round its side
+    rw, rg = P["BUZ_RING"]
+    bd = P["BUZ_D"] + 0.4
+    grip = (cyl_z(bz_x, bz_y, bz_z1 - rg, z_lip0 + 0.01, bd + 2 * rw) - cyl_z(bz_x, bz_y, bz_z1 - rg - 1, z_lip0 + 1, bd))
+    ledge = (cyl_z(bz_x, bz_y, bz_z1, z_lip0 + 0.01, bd + 2 * rw)
+             - cyl_z(bz_x, bz_y, bz_z1 - 1, z_lip0 + 1, P["BUZ_D"] - 3.0))
+    sectors = []
+    for a0 in (0.0, 120.0, 240.0):
+        pts = [(0.0, 0.0)] + [(30 * math.cos(math.radians(a0 + d)), 30 * math.sin(math.radians(a0 + d)))
+                              for d in (-20, -10, 0, 10, 20)]
+        sectors.append(CrossSection([pts]).extrude(30.0).translate((bz_x, bz_y, z_lip0 - 20.0)))
+    fingers = (grip + ledge) ^ union(sectors)
+    fingers = fingers ^ box(mx1 + c + 0.3, bx, cav[2], cav[3], z_pf, z_lip0 + 0.01)
+    bez = bez + fingers
+    # the USB passthrough's cable (and its plug, on the way in) through the right side wall, under the skin
+    bez = bez - box(cav[1] - 1.0, bx + 1.0, py - (plug_w + 1.0) / 2, py + (plug_w + 1.0) / 2,
+                    z_open - (plug_t + 1.0) / 2, z_open + (plug_t + 1.0) / 2)
     g["bezel"] = bez
 
     # ================================================================ housing: plate + box
@@ -402,7 +511,7 @@ def build():
     for x0, x1, y0, y1 in intake:
         housing = housing - box(x0, x1, y0, y1, z_pb - 0.5, z_pf + 0.5)
     # display cables through the plate (outside the box, inside the console opening) and into the box
-    housing = housing - stadium_z(cs_x0, cs_x1, cs_y0, cs_y1, z_pb - 1, z_pf + 1)
+    housing = housing - rbox_z(cs_x0, cs_x1, cs_y0, cs_y1, z_pb - 1, z_pf + 1, P["CSLOT_R"])
     housing = housing - box(ix1 - 1, ox1 + 1, ss_y0, ss_y1, ss_z0, ss_z1)
     for X, Y in bez_screws:
         housing = housing - cyl_z(X, Y, z_pb - 1, z_pf + 1, P["CLEAR_D"])
@@ -451,29 +560,21 @@ def build():
     lid = lid - slot2d.extrude(P["LID_T"] + 2).translate((0, 0, z_lid_out - 1))
     g["lid"] = lid
 
-    # ================================================================ alert pod (separate, wired)
-    pw, pd, ph = P["POD"]
-    shell = box(-pw / 2, pw / 2, -pd / 2, pd / 2, 0.0, ph) - box(-pw / 2 + 2, pw / 2 - 2, -pd / 2 + 2, pd / 2 - 2,
-                                                                 -1.0, ph - 2.0)
-    bxp, buzx = -16.0, 14.0
-    shell = shell - cyl_z(bxp, 0, ph - 3, ph + 1, P["BUTTON_D"])
-    cup_d = P["POD_BUZ_D"] + 0.4
-    shell = shell + (cyl_z(buzx, 0, ph - 2 - P["POD_BUZ_H"], ph - 1, cup_d + 2.4)
-                     - cyl_z(buzx, 0, ph - 3 - P["POD_BUZ_H"], ph - 2, cup_d))
-    for k in range(7):
-        a = 2 * math.pi * k / 6
-        X, Y = (buzx, 0.0) if k == 6 else (buzx + 4.5 * math.cos(a), 4.5 * math.sin(a))
-        shell = shell - cyl_z(X, Y, ph - 3, ph + 1, 1.8, 16)
-    shell = shell - cyl_y(0.0, 6.0, pd / 2 - 3, pd / 2 + 1, 5.0)                        # cable exit
-    for Y in (-(pd / 2 - 3.0), pd / 2 - 3.0):
-        shell = shell + cyl_z(-3.0, Y, 0.0, ph - 2.0, 6.0) - cyl_z(-3.0, Y, -1.0, 10.0, P["PILOT_D"])
-    g["pod_shell"] = shell
-    base = box(-pw / 2, pw / 2, -pd / 2, pd / 2, -2.5, 0.0)
-    for Y in (-(pd / 2 - 3.0), pd / 2 - 3.0):
-        base = base - cyl_z(-3.0, Y, -3.0, 1.0, P["CLEAR_D"])
-    g["pod_base"] = base
-    g["pod_button"] = cyl_z(bxp, 0, ph - 2 - 22.0, ph - 2.0, P["BUTTON_D"] + 5.0)          # nut + body + tags
-    g["pod_buzzer"] = cyl_z(buzx, 0, ph - 2 - P["POD_BUZ_H"], ph - 2.0, P["POD_BUZ_D"])
+    # ================================================================ USB passthrough wing (bezel's right side)
+    # Prints front face down: the open back is on top, every wall upright, the tabs on 45° gussets. The v1 panel's
+    # Ø25.8 cut in its end wall, with a short flat on top (under the collar) so it bridges cleanly.
+    wing = box(xw0, xw1, wy0, wy1, wz0, wz1) - box(xw0 - 1.0, xw1 - ww, wy0 + ww, wy1 - ww, wz0 - 1.0, wz1 - ww)
+    wing = wing + box(xw0, xw0 + ww, wy0, wy1, z_lip1, wz1)          # closes its inner end in front of the bezel
+    wing = wing - teardrop_x(py, pz, xw1 - ww - 1.0, xw1 + 1.0, P["PASS_HOLE_D"])
+    for sg, Y in zip((-1, 1), tab_y):
+        yw = py + sg * (in_h + 0.05)                 # into the wall
+        ye = py + sg * (in_h - tab_in)               # the tab's edge, clear of the passthrough's body
+        za, zb = tab_z - 3.5, tab_z + 3.5
+        tab = box(xw0, xw0 + tab_l, min(yw, ye), max(yw, ye), za, zb)
+        foot = box(xw0, xw0 + tab_l, min(yw, yw - sg * 0.05), max(yw, yw - sg * 0.05), zb, zb + tab_in)
+        wing = wing + Manifold.batch_hull([tab, foot])
+        wing = wing - cyl_x(Y, tab_z, xw0 - 1.0, xw0 + tab_l + 1.0, P["PILOT_D"])
+    g["usb_wing"] = wing
 
     geo = dict(s=s, bx=bx, by0=by0, by1=by1, cav=cav, module=(mx0, mx1, my0, my1), main_h=mh,
                glass=(gx0, gx1, gy0, gy1), active=act, window=win, holes_d=holes_d,
@@ -495,7 +596,18 @@ def build():
                    hdmi_plug=[hface, hface + hl, P["HDMI_Y"] - hpw / 2, P["HDMI_Y"] + hpw / 2],
                    usb_plug=[uface, uface + ul, P["USB_Y"] - upw / 2, P["USB_Y"] + upw / 2],
                    cable_slot=[cs_x0, cs_x1, cs_y0, cs_y1], box=[ox0, ox1, oy0, oy1],
-                   bezel_screws=[list(p) for p in bez_screws], opening_bottom_y=oy0 - 1.0))
+                   bezel_screws=[list(p) for p in bez_screws], opening_bottom_y=oy0 - 1.0,
+                   buzzer=[bz_x, bz_y, P["BUZ_D"]],
+                   usb_wing=[xw0, xw1, wy0, wy1], usb_hole=[xw1, py, P["PASS_HOLE_D"]]),
+               buzzer=dict(center=(bz_x, bz_y), d=P["BUZ_D"], h=P["BUZ_H"], face_z=bz_z1, back_z=bz_z0,
+                           ring=P["BUZ_RING"], slots=buz_slots, open_mm2=buz_open, skin_z=z_lip0),
+               usb=dict(axis_y=py, axis_z=pz, hole_d=P["PASS_HOLE_D"], thread_d=P["PASS_THREAD_D"],
+                        collar=(col_d, col_t), front=P["PASS_FRONT"], rear_l=P["PASS_REAR_L"],
+                        nut=(nut_ac, nut_t), nut_af=nut_af, cable_d=cd, plug=(plug_w, plug_t),
+                        wing=(xw0, xw1, wy0, wy1, wz0, wz1), wall=ww, inner=(in_h, in_t), x_rear=x_rear,
+                        z_open=z_open, z_trim=z_trim, side_open=(py, z_open, plug_w + 1.0, plug_t + 1.0),
+                        tabs=[(Y, tab_z) for Y in tab_y], tab_l=tab_l, tab_in=tab_in, drop=(x_drop, y_drop),
+                        bezel_wall=bx - cav[1], front_z=z_lip1))
     return g, geo
 
 
@@ -525,10 +637,8 @@ def to_print(name, m, geo):
         return m.rotate((180, 0, 0)).translate((0, 0, z["plate_front"]))
     if name == "lid":                 # outside face down
         return m.translate((0, 0, -z["lid_outer"]))
-    if name == "pod_shell":           # top face down
-        return m.rotate((180, 0, 0)).translate((0, 0, P["POD"][2]))
-    if name == "pod_base":
-        return m.translate((0, 0, 2.5))
+    if name == "usb_wing":            # front face down, the open back on top
+        return m.rotate((180, 0, 0)).translate((0, 0, geo["usb"]["wing"][5]))
     return m
 
 
@@ -546,7 +656,7 @@ def run_checks(g, geo):
     def check(name, ok, detail):
         res.append(dict(check=name, ok=bool(ok), detail=detail))
 
-    for name in ("bezel", "housing", "lid", "pod_shell", "pod_base"):
+    for name in ("bezel", "housing", "lid", "usb_wing"):
         m = g[name]
         st = str(m.status())
         check(f"{name}: valid solid", st.endswith("NoError") and m.volume() > 0,
@@ -562,8 +672,13 @@ def run_checks(g, geo):
              ("housing", "cables"), ("housing", "pi"), ("housing", "pcb"), ("housing", "pcb_parts"),
              ("housing", "fan"), ("housing", "lid"), ("housing", "screws"), ("lid", "pcb_parts"), ("lid", "pcb"),
              ("fan", "pcb_parts"), ("pi", "pcb_parts"), ("pi", "pcb"), ("sma", "pcb_parts"), ("sma", "housing"),
-             ("bezel", "housing"), ("pod_shell", "pod_button"), ("pod_shell", "pod_buzzer"),
-             ("pod_button", "pod_buzzer"), ("pod_shell", "pod_base")]
+             ("bezel", "housing"),
+             ("buzzer", "bezel"), ("buzzer", "housing"), ("buzzer", "display"), ("buzzer", "cables"),
+             ("usb_pass", "usb_wing"), ("usb_pass", "bezel"), ("usb_pass", "housing"), ("usb_pass", "display"),
+             ("usb_pass", "cables"), ("usb_pass", "buzzer"), ("usb_pass", "screws"),
+             ("usb_wing", "bezel"), ("usb_wing", "housing"), ("usb_wing", "display"),
+             ("wing_screws", "bezel"), ("wing_screws", "cables"), ("wing_screws", "usb_pass"),
+             ("wing_screws", "display"), ("wing_screws", "buzzer")]
     for a, b in pairs:
         v = overlap(g[a], g[b])
         check(f"no clash: {a} / {b}", v < 0.05, f"overlap {v:.3f} mm³")
@@ -623,9 +738,12 @@ def run_checks(g, geo):
     lead_x = ox1 + 12.0 if geo["s"] > 0 else ox0 - 12.0
     sma_x = ox0 - 15.0 if geo["s"] > 0 else ox1 + 15.0
     pts += [(plug_x, wy0), (plug_x, wy1), (lead_x, sy0), (lead_x, sy1), (sma_x, geo["sma"][0])]
+    u = geo["usb"]
+    dx, dy = u["drop"]
+    pts += [(dx + sx * u["cable_d"] / 2, dy + sy * u["cable_d"] / 2) for sx in (-1, 1) for sy in (-1, 1)]
     worst = min(margin(x, y) for x, y in pts)
-    check("box, ears, 90° USB plugs, display leads and SMA lead fit the console opening", worst >= 0,
-          f"tightest margin {worst:.1f} mm (opening {top:g} top / {bot:g} bottom × {hgt:g})")
+    check("box, ears, 90° USB plugs, display leads, SMA lead and USB passthrough cable fit the console opening",
+          worst >= 0, f"tightest margin {worst:.1f} mm (opening {top:g} top / {bot:g} bottom × {hgt:g})")
     cx0, cx1, cy0, cy1 = geo["cable_slot"]
     cm = min(margin(x, y) for x in (cx0, cx1) for y in (cy0, cy1))
     check("display-cable slot in the plate opens into the pocket", cm >= 1.0,
@@ -634,20 +752,71 @@ def run_checks(g, geo):
     over = geo["by1"] - (y_floor + hgt)
     check("bezel stays below the HVAC panel", bez_h <= hgt + 0.5 and over <= 0.5,
           f"bezel {2 * geo['bx']:.1f} × {bez_h:.1f} mm; its top {over:+.1f} mm from the opening's top edge (HVAC above)")
+
+    bz = geo["buzzer"]
+    gap = bz["skin_z"] - bz["face_z"]
+    back = bz["back_z"] - geo["z"]["plate_front"]
+    check("piezo inside the dash unit, behind the right intake slots", bz["slots"] >= 3 and gap >= 1.0
+          and bz["open_mm2"] >= 60.0 and back >= 0.5,
+          f"Ø{bz['d']:g} piezo on 3 fingers from the bezel's skin, its face {gap:.1f} mm behind it (air still flows); "
+          f"{bz['slots']} slots ({bz['open_mm2']:.0f} mm²) in front of it; {back:.1f} mm clear of the plate")
+
+    hole, thr = u["hole_d"], u["thread_d"]
+    col_d, _ = u["collar"]
+    check("USB passthrough uses the v1 cut", abs(hole - CFG.USB_HOLE_DIAMETER) < 1e-9 and hole - thr >= 0.3
+          and min(col_d, u["nut_af"]) >= hole + 1.5,
+          f"Ø{hole:g} hole (v1 panel) for the Ø{thr:g} thread, {hole - thr:.2f} mm clearance; collar Ø{col_d:g} and "
+          f"nut {u['nut_af']:.1f} mm A/F cover it and its printed flat")
+    ac = u["nut"][0]
+    turn = 30.0 - math.degrees(math.acos(min(1.0, (u["inner"][1] - 0.0) / (ac / 2))))
+    trim_gap = u["axis_z"] - u["nut_af"] / 2 - u["z_trim"]
+    check("wing holds the nut, so the socket tightens from outside", turn <= 10.0 and trim_gap >= 0.29,
+          f"{ac:g} mm nut can turn {turn:.1f}° before the wing's front wall stops it; {trim_gap:.1f} mm off the trim")
+
+    pw, pt = u["plug"]
+    _, _, so_w, so_t = u["side_open"]
+    cx0, cx1, cy0, cy1 = geo["cable_slot"]
+    W, L, rr = min(cx1 - cx0, cy1 - cy0), max(cx1 - cx0, cy1 - cy0), P["CSLOT_R"]
+    ex, ey = pt / 2 - (W / 2 - rr), pw / 2 - (L / 2 - rr)             # the plug's corner inside a rounded corner?
+    spare = min(W / 2 - pt / 2, L / 2 - pw / 2, rr - math.hypot(ex, ey) if ex > 0 and ey > 0 else rr)
+    diag = math.hypot(pw, pt)
+    check("USB plug passes every opening on its way to the pocket",
+          diag <= hole - 1.0 and so_w >= pw + 1.0 and so_t >= pt + 1.0 and spare >= 0.5,
+          f"{pw:g} × {pt:g} mm plug: Ø{hole:g} end hole (diagonal {diag:.1f}), {so_w:g} × {so_t:g} side opening, "
+          f"{W:.1f} × {L:.1f} plate slot ({spare:.1f} mm spare; it goes through before the display's leads)")
+
+    xw0, xw1, wy0, wy1, wz0, wz1 = u["wing"]
+    tw, th = P["TRIM_RIGHT"]
+    reach = xw1 + u["front"][1] - geo["bx"]
+    proud = wz1 - u["front_z"]
+    check("USB wing fits the trim beside the bezel (MEASURE the trim)",
+          xw1 - xw0 <= tw and wy1 - wy0 <= th and wy1 <= geo["by1"] and wy0 >= geo["by0"],
+          f"wing {xw1 - xw0:.1f} × {wy1 - wy0:.1f} mm on the trim (assumed {tw:g} × {th:g} free); the socket ends "
+          f"{reach:.1f} mm right of the bezel; the wing's front is {proud:.1f} mm proud of the bezel's")
+    bite = 10.0 - u["bezel_wall"]
+    check("wing screws: M3 × 10 from inside the bezel", 5.0 <= bite <= u["tab_l"] - 0.5,
+          f"through the {u['bezel_wall']:g} mm wall, {bite:.0f} mm into {u['tab_l']:g} mm tabs on 45° gussets; heads "
+          f"under the skin, clear of the HDMI adapter")
     return res
 
 
 # ------------------------------------------------------------------------------------------------- main
 COLORS = dict(bezel="#1f2937", housing="#334155", lid="#475569", display="#0b1220", pi="#15803d",
-              pcb="#065f46", pcb_parts="#f59e0b", fan="#111827", cables="#f97316")
+              pcb="#065f46", pcb_parts="#f59e0b", fan="#111827", cables="#f97316", buzzer="#e11d48",
+              usb_wing="#1f2937", usb_pass="#94a3b8", wing_screws="#cbd5e1")
 LABELS = dict(
-    bezel="Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen (print face down)",
+    bezel="Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen; 3 fingers hold the "
+          "piezo behind the right slots (print face down)",
     housing="Housing: plate + rear box for the Pi and the PCB (print plate down)",
     lid="Lid: 30 mm exhaust fan + cable exit (print outside face down)",
     display="SunFounder TS-7 7\" HDMI touch display (dummy)",
     pi="Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)",
     pcb="100 × 100 mm carrier PCB (dummy)", pcb_parts="PCB part-height budget (dummy)", fan="30 mm fan (dummy)",
-    cables="HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)")
+    cables="HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)",
+    buzzer="12 V active piezo, behind the right intake slots (dummy)",
+    usb_wing="USB wing: holds the car's USB passthrough beside the bezel, v1's Ø25.8 cut (print front face down)",
+    usb_pass="The v1 USB passthrough: socket facing right, nut held by the wing, cable into the pocket (dummy)",
+    wing_screws="2× M3 × 10 from inside the bezel into the wing's tabs (dummy)")
 
 
 def _r2(v):
@@ -661,10 +830,11 @@ def main():
     stl = out / "stl"
     stl.mkdir(parents=True, exist_ok=True)
     files = {}
-    for name in ("bezel", "housing", "lid", "pod_shell", "pod_base"):
+    for name in ("bezel", "housing", "lid", "usb_wing"):
         n = write_stl(to_print(name, g[name], geo), stl / f"print_{name}.stl")
         files[f"print_{name}"] = dict(file=f"stl/print_{name}.stl", triangles=n)
-    for name in ("bezel", "housing", "lid", "display", "cables", "pi", "pcb", "pcb_parts", "fan"):
+    for name in ("bezel", "housing", "lid", "display", "cables", "pi", "pcb", "pcb_parts", "fan", "buzzer",
+                 "usb_wing", "usb_pass", "wing_screws"):
         n = write_stl(to_viewer(g[name], geo), stl / f"asm_{name}.stl")
         files[f"asm_{name}"] = dict(file=f"stl/asm_{name}.stl", triangles=n, color=COLORS[name], label=LABELS[name])
 
@@ -695,6 +865,12 @@ def main():
                        f"pocket, then into the box through the slot above the USB window",
             intake_slots_mm2=round(geo["intake_mm2"])),
         front_view_mm={k: _r2(v) for k, v in geo["front"].items()},
+        viewer_frame=dict(
+            pcb_center_mm=_r2(geo["pcb_center"]), z_mid_mm=round((z["pcb_bottom"] + z["pcb_top"]) / 2, 3),
+            rule="every asm_*.stl: this frame moved by (-x, -y, -z_mid), then turned 180° about Y (PCB centre at the "
+                 "origin, its parts up)"),
+        console_opening_mm=dict(top_width=CFG.OPENING_TOP_WIDTH, bottom_width=CFG.OPENING_BOTTOM_WIDTH,
+                                height=CFG.OPENING_HEIGHT, bottom_y=round(oy0 - 1.0, 2)),
         pcb_constraints=dict(
             outline="100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
             max_part_height_mm=P["PCB_COMP_H"],
@@ -712,10 +888,44 @@ def main():
             lid_to_box="4× M3 × 12 into the ears", pcb_to_posts="4× M3 × 6",
             fan="30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
             amps="4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
-            pod="2× M3 × 8, VHB tape under the base"),
+            piezo="pressed into the 3 fingers on the bezel's skin (face on their 2 mm ledges), a dab of RTV on each; "
+                  "leads up the right cavity and out through the plate's slot",
+            usb_wing="2× M3 × 10 socket cap from inside the bezel's right cavity (before the display goes in), "
+                     "VHB on its back to the trim",
+            usb_passthrough="its own nut, held by the wing: turn the socket from outside to tighten"),
+        buzzer=dict(
+            part=f"12 V active piezo Ø{geo['buzzer']['d']:g} × {geo['buzzer']['h']:g} mm (MEASURE yours)",
+            where=f"in the bezel's right cavity below the display's plugs, centre {_r2(geo['buzzer']['center'])} mm "
+                  f"(right of / above the bezel's centre), held by 3 fingers on the skin",
+            fires_through=f"{geo['buzzer']['slots']} right intake slots "
+                          f"({geo['buzzer']['open_mm2']:.0f} mm² open), "
+                          f"{geo['buzzer']['skin_z'] - geo['buzzer']['face_z']:.1f} mm behind the bezel's skin",
+            wiring="the old alert-pod JST-GH on the carrier: + and - only; the button pins stay unused",
+            behaviour="blind-spot beeps auto-mute after 4 s (the side LED keeps flashing); a TPMS warning beeps "
+                      "twice, then only the screen shows it"),
+        usb_passthrough=dict(
+            hole=f"Ø{geo['usb']['hole_d']:g} mm, the v1 panel's cut (CFG.USB_HOLE_DIAMETER), in the wing's end wall",
+            faces="the passenger side (+X), socket axis level, "
+                  f"{geo['usb']['axis_y']:g} mm above the bezel's centre line",
+            wing_mm=_r2([geo["usb"]["wing"][1] - geo["usb"]["wing"][0], geo["usb"]["wing"][3] - geo["usb"]["wing"][2],
+                         geo["usb"]["wing"][5] - geo["usb"]["wing"][4]]),
+            socket_reach_right_of_bezel_mm=round(geo["usb"]["wing"][1] + geo["usb"]["front"][1] - geo["bx"], 1),
+            wing_front_proud_of_bezel_mm=round(geo["usb"]["wing"][5] - geo["usb"]["front_z"], 1),
+            cable="through the bezel's side wall (hidden by the wing), across the right cavity above the display's "
+                  "plugs, down through the plate's cable slot into the pocket, to the car's USB port",
+            assembly=["bezel face down: screw the wing on (2× M3 × 10 from inside the right cavity)",
+                      "nut into the wing from its open back; from outside push the plug, cable and body through "
+                      "the hole and the nut; turn the socket until the collar is snug",
+                      "plug and cable through the bezel's side opening, then through the plate's slot FIRST, "
+                      "before the display's leads",
+                      "fit the display, then the plate"],
+            measure=["collar Ø and thickness", "socket body Ø and how far it stands out", "thread Ø and length",
+                     "body/boot length behind the panel up to where the cable leaves, and its Ø",
+                     "nut across corners / flats and thickness", "cable Ø and tightest bend",
+                     "the plug's moulding (w × t × length)",
+                     "free flat trim right of the bezel's edge (≥ wing size) and anything in front of it"]),
         parameters={k: v for k, v in P.items()},
-        volumes_cm3={k: round(g[k].volume() / 1000, 1) for k in ("bezel", "housing", "lid", "pod_shell",
-                                                                  "pod_base")},
+        volumes_cm3={k: round(g[k].volume() / 1000, 1) for k in ("bezel", "housing", "lid", "usb_wing")},
         files=files,
         checks=checks,
         all_ok=all(c["ok"] for c in checks),

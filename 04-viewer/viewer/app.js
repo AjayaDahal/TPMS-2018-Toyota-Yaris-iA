@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/OrbitControls.js";
 import { STLLoader } from "three/addons/STLLoader.js";
 import { createCarBlueprintScene } from "./car_scene.js";
 import { createPcb6Scene } from "./pcb6_scene.js";
+import { createProductsScene } from "./products_scene.js";
 
 const stageEl = document.getElementById("scene");
 const inspectHud = document.getElementById("inspect-hud");
@@ -37,11 +38,12 @@ scene.add(rim);
 
 const clipPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-// Three mutually exclusive scene roots
+// Four mutually exclusive scene roots
 const carRoot = new THREE.Group();
 const pcb6Root = new THREE.Group();
+const partsRoot = new THREE.Group();
 const v1Root = new THREE.Group();
-scene.add(carRoot, pcb6Root, v1Root);
+scene.add(carRoot, pcb6Root, partsRoot, v1Root);
 
 const v1Grid = new THREE.GridHelper(0.4, 16, 0x3b485e, 0x1d2533);
 v1Grid.rotation.x = Math.PI / 2;
@@ -59,7 +61,8 @@ let manifest = null;
 let systemPlan = null;
 let carCtx = null;
 let pcb6Ctx = null;
-let activeMode = "car"; // "car" | "pcb6" | "v1"
+let partsCtx = null;
+let activeMode = "car"; // "car" | "pcb6" | "parts" | "v1"
 
 // v1 PCB state
 const v1Records = [];
@@ -245,7 +248,7 @@ function setCarCamera(key) {
   const presets = {
     iso: [[-6.2, -7.2, 5.2], [0, -1.2, 0.65], "Full Blueprint Isometric"],
     top: [[0.01, -1.2, 11.2], [0, -1.2, 0.5], "Top Blueprint Plan View"],
-    cockpit: [[-0.36, -0.35, 1.18], [0.02, 0.52, 0.78], "Driver Cockpit · 7\" Touch Enclosure, Door LEDs, Alert Pod"],
+    cockpit: [[-0.36, -0.35, 1.18], [0.02, 0.52, 0.78], "Driver Cockpit · 7\" Touch Enclosure, USB Wing, Door LEDs"],
     mirror_l: [[-2.05, -0.45, 1.38], [-0.94, 0.54, 0.96], "Left Mirror Camera & Door Boot"],
     console: [[0.18, -0.22, 0.92], [0.0, 0.50, 0.66], "Console Pocket: Printed Enclosure (Display + Pi + PCB)"],
     footwell: [[-0.68, 0.06, 0.70], [-0.50, 0.58, 0.62], "Driver Footwell: OBD-II Dongle, ACC Fuse Tap, Blinker Feeds"],
@@ -297,10 +300,64 @@ function setV1Camera(key) {
   document.getElementById("view-label").textContent = p[2];
 }
 
+// Printed parts: the scene frames the visible product itself (the narrower of the two fields of view)
+function setPartsCamera(key) {
+  hideMedia();
+  const vfov = THREE.MathUtils.degToRad(camera.fov);
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
+  const v = partsCtx.getView(key, THREE.MathUtils.radToDeg(Math.min(vfov, hfov)));
+  for (const [opt, on] of Object.entries(v.set || {})) {    // a view can switch an option on (the piezo: see-through)
+    partsCtx.setOption(opt, on);
+    const el = document.getElementById(`parts-${opt}`);
+    if (el) el.checked = on;
+  }
+  camera.near = v.near;
+  camera.far = v.far;
+  camera.updateProjectionMatrix();
+  camera.position.copy(v.pos);
+  controls.target.copy(v.target);
+  controls.update();
+  document.getElementById("view-label").textContent = v.label;
+}
+
+function renderPartsPanel() {
+  const id = partsCtx.current;
+  document.querySelectorAll("#parts-products button").forEach((b) => b.classList.toggle("active", b.dataset.product === id));
+  const viewsEl = document.getElementById("parts-views");
+  viewsEl.innerHTML = "";
+  for (const [k, lbl] of partsCtx.views()) {
+    const b = document.createElement("button");
+    b.textContent = lbl;
+    b.onclick = () => setPartsCamera(k);
+    viewsEl.appendChild(b);
+  }
+  document.getElementById("parts-card").innerHTML = partsCtx.card(id);
+  if (activeMode === "parts") document.getElementById("dimension").textContent = partsCtx.caption(id);
+  const listEl = document.getElementById("parts-list");
+  listEl.innerHTML = "";
+  for (const p of partsCtx.partsFor(id)) {
+    const btn = document.createElement("button");
+    btn.className = "item-btn";
+    const cls = /INVENTORY|OEM/i.test(p.source) ? "inv" : (/PRINT/i.test(p.source) || /^Printed|^Print file/.test(p.category) ? "pass" : "buy");
+    btn.innerHTML = `<span><b>${p.title}</b><br><small class="muted">${p.category}</small></span><span class="pill ${cls}">${p.source.split(" ")[0]}</span>`;
+    btn.onclick = () => showInspectCard(p);
+    listEl.appendChild(btn);
+  }
+}
+
+function setPartsProduct(id) {
+  partsCtx.setProduct(id);
+  inspectHud.hidden = true;
+  renderPartsPanel();
+  const views = partsCtx.views();
+  if (views.length) setPartsCamera(views[0][0]);
+}
+
 // ---------------- Tab & Mode switching ----------------
 const TABS = [
   ["tab-car", "Car & Sim"],
   ["tab-pcb6", "6L PCB"],
+  ["tab-parts", "Printed Parts"],
   ["tab-wiring", "Wiring"],
   ["tab-bom", "Inv/Buy"],
   ["tab-checklists", "Checklists"],
@@ -327,6 +384,7 @@ async function switchMode(mode, syncTab = true) {
 
   carRoot.visible = mode === "car";
   pcb6Root.visible = mode === "pcb6";
+  partsRoot.visible = mode === "parts";
   v1Root.visible = mode === "v1";
 
   document.querySelectorAll(".mode-switch button").forEach((b) => {
@@ -346,9 +404,24 @@ async function switchMode(mode, syncTab = true) {
     document.getElementById("eyebrow").textContent = "JLCPCB 6-LAYER · ENIG · 100 × 100 mm · PROMO PRICE TO CONFIRM AT CHECKOUT";
     document.getElementById("stage-title").textContent = "100 × 100 mm ESP32 Carrier + Printed Display Enclosure";
     const eo = systemPlan?.enclosure?.overall_mm;
-    document.getElementById("dimension").textContent = `PCB 100.0 × 100.0 × 1.6 mm · enclosure ${eo ? `${eo.width} × ${eo.height} × ${eo.depth} mm` : "see the enclosure README"} · layout pending (gate G7)`;
+    document.getElementById("dimension").textContent = `PCB 100.0 × 100.0 × 1.6 mm, rev A routed (DRC 0/0/0) · enclosure ${eo ? `${eo.width} × ${eo.height} × ${eo.depth} mm` : "see the enclosure README"} · the real board and its parts: 3. Printed Parts`;
     setPcb6Camera("iso");
     if (syncTab) activateTab("tab-pcb6");
+  } else if (mode === "parts") {
+    document.getElementById("eyebrow").textContent = "3-D PRINTED PARTS · FROM THE GENERATED STL FILES · TO SCALE";
+    document.getElementById("stage-title").textContent = "Enclosure, Mirror Camera Pods & Mounts";
+    document.getElementById("dimension").textContent = partsCtx.caption(partsCtx.current);
+    if (syncTab) activateTab("tab-parts");
+    try {
+      await partsCtx.load();
+    } catch (err) {
+      showError(`The printed parts failed to load (${err.message || err}). Regenerate them with ` +
+        "python 01-hardware/enclosure/make_enclosure.py and make_mounts.py, then switch modes to retry.");
+      console.error(err);
+      return;
+    }
+    if (activeMode !== "parts") return;  // switched away while the files loaded
+    setPartsProduct(partsCtx.current);
   } else {
     document.getElementById("eyebrow").textContent = "ORIGINAL v1 TPMS MONITOR PANEL · 2-LAYER KiCad 10";
     document.getElementById("stage-title").textContent = "315 MHz Dash TPMS Receiver PCB (189×128 mm)";
@@ -382,6 +455,7 @@ function buildUI() {
       activateTab(id);
       if (id === "tab-car" && activeMode !== "car") switchMode("car", false);
       else if (id === "tab-pcb6" && activeMode !== "pcb6") switchMode("pcb6", false);
+      else if (id === "tab-parts" && activeMode !== "parts") switchMode("parts", false);
       else if (id === "tab-v1" && activeMode !== "v1") switchMode("v1", false);
     };
     tabsEl.appendChild(btn);
@@ -531,6 +605,44 @@ function buildUI() {
     };
     p6BlocksEl.appendChild(btn);
   });
+
+  // ---- PRINTED PARTS ----
+  const productsEl = document.getElementById("parts-products");
+  for (const [id, lbl] of partsCtx.list) {
+    const b = document.createElement("button");
+    b.textContent = lbl;
+    b.dataset.product = id;
+    if (id === partsCtx.current) b.classList.add("active");
+    b.onclick = async () => {
+      if (activeMode !== "parts") await switchMode("parts", false);
+      if (activeMode === "parts") setPartsProduct(id);
+    };
+    productsEl.appendChild(b);
+  }
+  document.getElementById("parts-explode").oninput = (e) => {
+    document.getElementById("parts-explode-out").textContent = `${e.target.value}%`;
+    partsCtx.setExplode(Number(e.target.value) / 100);
+  };
+  [["parts-bought", "bought"], ["parts-context", "context"], ["parts-section", "section"], ["parts-fov", "fov"],
+    ["parts-glow", "glow"], ["parts-xray", "xray"], ["parts-spin", "turntable"]].forEach(([el, opt]) => {
+    const box = document.getElementById(el);
+    box.checked = partsCtx.options[opt];
+    box.onchange = (e) => {
+      partsCtx.setOption(opt, e.target.checked);
+      if (opt === "bought" || opt === "context") renderPartsPanel();
+    };
+  });
+  document.getElementById("parts-reset").onclick = () => {
+    document.getElementById("parts-explode").value = "0";
+    document.getElementById("parts-explode-out").textContent = "0%";
+    partsCtx.setExplode(0);
+    for (const [el, opt, on] of [["parts-bought", "bought", true], ["parts-context", "context", true], ["parts-section", "section", false],
+      ["parts-fov", "fov", true], ["parts-glow", "glow", true], ["parts-xray", "xray", false], ["parts-spin", "turntable", false]]) {
+      document.getElementById(el).checked = on;
+      partsCtx.setOption(opt, on);
+    }
+    if (activeMode === "parts") setPartsProduct(partsCtx.current);
+  };
 
   // ---- TAB 3: WIRING & POWER ----
   const bp = systemPlan?.vehicle_blueprint || {};
@@ -850,7 +962,7 @@ const pointer = new THREE.Vector2();
 let downPos = null;
 
 function pickCurrent(clientX, clientY) {
-  if (!mediaEl.hidden || !carCtx || !pcb6Ctx) return null;
+  if (!mediaEl.hidden || !carCtx || !pcb6Ctx || !partsCtx) return null;
   const rect = renderer.domElement.getBoundingClientRect();
   pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
   pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
@@ -863,13 +975,15 @@ function pickCurrent(clientX, clientY) {
     return rec ? { kind: "v1", rec, tip: `${rec.item.label} (${rec.item.dims_mm.join("×")} mm)` } : null;
   }
 
-  const root = activeMode === "car" ? carRoot : pcb6Root;
-  const pickList = activeMode === "car" ? carCtx.pickables : pcb6Ctx.pickables;
-  const hits = raycaster.intersectObjects(root.children, true);
+  const root = activeMode === "car" ? carRoot : activeMode === "parts" ? partsRoot : pcb6Root;
+  const pickList = activeMode === "car" ? carCtx.pickables : activeMode === "parts" ? partsCtx.pickables : pcb6Ctx.pickables;
+  // Printed parts: only the products on show (the others hold ~0.5 M hidden triangles)
+  const hits = raycaster.intersectObjects(activeMode === "parts" ? partsCtx.raycastRoots() : root.children, true);
   // The Raycaster ignores `visible`: skip anything hidden itself or under a hidden group. Keep-out volumes are
   // picked only when no part is behind the click.
   let fallback = null;
   for (const h of hits) {
+    if (activeMode === "parts" && partsCtx.skipHit(h)) continue;   // cut away by the section, or see-through
     let obj = h.object, hidden = false, info = null, low = false;
     while (obj && obj !== root) {
       if (!obj.visible) { hidden = true; break; }
@@ -930,6 +1044,7 @@ async function init() {
   try {
     carCtx = createCarBlueprintScene(carRoot);
     pcb6Ctx = createPcb6Scene(pcb6Root, systemPlan.pcb6_stackup || [], systemPlan.enclosure || null);
+    partsCtx = createProductsScene(partsRoot);
     buildUI();
     await switchMode("car", true);
   } catch (err) {
@@ -955,7 +1070,7 @@ async function init() {
       }
       if (st.danger) {
         bsmStatePill.className = "pill danger";
-        bsmStatePill.textContent = "⚠ DANGER · BEEP";
+        bsmStatePill.textContent = st.beepMuted ? "⚠ DANGER · LED (beep auto-muted)" : "⚠ DANGER · BEEP";
       } else if (st.hazard) {
         bsmStatePill.className = "pill pa";
         bsmStatePill.textContent = "HAZARD · SILENT";
@@ -966,6 +1081,8 @@ async function init() {
         bsmStatePill.className = "pill pass";
         bsmStatePill.textContent = "CLEAR";
       }
+    } else if (activeMode === "parts" && partsCtx && mediaEl.hidden) {
+      partsCtx.update(dt, now);
     } else if (activeMode === "v1" && turntableOn && mediaEl.hidden) {
       v1PartsGroup.rotation.z += dt * 0.45;
     }

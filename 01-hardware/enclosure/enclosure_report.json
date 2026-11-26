@@ -38,7 +38,7 @@
       114.4
     ],
     "screws": "4× M3 × 6 from behind, through the ears into the bezel's bosses",
-    "cable_slot": "9 × 20 mm in the plate, 76.2-85.2 mm right of centre, 38-58 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
+    "cable_slot": "12 × 20 mm in the plate, 76.2-88.7 mm right of centre, 43-63 mm up: the HDMI flat cable and the micro-USB lead go through it into the pocket, then into the box through the slot above the USB window",
     "intake_slots_mm2": 771
   },
   "front_view_mm": {
@@ -124,9 +124,9 @@
     ],
     "cable_slot": [
       76.15,
-      85.15,
-      38.0,
-      58.0
+      88.65,
+      43.0,
+      63.0
     ],
     "box": [
       -56.0,
@@ -160,7 +160,37 @@
         -45.0
       ]
     ],
-    "opening_bottom_y": -64.5
+    "opening_bottom_y": -64.5,
+    "buzzer": [
+      87.38,
+      -16.6,
+      23.2
+    ],
+    "usb_wing": [
+      102.8,
+      130.7,
+      22.1,
+      63.9
+    ],
+    "usb_hole": [
+      130.7,
+      43.0,
+      25.8
+    ]
+  },
+  "viewer_frame": {
+    "pcb_center_mm": [
+      0.0,
+      4.5
+    ],
+    "z_mid_mm": -47.15,
+    "rule": "every asm_*.stl: this frame moved by (-x, -y, -z_mid), then turned 180° about Y (PCB centre at the origin, its parts up)"
+  },
+  "console_opening_mm": {
+    "top_width": 191.0,
+    "bottom_width": 123.0,
+    "height": 129.0,
+    "bottom_y": -64.5
   },
   "pcb_constraints": {
     "outline": "100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
@@ -178,7 +208,44 @@
     "pcb_to_posts": "4× M3 × 6",
     "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
     "amps": "4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
-    "pod": "2× M3 × 8, VHB tape under the base"
+    "piezo": "pressed into the 3 fingers on the bezel's skin (face on their 2 mm ledges), a dab of RTV on each; leads up the right cavity and out through the plate's slot",
+    "usb_wing": "2× M3 × 10 socket cap from inside the bezel's right cavity (before the display goes in), VHB on its back to the trim",
+    "usb_passthrough": "its own nut, held by the wing: turn the socket from outside to tighten"
+  },
+  "buzzer": {
+    "part": "12 V active piezo Ø23.2 × 12 mm (MEASURE yours)",
+    "where": "in the bezel's right cavity below the display's plugs, centre [87.38, -16.6] mm (right of / above the bezel's centre), held by 3 fingers on the skin",
+    "fires_through": "5 right intake slots (148 mm² open), 2.0 mm behind the bezel's skin",
+    "wiring": "the old alert-pod JST-GH on the carrier: + and - only; the button pins stay unused",
+    "behaviour": "blind-spot beeps auto-mute after 4 s (the side LED keeps flashing); a TPMS warning beeps twice, then only the screen shows it"
+  },
+  "usb_passthrough": {
+    "hole": "Ø25.8 mm, the v1 panel's cut (CFG.USB_HOLE_DIAMETER), in the wing's end wall",
+    "faces": "the passenger side (+X), socket axis level, 43 mm above the bezel's centre line",
+    "wing_mm": [
+      27.9,
+      41.8,
+      34.38
+    ],
+    "socket_reach_right_of_bezel_mm": 35.9,
+    "wing_front_proud_of_bezel_mm": 12.6,
+    "cable": "through the bezel's side wall (hidden by the wing), across the right cavity above the display's plugs, down through the plate's cable slot into the pocket, to the car's USB port",
+    "assembly": [
+      "bezel face down: screw the wing on (2× M3 × 10 from inside the right cavity)",
+      "nut into the wing from its open back; from outside push the plug, cable and body through the hole and the nut; turn the socket until the collar is snug",
+      "plug and cable through the bezel's side opening, then through the plate's slot FIRST, before the display's leads",
+      "fit the display, then the plate"
+    ],
+    "measure": [
+      "collar Ø and thickness",
+      "socket body Ø and how far it stands out",
+      "thread Ø and length",
+      "body/boot length behind the panel up to where the cable leaves, and its Ø",
+      "nut across corners / flats and thickness",
+      "cable Ø and tightest bend",
+      "the plug's moulding (w × t × length)",
+      "free flat trim right of the bezel's edge (≥ wing size) and anything in front of it"
+    ]
   },
   "parameters": {
     "MOD_W": 165.3,
@@ -264,10 +331,11 @@
     "BOX_TOP_GAP": 4.0,
     "CSLOT": [
       1.5,
-      9.0,
-      38.0,
+      12.5,
+      43.0,
       20.0
     ],
+    "CSLOT_R": 2.5,
     "SIDE_SLOT": [
       16.0,
       24.0
@@ -291,13 +359,39 @@
     "AMPS_D": 4.4,
     "M4_NUT_AF": 7.0,
     "M4_NUT_T": 3.4,
-    "BUTTON_D": 12.2,
-    "POD_BUZ_D": 23.2,
-    "POD_BUZ_H": 12.0,
-    "POD": [
-      60.0,
-      30.0,
-      28.0
+    "BUZ_D": 23.2,
+    "BUZ_H": 12.0,
+    "BUZ_RING": [
+      1.2,
+      4.0
+    ],
+    "BUZ_GAP": 2.0,
+    "PASS_HOLE_D": 25.8,
+    "PASS_THREAD_D": 25.16,
+    "PASS_COLLAR": [
+      28.2,
+      3.0
+    ],
+    "PASS_FRONT": [
+      24.2,
+      8.0
+    ],
+    "PASS_REAR_L": 22.4,
+    "PASS_NUT": [
+      36.0,
+      5.0
+    ],
+    "PASS_CABLE_D": 5.5,
+    "PASS_PLUG": [
+      16.5,
+      8.5
+    ],
+    "PASS_Y": 43.0,
+    "WING_WALL": 2.5,
+    "WING_SCREW": 2.2,
+    "TRIM_RIGHT": [
+      32.0,
+      46.0
     ],
     "BED": [
       220.0,
@@ -307,42 +401,37 @@
     "SEG": 40
   },
   "volumes_cm3": {
-    "bezel": 47.7,
-    "housing": 139.2,
+    "bezel": 47.4,
+    "housing": 138.9,
     "lid": 35.2,
-    "pod_shell": 14.3,
-    "pod_base": 4.5
+    "usb_wing": 10.6
   },
   "files": {
     "print_bezel": {
       "file": "stl/print_bezel.stl",
-      "triangles": 3852
+      "triangles": 4494
     },
     "print_housing": {
       "file": "stl/print_housing.stl",
-      "triangles": 7516
+      "triangles": 7526
     },
     "print_lid": {
       "file": "stl/print_lid.stl",
       "triangles": 2088
     },
-    "print_pod_shell": {
-      "file": "stl/print_pod_shell.stl",
-      "triangles": 1730
-    },
-    "print_pod_base": {
-      "file": "stl/print_pod_base.stl",
-      "triangles": 340
+    "print_usb_wing": {
+      "file": "stl/print_usb_wing.stl",
+      "triangles": 616
     },
     "asm_bezel": {
       "file": "stl/asm_bezel.stl",
-      "triangles": 3852,
+      "triangles": 4494,
       "color": "#1f2937",
-      "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen (print face down)"
+      "label": "Bezel: front frame, the display hangs on its 4 bosses; intake slots beside the screen; 3 fingers hold the piezo behind the right slots (print face down)"
     },
     "asm_housing": {
       "file": "stl/asm_housing.stl",
-      "triangles": 7516,
+      "triangles": 7526,
       "color": "#334155",
       "label": "Housing: plate + rear box for the Pi and the PCB (print plate down)"
     },
@@ -360,7 +449,7 @@
     },
     "asm_cables": {
       "file": "stl/asm_cables.stl",
-      "triangles": 110,
+      "triangles": 126,
       "color": "#f97316",
       "label": "HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)"
     },
@@ -387,13 +476,37 @@
       "triangles": 12,
       "color": "#111827",
       "label": "30 mm fan (dummy)"
+    },
+    "asm_buzzer": {
+      "file": "stl/asm_buzzer.stl",
+      "triangles": 156,
+      "color": "#e11d48",
+      "label": "12 V active piezo, behind the right intake slots (dummy)"
+    },
+    "asm_usb_wing": {
+      "file": "stl/asm_usb_wing.stl",
+      "triangles": 616,
+      "color": "#1f2937",
+      "label": "USB wing: holds the car's USB passthrough beside the bezel, v1's Ø25.8 cut (print front face down)"
+    },
+    "asm_usb_pass": {
+      "file": "stl/asm_usb_pass.stl",
+      "triangles": 1204,
+      "color": "#94a3b8",
+      "label": "The v1 USB passthrough: socket facing right, nut held by the wing, cable into the pocket (dummy)"
+    },
+    "asm_wing_screws": {
+      "file": "stl/asm_wing_screws.stl",
+      "triangles": 632,
+      "color": "#cbd5e1",
+      "label": "2× M3 × 10 from inside the bezel into the wing's tabs (dummy)"
     }
   },
   "checks": [
     {
       "check": "bezel: valid solid",
       "ok": true,
-      "detail": "NoError, 47.7 cm³, genus 34"
+      "detail": "NoError, 47.4 cm³, genus 38"
     },
     {
       "check": "bezel: fits a 220 × 220 bed",
@@ -403,7 +516,7 @@
     {
       "check": "housing: valid solid",
       "ok": true,
-      "detail": "NoError, 139.2 cm³, genus 17"
+      "detail": "NoError, 138.9 cm³, genus 17"
     },
     {
       "check": "housing: fits a 220 × 220 bed",
@@ -421,29 +534,19 @@
       "detail": "print size 126.0 × 124.0 × 4.5 mm, flat face on the bed"
     },
     {
-      "check": "pod_shell: valid solid",
+      "check": "usb_wing: valid solid",
       "ok": true,
-      "detail": "NoError, 14.3 cm³, genus 9"
+      "detail": "NoError, 10.6 cm³, genus 3"
     },
     {
-      "check": "pod_shell: fits a 220 × 220 bed",
+      "check": "usb_wing: fits a 220 × 220 bed",
       "ok": true,
-      "detail": "print size 60.0 × 30.0 × 28.0 mm, flat face on the bed"
-    },
-    {
-      "check": "pod_base: valid solid",
-      "ok": true,
-      "detail": "NoError, 4.5 cm³, genus 2"
-    },
-    {
-      "check": "pod_base: fits a 220 × 220 bed",
-      "ok": true,
-      "detail": "print size 60.0 × 30.0 × 2.5 mm, flat face on the bed"
+      "detail": "print size 27.9 × 41.8 × 34.4 mm, flat face on the bed"
     },
     {
       "check": "no clash: bezel / display",
       "ok": true,
-      "detail": "overlap -0.000 mm³"
+      "detail": "overlap 0.000 mm³"
     },
     {
       "check": "no clash: bezel / cables",
@@ -533,25 +636,100 @@
     {
       "check": "no clash: bezel / housing",
       "ok": true,
-      "detail": "overlap 0.000 mm³"
+      "detail": "overlap -0.000 mm³"
     },
     {
-      "check": "no clash: pod_shell / pod_button",
+      "check": "no clash: buzzer / bezel",
       "ok": true,
       "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "no clash: pod_shell / pod_buzzer",
+      "check": "no clash: buzzer / housing",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: buzzer / display",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: buzzer / cables",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / usb_wing",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / bezel",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / housing",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / display",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / cables",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / buzzer",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_pass / screws",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_wing / bezel",
       "ok": true,
       "detail": "overlap -0.000 mm³"
     },
     {
-      "check": "no clash: pod_button / pod_buzzer",
+      "check": "no clash: usb_wing / housing",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: usb_wing / display",
       "ok": true,
       "detail": "overlap 0.000 mm³"
     },
     {
-      "check": "no clash: pod_shell / pod_base",
+      "check": "no clash: wing_screws / bezel",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: wing_screws / cables",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: wing_screws / usb_pass",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: wing_screws / display",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: wing_screws / buzzer",
       "ok": true,
       "detail": "overlap 0.000 mm³"
     },
@@ -591,19 +769,49 @@
       "detail": "33 intake slots 2.5 mm wide (771 mm²); fan grille 2.5 mm gaps"
     },
     {
-      "check": "box, ears, 90° USB plugs, display leads and SMA lead fit the console opening",
+      "check": "box, ears, 90° USB plugs, display leads, SMA lead and USB passthrough cable fit the console opening",
       "ok": true,
       "detail": "tightest margin 3.0 mm (opening 191 top / 123 bottom × 129)"
     },
     {
       "check": "display-cable slot in the plate opens into the pocket",
       "ok": true,
-      "detail": "slot 9 × 20 mm at x 76.2-85.2; ≥ 3.4 mm inside the opening's edge"
+      "detail": "slot 12 × 20 mm at x 76.2-88.7; ≥ 1.2 mm inside the opening's edge"
     },
     {
       "check": "bezel stays below the HVAC panel",
       "ok": true,
       "detail": "bezel 205.6 × 129.0 mm; its top +0.0 mm from the opening's top edge (HVAC above)"
+    },
+    {
+      "check": "piezo inside the dash unit, behind the right intake slots",
+      "ok": true,
+      "detail": "Ø23.2 piezo on 3 fingers from the bezel's skin, its face 2.0 mm behind it (air still flows); 5 slots (148 mm²) in front of it; 0.8 mm clear of the plate"
+    },
+    {
+      "check": "USB passthrough uses the v1 cut",
+      "ok": true,
+      "detail": "Ø25.8 hole (v1 panel) for the Ø25.16 thread, 0.64 mm clearance; collar Ø28.2 and nut 31.2 mm A/F cover it and its printed flat"
+    },
+    {
+      "check": "wing holds the nut, so the socket tightens from outside",
+      "ok": true,
+      "detail": "36 mm nut can turn 2.7° before the wing's front wall stops it; 0.3 mm off the trim"
+    },
+    {
+      "check": "USB plug passes every opening on its way to the pocket",
+      "ok": true,
+      "detail": "16.5 × 8.5 mm plug: Ø25.8 end hole (diagonal 18.6), 17.5 × 9.5 side opening, 12.5 × 20.0 plate slot (1.6 mm spare; it goes through before the display's leads)"
+    },
+    {
+      "check": "USB wing fits the trim beside the bezel (MEASURE the trim)",
+      "ok": true,
+      "detail": "wing 27.9 × 41.8 mm on the trim (assumed 32 × 46 free); the socket ends 35.9 mm right of the bezel; the wing's front is 12.6 mm proud of the bezel's"
+    },
+    {
+      "check": "wing screws: M3 × 10 from inside the bezel",
+      "ok": true,
+      "detail": "through the 3 mm wall, 7 mm into 8 mm tabs on 45° gussets; heads under the skin, clear of the HDMI adapter"
     }
   ],
   "all_ok": true

@@ -37,12 +37,12 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 | 02 | [ESP32 controller](02-esp32-controller.md) | Watch | 0 / 0 / 4 / 2 / 2 | — | No way to update the firmware once installed (ESP-01) |
 | 03 | [Blinker sensing](03-blinker-sensing.md) | Watch | 1 / 2 / 3 / 2 / 1 | 5, incl. the Critical | Which wire to tap (BLK-05, G9); a dead input is silent (BLK-06) |
 | 04 | [Speed sources](04-speed-sources.md) | Watch | 0 / 1 / 2 / 3 / 1 | 2 | Your OBD dongle isn't identified (SPD-04) |
-| 05 | [Alerts and alert pod](05-alerts-and-alert-pod.md) | Watch | 0 / 0 / 8 / 2 / 1 | 7 | Piezo and LEDs never seen or heard in the car (ALR-08, ALR-09) |
+| 05 | [Alerts and the piezo](05-alerts-and-alert-pod.md) | Watch | 0 / 0 / 9 / 3 / 1 | 7 | The piezo (now inside the unit) and the LEDs never heard or seen in the car (ALR-08, ALR-09) |
 | 06 | [Raspberry Pi](06-raspberry-pi.md) | Watch | 0 / 2 / 5 / 2 / 0 | 1 | Heat throttling in summer (PI-04) |
-| 07 | [ESP32 ↔ Pi link](07-esp32-pi-link.md) | Sound | 0 / 0 / 3 / 2 / 1 | 2 | TX-off while the Pi is unpowered exists only as a comment (LNK-03) |
+| 07 | [ESP32 ↔ Pi link](07-esp32-pi-link.md) | Sound | 0 / 0 / 4 / 2 / 1 | 2 | TX-off while the Pi is unpowered exists only as a comment (LNK-03) |
 | 08 | [Cameras and vision](08-cameras-and-vision.md) | **Act** | 0 / 3 / 4 / 1 / 1 | 2 (in the spec) | Two USB cameras on the Pi 4's single USB 2.0 hub (CAM-03); no camera chosen |
 | 09 | [Display and UI](09-display-and-ui.md) | Watch | 0 / 2 / 7 / 2 / 0 | — | Its size comes from photos: measure it before printing (DSP-10) |
-| 10 | [Enclosure and thermal](10-enclosure-and-thermal.md) | Watch | 0 / 2 / 6 / 2 / 1 | 1 | Heat (ENC-01); the TS-7's real size (ENC-03) |
+| 10 | [Enclosure and thermal](10-enclosure-and-thermal.md) | Watch | 0 / 2 / 8 / 3 / 1 | 1 | Heat (ENC-01); the TS-7's real size (ENC-03); the USB passthrough and the trim beside the opening are unmeasured (ENC-13) |
 | 11 | [Carrier PCB](11-carrier-pcb.md) | Watch | 0 / 1 / 12 / 5 / 1 | 13 (carrier design) | Ready to order; check the polarized parts in JLCPCB's placement preview (PCB-P2) |
 | 12 | [Vehicle integration](12-vehicle-integration.md) | Watch | 0 / 0 / 7 / 2 / 1 | — | ACC during cranking (VEH-01); the repeater wire (VEH-07) |
 | 13 | [TPMS radio](13-tpms-radio.md) | Watch | 0 / 1 / 9 / 5 / 1 | 9 | No carrier-sense gating: noise can swamp the decoder in the car (RF-01) |
@@ -50,11 +50,12 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 | 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 10 / 9 / 0 | 15 | Hand-copied keep-outs in the viewer (VW-14) |
 | 16 | [Safety and legal](16-safety-and-legal.md) | Watch | 0 / 1 / 5 / 6 / 0 | 1 | Trusting an untested aid (SAF-01) |
 | 17 | [Project and repository](17-project-and-repo.md) | Sound | 0 / 0 / 4 / 3 / 1 | 2 | The plan was matched against an old inventory (PRJ-03) |
-| | **Total** | | **1 / 17 / 97 / 62 / 14** (191) | **72** | |
+| | **Total** | | **1 / 17 / 101 / 64 / 14** (197) | **72** | |
 
 **Since the audit:**
 - The TS-7 redesign closed 7 more findings (DSP-01, DSP-02, DSP-03, DSP-05, DSP-08, ENC-02, PI-03) and added 3 (DSP-10, DSP-11, RF-16).
 - The carrier PCB (rev A, generated and checked) closed 18 (PWR-01, PWR-02, PWR-03, PWR-05, PWR-06, PCB-01, PCB-03, PCB-05, PCB-06, PCB-09–PCB-12, PCB-14, PCB-16–PCB-19) and added 13 (PWR-09, PWR-10, PCB-09–PCB-19).
+- The alert redesign (2026-11-26: no alert pod and no button; the piezo inside the dash unit; beeps that mute themselves; the car's USB in a printed wing) added 6 (ALR-12, ALR-13, LNK-07, ENC-12, ENC-13, ENC-14), fixed 5 of them, and closed ALR-10 and ESP-05 (no button lead any more).
 
 The counts above include all of them.
 

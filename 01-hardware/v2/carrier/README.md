@@ -1,6 +1,6 @@
 # v2 carrier PCB, rev A
 
-100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the alert pod (piezo and mute button), the lid fan, the Pi UART link and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid.
+100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the piezo (J4 "POD": the piezo now sits inside the dash unit, and J4's button pins stay free), the lid fan, the Pi UART link and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid.
 
 Everything here is generated. Don't edit the KiCad files by hand: change the Python and rebuild.
 
