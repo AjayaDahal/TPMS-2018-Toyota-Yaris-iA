@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>TPMS Panel (2018 Yaris iA) · 315 MHz ESP32 + OLED Viewer</title>
+    <title>2018 Toyota Yaris iA · TPMS + Dual-Camera BSM + 6-Layer PCB 3-D Viewer</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="style.css" />
     <script type="importmap">
@@ -12,29 +12,42 @@
   </head>
   <body>
     <header>
-      <div class="wordmark"><i></i>TPMS<span>–</span>PANEL <b>Yaris iA</b></div>
-      <div class="titlebar" id="hdr-summary">2018 Toyota Yaris iA · 315 MHz CC1101 + ESP32 + 2.7" OLED Dash Receiver · Ready to Order</div>
+      <div class="wordmark"><i></i>YARIS iA<span>·</span>BSM+TPMS <b>v2</b></div>
+      <div class="mode-switch" role="tablist" aria-label="3-D Scene Mode">
+        <button class="hdr-btn active" id="mode-car" data-mode="car">1. Car Blueprint &amp; Wiring</button>
+        <button class="hdr-btn" id="mode-pcb6" data-mode="pcb6">2. 6-Layer PCB (100×100 · $2)</button>
+        <button class="hdr-btn" id="mode-v1" data-mode="v1">3. v1 TPMS Panel (189×128)</button>
+      </div>
       <div class="hdr-actions">
-        <a href="../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip" download>Download Gerbers</a>
+        <a href="../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip" download>v1 Gerbers</a>
       </div>
     </header>
     <main>
-      <div id="stage" aria-label="TPMS Panel 3D viewer">
+      <div id="stage" aria-label="2018 Yaris iA TPMS & BSM 3D viewer">
         <div id="scene"></div>
         <canvas id="overlay"></canvas>
         <div class="stage-title">
-          <small id="eyebrow">TPMS MONITOR PANEL / 2018 TOYOTA YARIS iA</small>
-          <h1 id="stage-title">315 MHz Dash TPMS Receiver PCB</h1>
+          <small id="eyebrow">2018 TOYOTA YARIS iA (MAZDA2 DJ SEDAN) · FULL-CAR BLUEPRINT</small>
+          <h1 id="stage-title">TPMS + Dual-Camera Blind-Spot System</h1>
         </div>
-        <div id="dimension">189.0 × 128.0 × 27.1 mm · Ready to Order</div>
+        <div id="dimension">4360 × 1695 × 1485 mm · WB 2570 mm · Mirrors 1983 mm</div>
+
+        <div id="hud-preview-box">
+          <div class="hud-preview-bar">
+            <span>7" RPi Touch Live UI</span>
+            <span id="bsm-state-pill" class="pill pass">CLEAR</span>
+          </div>
+          <canvas id="hud-preview-canvas" width="320" height="192"></canvas>
+        </div>
+
         <div id="inspect-hud" hidden></div>
         <div id="tip" hidden></div>
         <div id="stage-foot">
-          <span id="view-label">Isometric</span>
-          <span>Drag to orbit · Scroll to zoom · Click any 3-D component to inspect · Esc to clear</span>
+          <span id="view-label">Full Blueprint Isometric</span>
+          <span>Drag to orbit · Scroll to zoom · Click any part, camera, harness, or PCB layer to inspect · Esc to clear</span>
         </div>
         <div id="media" hidden>
-          <button id="media-close" class="hud-btn primary">✕ Return to 3-D PCB</button>
+          <button id="media-close" class="hud-btn primary">✕ Return to 3-D View</button>
           <img id="studio-img" alt="KiCad 3-D PCB Render" hidden />
           <div id="caption"></div>
         </div>
@@ -42,7 +55,7 @@
       <aside>
         <div class="aside-head">
           <div>
-            <small>TPMS PANEL / JLCPCB READY</small>
+            <small id="aside-eyebrow">YARIS iA · BSM + TPMS ARCHITECTURE</small>
             <h2>Engineering Inspector</h2>
           </div>
           <button id="collapse" aria-expanded="true">Hide</button>
@@ -50,14 +63,150 @@
         <div id="controls">
           <nav aria-label="Inspector tabs" id="tabs"></nav>
 
-          <section id="model">
-            <h3>Camera view</h3>
+          <!-- TAB 1: CAR BLUEPRINT & LIVE BSM SIMULATOR -->
+          <section id="tab-car">
+            <h3>Blueprint Camera Presets</h3>
+            <div class="buttons" id="car-views"></div>
+
+            <h3>7" Display Mount (printed enclosure)</h3>
+            <div class="buttons" id="mount-opts">
+              <button class="active" data-mount="console_float">A: Console Pocket</button>
+              <button data-mount="dash_top">B: Dash Top (RAM)</button>
+            </div>
+            <div id="mount-desc" class="card"></div>
+
+            <h3>Live Blind-Spot &amp; Blinker Simulator</h3>
+            <div class="buttons" id="sim-blinker">
+              <button class="active" data-blink="OFF">Blinker: OFF</button>
+              <button data-blink="L">Left Blinker</button>
+              <button data-blink="R">Right Blinker</button>
+              <button data-blink="HAZARD">Hazard (Silent)</button>
+            </div>
+            <div class="buttons" id="sim-target" style="margin-top:6px;">
+              <button class="active" data-target="car">Target: Car</button>
+              <button data-target="motorcycle">Target: Motorcycle</button>
+              <button data-target="none">Target: Clear</button>
+              <button id="btn-target-side">Side: Left Lane</button>
+            </div>
+            <label class="range">
+              Target Position <output id="target-y-out">-2.4 m</output>
+              <input type="range" id="target-y" min="-70" max="20" value="-24" />
+            </label>
+            <label class="range">
+              Speed Gate: OBD, else GPS (on ≥ 12, off &lt; 8 mph) <output id="speed-out">62 mph</output>
+              <input type="range" id="speed-mph" min="0" max="75" value="62" />
+            </label>
+            <div class="switches">
+              <label><input type="checkbox" id="sim-auto" checked /> Auto-Pass Target</label>
+              <label><input type="checkbox" id="sim-audio" /> Beep Audio</label>
+              <label><input type="checkbox" id="sim-night" /> Night Dim Mode</label>
+              <label><input type="checkbox" id="sim-hud-pip" checked /> Live 7" HUD PiP</label>
+            </div>
+            <button class="reset" id="btn-tpms-beep">Test TPMS Reminder Beep</button>
+
+            <h3>Blueprint &amp; Harness Layers</h3>
+            <div class="switches">
+              <label><input type="checkbox" id="car-xray" checked /> X-Ray Body Shell</label>
+              <label><input type="checkbox" id="car-fov" checked /> Camera FOV &amp; ROI</label>
+              <label><input type="checkbox" id="car-dims" checked /> Blueprint Dims</label>
+              <label><input type="checkbox" id="h-cameras" checked /> Mirror USB Cams</label>
+              <label><input type="checkbox" id="h-power" checked /> 12 V ACC / 5 V</label>
+              <label><input type="checkbox" id="h-signals" checked /> Blinkers (+ CAN ph. 2)</label>
+              <label><input type="checkbox" id="h-alerts" checked /> Door LEDs &amp; Alert Pod</label>
+              <label><input type="checkbox" id="h-sensors" checked /> GPS + OBD speed</label>
+              <label><input type="checkbox" id="h-rf" checked /> 315 MHz TPMS RF</label>
+            </div>
+          </section>
+
+          <!-- TAB 2: 6-LAYER 100x100 CARRIER + PRINTED ENCLOSURE -->
+          <section id="tab-pcb6" hidden>
+            <h3>6-Layer Carrier PCB + Printed Enclosure</h3>
+            <div class="buttons" id="pcb6-views"></div>
+            <label class="range">
+              Explode Layers + Enclosure <output id="pcb6-explode-out">0%</output>
+              <input type="range" id="pcb6-explode" min="0" max="100" value="0" />
+            </label>
+            <div class="switches">
+              <label><input type="checkbox" id="pcb6-stack" /> Printed Enclosure + Display + Pi</label>
+              <label><input type="checkbox" id="pcb6-xray" /> X-Ray Copper</label>
+              <label><input type="checkbox" id="pcb6-subcolor" /> Color by Zone</label>
+            </div>
+            <div id="enclosure-card" class="card" hidden></div>
+            <h3>v1 → v2 Pinout (from pins_v2.h, audited)</h3>
+            <div id="v1-v2-pinout" class="scroll-list"></div>
+            <h3>Toggle Individual Copper Layers</h3>
+            <div id="pcb6-layers" class="layer-list"></div>
+            <h3>Click-to-Inspect PCB Blocks</h3>
+            <div id="pcb6-blocks" class="scroll-list"></div>
+          </section>
+
+          <!-- TAB 3: WIRING, POWER & MOUNTING -->
+          <section id="tab-wiring" hidden>
+            <h3>2018 Yaris iA Blueprint Specs</h3>
+            <dl id="bp-dl"></dl>
+            <h3>Complete Harness &amp; Routing Schedule</h3>
+            <div id="wiring-list" class="scroll-list tall"></div>
+            <h3>5V / 12V Automotive Power Budget</h3>
+            <div id="power-list"></div>
+          </section>
+
+          <!-- TAB 4: INVENTORY VS BUY BOM -->
+          <section id="tab-bom" hidden>
+            <h3>System BOM: Lab Inventory vs. Buy</h3>
+            <div class="filter-pills" id="bom-filter-pills">
+              <button class="active" data-src="ALL">All</button>
+              <button data-src="INVENTORY">In Inventory ($0)</button>
+              <button data-src="BUY">Buy List</button>
+              <button data-src="OPTIONAL">Optional Phase 2</button>
+            </div>
+            <input type="search" id="sys-bom-search" placeholder="Search RPi4, Starvis, CC1101, 6-layer, piezo..." />
+            <div id="sys-bom-summary" class="card" style="margin-top:0;margin-bottom:8px;"></div>
+            <div id="sys-bom-list" class="scroll-list tall"></div>
+          </section>
+
+          <!-- TAB 5: INTERACTIVE CHECKLISTS -->
+          <section id="tab-checklists" hidden>
+            <div class="filter-pills" id="chk-subtabs">
+              <button class="active" data-chk="collect">Collect (<span id="chk-cnt-collect">0/0</span>)</button>
+              <button data-chk="buy">Buy (<span id="chk-cnt-buy">0/0</span>)</button>
+              <button data-chk="measure">Measure (<span id="chk-cnt-measure">0/0</span>)</button>
+              <button data-chk="bench">Bench tests (<span id="chk-cnt-bench">0/0</span>)</button>
+              <button data-chk="tools">Tools (<span id="chk-cnt-tools">0/0</span>)</button>
+              <button data-chk="steps">Build steps (<span id="chk-cnt-steps">0/0</span>)</button>
+            </div>
+            <div class="prog-wrap"><div id="chk-prog-bar" class="prog-bar"></div></div>
+            <div id="chk-prog-label" class="muted" style="margin-bottom:8px;"></div>
+            <div id="chk-list" class="scroll-list xtall"></div>
+            <button class="reset" id="chk-reset">Reset All Checklists</button>
+          </section>
+
+          <!-- TAB 6: PREMORTEM, CORRECTIONS AND THE ORDER GATE (generated from PREMORTEM_v2.md) -->
+          <section id="tab-premortem" hidden>
+            <h3>Can the v2 PCB be ordered?</h3>
+            <div id="gate-verdict" class="card" style="margin-top:0;"></div>
+            <div id="gate-list" class="scroll-list"></div>
+            <h3>Premortem: <span id="pm-count"></span></h3>
+            <div class="filter-pills" id="pm-status-pills">
+              <button class="active" data-st="all">All</button>
+              <button data-st="fixed">Fixed</button>
+              <button data-st="you">Needs you</button>
+              <button data-st="plan">Plan</button>
+              <button data-st="phase2">Phase 2</button>
+              <button data-st="accepted">Accepted</button>
+            </div>
+            <select id="pm-category" aria-label="Premortem group"></select>
+            <div id="premortem-list" class="scroll-list xtall"></div>
+            <div class="muted" style="margin-top:6px;">Source: <a href="../../00-project-management/PREMORTEM_v2.md" target="_blank">PREMORTEM_v2.md</a> (synced by 04-viewer/sync_plan.py)</div>
+          </section>
+
+          <!-- TAB 5: ORIGINAL v1 TPMS PCB (189x128 KiCad) -->
+          <section id="tab-v1" hidden>
+            <h3>v1 TPMS Panel (189×128 KiCad STEP)</h3>
             <div class="buttons" id="views"></div>
             <h3>Color mode</h3>
             <div class="buttons" id="colors"></div>
-            <h3>Look inside &amp; overlays</h3>
             <label class="range">
-              Explode PCB assembly <output id="amount">0%</output>
+              Explode v1 PCB <output id="amount">0%</output>
               <input type="range" id="explode" min="0" max="100" value="0" />
             </label>
             <div class="switches">
@@ -66,36 +215,22 @@
               <label><input type="checkbox" id="spin" /> Turntable</label>
               <label><input type="checkbox" id="show-all-btn" checked /> All parts visible</label>
             </div>
-            <button class="reset" id="reset">Reset view &amp; restore hidden parts</button>
-          </section>
-
-          <section id="parts" hidden>
-            <h3>BOM Components (<span id="part-count">0</span>)</h3>
+            <button class="reset" id="reset">Reset v1 view &amp; restore hidden parts</button>
+            <h3>v1 BOM Components (<span id="part-count">0</span>)</h3>
             <input type="search" id="filter" placeholder="Filter by ESP32, CC1101, OLED, LED, U3..." />
             <div id="bom-list"></div>
-            <div id="detail" class="card">Click any 3-D solid in the viewport or inspect BOM rows above.</div>
           </section>
 
-          <section id="hardware" hidden>
-            <h3>Electrical Architecture &amp; Protection</h3>
-            <dl id="hw-dl"></dl>
-          </section>
-
-          <section id="mfg" hidden>
-            <h3>JLCPCB Gerbers, Fit Template &amp; Docs</h3>
-            <div id="dl-list"></div>
-          </section>
-
-          <section id="studio" hidden>
-            <h3>KiCad 10 Ray-Traced PCB Renders</h3>
+          <!-- TAB 6: RENDERS, GERBERS & FIRMWARE -->
+          <section id="tab-docs" hidden>
+            <h3>KiCad 10 Ray-Traced v1 PCB Renders</h3>
             <div id="studio-list"></div>
             <button class="reset" id="back-3d">← Return to Interactive 3-D</button>
-          </section>
-
-          <section id="firmware" hidden>
-            <h3>ESP32 Bring-Up &amp; 315 MHz Decoder</h3>
-            <dl id="fw-dl"></dl>
-            <div class="card muted">Build &amp; flash with PlatformIO from 02-firmware/bringup/. Runs LED/OLED/encoder/buzzer self-test followed by live GM/Schrader EG53MA4 315 MHz OOK packet decoding.</div>
+            <h3>Downloads &amp; Manufacturing Files</h3>
+            <div id="dl-list"></div>
+            <h3>v1 Hardware &amp; ESP32 Bring-Up Firmware</h3>
+            <dl id="hw-dl"></dl>
+            <dl id="fw-dl" style="margin-top:8px;"></dl>
           </section>
         </div>
       </aside>

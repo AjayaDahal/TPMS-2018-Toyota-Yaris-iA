@@ -1,0 +1,2288 @@
+{
+  "project": "2018 Toyota Yaris iA · TPMS + dual-camera blind-spot assist + 7\" touch display",
+  "subtitle": "Mazda2 DJ sedan blueprint · 100 × 100 mm 6-layer ESP32 carrier · Official 7\" Touch Display + Raspberry Pi 4 in one printed enclosure",
+  "vehicle_blueprint": {
+    "model": "2018 Toyota Yaris iA (Mazda2 DJ sedan)",
+    "length_mm": 4360,
+    "width_body_mm": 1695,
+    "width_mirrors_mm": 1983,
+    "height_mm": 1485,
+    "wheelbase_mm": 2570,
+    "track_front_mm": 1495,
+    "track_rear_mm": 1485,
+    "overhang_front_mm": 865,
+    "overhang_rear_mm": 925,
+    "ground_clearance_mm": 140,
+    "tire_size": "185/60R16 (OD 628 mm)",
+    "console_pocket_mm": "191 top × 123 bottom × 129 high (v1 paper fit); depth not measured: the enclosure needs ≥ 66 mm",
+    "rpi_7in_display_mm": "192.96 × 110.76 × 5.96 (active 154.08 × 85.92, 800 × 480, 250 cd/m², viewing 50° top / 70° bottom)",
+    "display_mount_holes_mm": "4× M3 on 126.2 × 65.65 (frame flange) · 4× M2.5 on 58.0 × 49.0 (Pi standoffs)",
+    "carrier_pcb_mm": "100 × 100 × 1.6, 6 layers (JLCPCB: ENIG only, 0.5 oz inner copper) · 4× M3 on 92 × 92 (enclosure posts)",
+    "enclosure_mm": "205.6 × 127.9 × 71.8 (bezel to lid) · rear box 112 × 120, 60.5 behind the plate"
+  },
+  "mount_options": {
+    "console_float": {
+      "id": "console_float",
+      "name": "Option A: console pocket (recommended)",
+      "summary": "The printed enclosure sits in front of the console opening, upside down (cable edge up) for contrast when you look down at it. Its 205.6 × 127.9 mm bezel covers the 191 / 123 × 129 mm opening without climbing onto the HVAC panel. The 112 × 120 × 61 mm rear box with the Pi 4 and the carrier PCB drops into the pocket: it needs ≥ 66 mm of clear depth, and the car's USB / 12 V strip is behind it (measure with the foam mock-up). Air: chin intake → lid fan → 2 mm gap round the plate.",
+      "dsi_cable": "stock 15-way ribbon: the Pi stays on the display's own standoffs",
+      "ergonomics": "Low and shaded (cooler); you glance down. The amber LEDs at the mirrors and the pod's beep do the alerting."
+    },
+    "dash_top": {
+      "id": "dash_top",
+      "name": "Option B: dash top on a RAM / AMPS mount",
+      "summary": "The same enclosure on a RAM-B-202U round base, screwed to the AMPS 30 × 38 mm M4 nuts in the box's bottom wall: an eye-level glance. More sun (250 cd/m² washes out) and heat (product brief: 0–50 °C), so take it in on hot days. Keep clear of the passenger airbag door and the windshield view.",
+      "dsi_cable": "stock 15-way ribbon: the Pi stays on the display's own standoffs",
+      "ergonomics": "Fastest glance; worst sun and heat."
+    }
+  },
+  "v1_v2_pinout": [
+    {
+      "pin": "IO18 / IO19 / IO23",
+      "v1": "VSPI SCK / MISO / MOSI (CC1101 + OLED)",
+      "v2": "VSPI to the CC1101 (no OLED in v2)",
+      "match": "EXACT"
+    },
+    {
+      "pin": "IO5 / IO34 / IO35",
+      "v1": "CC1101 CS / GDO0 / GDO2",
+      "v2": "Same: the v1 radio driver and EG53MA4 decoder are reused unchanged",
+      "match": "EXACT"
+    },
+    {
+      "pin": "IO21 / IO22",
+      "v1": "I2C SDA / SCL on J4 (4.7 k)",
+      "v2": "I2C: optional VL6180X light sensor + LM75A board temperature",
+      "match": "EXACT"
+    },
+    {
+      "pin": "IO13",
+      "v1": "Buzzer (5 V active, MMBT3904)",
+      "v2": "12 V active piezo in the alert pod (low-side MOSFET)",
+      "match": "EXACT"
+    },
+    {
+      "pin": "IO4",
+      "v1": "Encoder push switch (10 k / 100 nF)",
+      "v2": "Mute / acknowledge button in the alert pod (same RC)",
+      "match": "EXACT"
+    },
+    {
+      "pin": "IO16 / IO17",
+      "v1": "Encoder A / B",
+      "v2": "UART2 ↔ Pi GPIO14 / 15 (1 k / 4.7 k series; TX off while the Pi is unpowered)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO36 / IO39",
+      "v1": "MX-05V data (DNP) / J4 spare",
+      "v2": "Left / right blinker (PC817), polled at 1 kHz (errata 3.11). Earlier draft: IO35, which is the CC1101's GDO2",
+      "match": "FIXED"
+    },
+    {
+      "pin": "IO25 / IO14",
+      "v1": "Tyre LEDs FL / RR",
+      "v2": "Left / right amber blind-spot LED (PWM, low-side MOSFET)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO32",
+      "v1": "Tyre LED RL",
+      "v2": "ACC sense, ADC1 (100 k / 10 k + clamp): key position and engine running (≥ 13 V)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO33 / IO27",
+      "v1": "Tyre LED FR / OLED DC",
+      "v2": "GPS UART1 RX / TX (NEO-M8N, 9600 Bd): fallback speed for the speed gate (the OBD-II dongle first, over Bluetooth)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO26",
+      "v1": "OLED reset",
+      "v2": "PI_INHIBIT: can only delay the Pi's regulator (pulled down: the Pi starts by default)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO15",
+      "v1": "OLED CS",
+      "v2": "Pololu power-good (open drain, 10 k)",
+      "match": "REUSED"
+    },
+    {
+      "pin": "IO2",
+      "v1": "J4 spare",
+      "v2": "DevKit status LED; must be low at reset. Earlier draft: CAN RX, which idles high and breaks flashing",
+      "match": "FIXED"
+    },
+    {
+      "pin": "IO12",
+      "v1": "Not connected (flash-voltage strap)",
+      "v2": "Not connected",
+      "match": "EXACT"
+    }
+  ],
+  "pcb6_stackup": [
+    {
+      "layer": "L1 (top)",
+      "thickness_mm": 0.035,
+      "z_mm": 0.8,
+      "color": "#d97706",
+      "role": "Parts and signal routing. 5 V / 12 V currents in wide outer pours (inner copper is only 0.5 oz). Thermal reliefs on every through-hole pad"
+    },
+    {
+      "layer": "L2 (inner 1)",
+      "thickness_mm": 0.0152,
+      "z_mm": 0.56,
+      "color": "#10b981",
+      "role": "Solid ground plane under the whole board: reference for L1, ground under the CC1101 module"
+    },
+    {
+      "layer": "L3 (inner 2)",
+      "thickness_mm": 0.0152,
+      "z_mm": 0.16,
+      "color": "#ef4444",
+      "role": "Low-current power distribution: 12V_PROT, 5V_ESP, 3V3 (the 5 A path stays on L1/L6)"
+    },
+    {
+      "layer": "L4 (inner 3)",
+      "thickness_mm": 0.0152,
+      "z_mm": -0.16,
+      "color": "#059669",
+      "role": "Solid ground plane: shields the L5 signals from L3"
+    },
+    {
+      "layer": "L5 (inner 4)",
+      "thickness_mm": 0.0152,
+      "z_mm": -0.56,
+      "color": "#3b82f6",
+      "role": "Slow signals: blinker optos, Pi and GPS UARTs, I2C, SPI to the CC1101"
+    },
+    {
+      "layer": "L6 (bottom)",
+      "thickness_mm": 0.035,
+      "z_mm": -0.8,
+      "color": "#b45309",
+      "role": "Second high-current pour for 5V_PI / 12 V, stitched to L1; test pads; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm)"
+    }
+  ],
+  "wiring_harness": [
+    {
+      "id": "cam_l",
+      "layer": "cameras",
+      "name": "Left mirror camera (USB UVC)",
+      "route": "Lower mirror cap, aimed back along the car's side → service loop through the mirror hinge → door harness → factory door boot (silicone grease) → kick panel → under the console trim → the Pi's USB 2.0 port through the enclosure's window (90° adapter)",
+      "cable": "The camera's own USB 2.0 lead (~3 m), not cut; or spliced with the pairs twisted and the shield continuous. No JST-GH in the data path",
+      "protection": "O-ring + neutral-cure RTV at the cap, drip loop, butyl on the door's vapour barrier, ferrite at the Pi"
+    },
+    {
+      "id": "cam_r",
+      "layer": "cameras",
+      "name": "Right mirror camera (USB UVC)",
+      "route": "Lower mirror cap → hinge service loop → passenger door harness → door boot → kick panel → behind the glovebox → the Pi's second USB 2.0 port (90° adapter)",
+      "cable": "The camera's own USB 2.0 lead (~3.5 m), same rules as the left",
+      "protection": "Same as the left side"
+    },
+    {
+      "id": "pwr_acc",
+      "layer": "power",
+      "name": "12 V ACC feed (one fuse tap)",
+      "route": "Driver's interior fuse box: Add-A-Circuit (5 A) on a non-critical ACC fuse, metered first (hot in ACC and ON, dead with the key out; never SRS or engine) → ring terminal on a chassis ground stud → under the dash → J1 Micro-Fit on the carrier, through the lid's cable exit",
+      "cable": "18 AWG TXL pair, ~1.3 m",
+      "protection": "4 A fuse + SMCJ22CA + P-MOSFET reverse protection + π filter on the board. ACC only: zero draw when parked, by construction"
+    },
+    {
+      "id": "pwr_5v",
+      "layer": "power",
+      "name": "5 V / 5 A to the Pi and the display (inside the enclosure)",
+      "route": "J5 → 90° USB-C pigtail to the Pi; second pair → display adapter 5 V / GND; 2-pin header → lid fan",
+      "cable": "18 AWG silicone, ≤ 20 cm",
+      "protection": "470 µF at the Pi end; Pololu D36V50F5 (5.5 A); pass = vcgencmd get_throttled 0x0 under load"
+    },
+    {
+      "id": "blinker_tap",
+      "layer": "signals",
+      "name": "Left / right turn-signal sense (IO36 / IO39)",
+      "route": "One 12 V lamp feed per side, found with the wiring diagram and a meter (kick panel, or the tail lamps) → solder or T-tap + heat-shrink → twisted pair → the PC817 inputs on the carrier",
+      "cable": "22 AWG pair, ~1.5 m",
+      "protection": "2 × 1.1 kΩ + 1N4148 per input (~6 mA, isolated). Firmware bridges PWM gaps, rejects spikes and recognises hazards"
+    },
+    {
+      "id": "pi_uart",
+      "layer": "signals",
+      "name": "Pi ↔ ESP32 link (inside the enclosure)",
+      "route": "Pi GPIO14 / 15 + GND (90° Dupont) ↔ JST-GH on the carrier → UART2 IO16 / IO17",
+      "cable": "3 wires, ~10 cm",
+      "protection": "1 k / 4.7 k series; the ESP32 keeps TX off while the Pi is unpowered; checksummed lines"
+    },
+    {
+      "id": "leds_mirror",
+      "layer": "alerts",
+      "name": "Left / right amber blind-spot LEDs",
+      "route": "Carrier JST-GH → with the camera cable through each door boot → LED in the inner door sail or mirror housing, facing the driver. Not in the A-pillar trim (curtain airbag)",
+      "cable": "24 AWG pair, ~2 m per side",
+      "protection": "Low-side MOSFET + series resistor; PWM level set by the Pi for night dimming. Steady = vehicle there, flashing = you are signalling towards it"
+    },
+    {
+      "id": "alert_pod",
+      "layer": "alerts",
+      "name": "Alert pod: mute button + 12 V piezo",
+      "route": "Carrier JST-GH (4 pins: BTN, GND, BUZ+, BUZ−) → under the console trim → printed pod by the shifter (VHB + 2 screws). Not on the steering column or the knee bolster",
+      "cable": "4-core 26 AWG, ~0.8 m",
+      "protection": "33 Ω + SMAJ18A on the 12 V feed; the v1 button RC. The button works with the Pi down: mute this turn, acknowledge a TPMS alarm"
+    },
+    {
+      "id": "gps",
+      "layer": "sensors",
+      "name": "GPS: fallback speed source (NEO-M8N)",
+      "route": "GPS puck on the dash top under the windshield (needs sky) → behind the instrument panel (not through the A-pillar trim) → carrier JST-GH (UART1 IO33 / IO27, 5 V)",
+      "cable": "4 wires, ~1.2 m",
+      "protection": "Speed gate: the OBD-II speed first while the dongle answers, else GPS; both lost: last decision held 10 s, then LEDs only"
+    },
+    {
+      "id": "obd_bt",
+      "layer": "sensors",
+      "name": "OBD-II speed: your Bluetooth dongle (optional)",
+      "route": "OBD-II port under the dash, driver's side → Bluetooth Classic → the ESP32 in the enclosure (no wires)",
+      "cable": "None: a low-profile dongle, or a short right-angle extension tied up out of the footwell",
+      "protection": "Requests PID 0x0D only, never listens to the bus; counts while < 1 s old, then the GPS takes over; parked drain measured first (B8). Not used for the blinker"
+    },
+    {
+      "id": "tpms_rf",
+      "layer": "rf",
+      "name": "315 MHz TPMS (4 × EG53MA4 → CC1101)",
+      "route": "CC1101's own SMA → 10 cm RG316 → SMA bulkhead in the enclosure wall → 30 cm RG316 → 315 MHz whip clear of the Pi, the display and the camera cables",
+      "cable": "RG316 with SMA",
+      "protection": "315 MHz-tuned CC1101 module; noise floor checked with everything on and off (bench test B6)"
+    },
+    {
+      "id": "can_phase2",
+      "layer": "signals",
+      "name": "Phase 2: CAN (no PCB change)",
+      "route": "OBD-II port → CANable-type USB adapter (gs_usb / SocketCAN) → a Pi USB port",
+      "cable": "OBD-II lead",
+      "protection": "Listen-only: never transmits. HS-CAN (pins 6/14): wheel speeds, gear, and the blinker broadcast 0x9A as a cross-check of the lamp taps (opendbc IDs, to confirm on this car)"
+    }
+  ],
+  "power_budget": [
+    {
+      "rail": "5V_PI",
+      "load": "Raspberry Pi 4 (two camera streams + detection)",
+      "typ_a": 1.4,
+      "peak_a": 2.6
+    },
+    {
+      "rail": "5V_PI",
+      "load": "Official 7\" Touch Display (docs: 200 mA at full brightness)",
+      "typ_a": 0.2,
+      "peak_a": 0.3
+    },
+    {
+      "rail": "5V_PI",
+      "load": "2 × USB mirror cameras",
+      "typ_a": 0.5,
+      "peak_a": 0.7
+    },
+    {
+      "rail": "5V_PI",
+      "load": "30 mm lid fan",
+      "typ_a": 0.1,
+      "peak_a": 0.12
+    },
+    {
+      "rail": "5V_ESP",
+      "load": "ESP32 DevKit (Bluetooth Classic link to the OBD dongle; Wi-Fi off)",
+      "typ_a": 0.12,
+      "peak_a": 0.35
+    },
+    {
+      "rail": "5V_ESP",
+      "load": "CC1101 (via 3V3), GPS, LM75A, two amber LEDs",
+      "typ_a": 0.1,
+      "peak_a": 0.17
+    },
+    {
+      "rail": "12V_PROT",
+      "load": "Piezo (pulsed) + two opto inputs",
+      "typ_a": 0.02,
+      "peak_a": 0.05
+    }
+  ],
+  "system_bom": [
+    {
+      "item": "Raspberry Pi 4 Model B",
+      "category": "Compute",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 2,
+      "cost_usd": 0,
+      "notes": "Check the RAM: needs ≥ 2 GB (free -h). Keep the second one on the bench."
+    },
+    {
+      "item": "Official 7\" Touch Display (glass, touch, adapter, ribbons, standoffs)",
+      "category": "Display",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "The inventory lists only the Touch Display Adapter v1.1: confirm the glass, touch panel and both ribbons are there (gate G3)."
+    },
+    {
+      "item": "ESP32-WROOM-32 DevKit (30-pin)",
+      "category": "Real-time µC",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 2,
+      "cost_usd": 0,
+      "notes": "TPMS radio, blinker inputs, speed gate (OBD-II over Bluetooth Classic, GPS fallback), LEDs, buzzer, Pi power sequencing."
+    },
+    {
+      "item": "CC1101 module (433 MHz-tuned, in the lab)",
+      "category": "TPMS RF",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Bench and spare. For the car buy a 315 MHz-tuned module with the same pinout (up to ~10 dB better at 315 MHz)."
+    },
+    {
+      "item": "u-blox NEO-M8N GPS (Holybro) or 3DR GTPA010",
+      "category": "Sensors",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 2,
+      "cost_usd": 0,
+      "notes": "Fallback speed for the speed gate (the OBD-II dongle first). Check the connector pinout before wiring the JST-GH."
+    },
+    {
+      "item": "Your OBD-II Bluetooth dongle (ELM327-type)",
+      "category": "Speed (opt)",
+      "source": "OPTIONAL",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 0,
+      "notes": "Yours (not in the lab list). The car's own speed (PID 0x0D) for the speed gate, over Bluetooth Classic to the ESP32. Check Classic vs BLE and its parked current (B8). Not for the blinker."
+    },
+    {
+      "item": "Adafruit VL6180X (light sensor, optional)",
+      "category": "Sensors",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Optional night dimming on I2C; the Pi can also estimate it from the cameras."
+    },
+    {
+      "item": "2 × USB camera modules (bench)",
+      "category": "Vision (bench)",
+      "source": "INVENTORY",
+      "qty": 2,
+      "inv_stock": 4,
+      "cost_usd": 0,
+      "notes": "Measure the Pi 4's frame rate with two streams before buying the car cameras (V1)."
+    },
+    {
+      "item": "30 mm 5 V fan (from the black Pi case)",
+      "category": "Thermal",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Lid fan, blowing out. Measure its thickness and hole spacing."
+    },
+    {
+      "item": "Panel-mount round pushbutton",
+      "category": "Alert pod",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Mute / acknowledge. Measure its thread for BUTTON_D."
+    },
+    {
+      "item": "M3 / M4 screws and nuts (VIGRUE, Zuorery, Fgruh kits)",
+      "category": "Fasteners",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 3,
+      "cost_usd": 0,
+      "notes": "Enclosure: M3 × 6 / 10 / 12 / 16, M4 nuts + M4 × 10 (AMPS)."
+    },
+    {
+      "item": "ATX PSU 12 V rail or 3S LiPo (bench 12 V)",
+      "category": "Bench",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Power-path tests B1–B6 through a 5 A fuse."
+    },
+    {
+      "item": "RTL-SDR, or the USRP B205mini via SoapySDR",
+      "category": "Bench",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "rtl_433 -f 315M: log the four tyre IDs and check the decoder on real frames."
+    },
+    {
+      "item": "Infineon 60 GHz radar (phase 2)",
+      "category": "Sensors (opt)",
+      "source": "OPTIONAL",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Phase 2 fusion for rain and night, on the Pi."
+    },
+    {
+      "item": "6-layer 100 × 100 mm carrier PCB (5 pcs)",
+      "category": "PCB",
+      "source": "BUY",
+      "qty": 5,
+      "inv_stock": 0,
+      "cost_usd": 2,
+      "notes": "JLCPCB promo price: confirm at checkout (gate G8). 6-layer FR-4 is ENIG only; inner copper 0.5 oz. Plus shipping."
+    },
+    {
+      "item": "2 × USB UVC mirror cameras",
+      "category": "Mirror cameras",
+      "source": "BUY",
+      "qty": 2,
+      "inv_stock": 0,
+      "cost_usd": 90,
+      "notes": "MJPEG 720p30, Starvis WDR, no IR LEDs, −20…+70 °C, IP67, barrel ≤ 20 mm, ≥ 3 m lead, 90–110° lens. Fallback: AHD + 2-channel USB capture."
+    },
+    {
+      "item": "315 MHz CC1101 module (same 2 × 4 pinout)",
+      "category": "TPMS RF",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 3,
+      "notes": "Tuned for 315 MHz; keep the 433 one as a spare."
+    },
+    {
+      "item": "Pololu D36V50F5 (5 V, 5.5 A, 50 V in)",
+      "category": "Power",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 20,
+      "notes": "Pi rail. EN on by default: the ESP32 can only delay it."
+    },
+    {
+      "item": "TRACO TSR 1-2450 + AMS1117-3.3 + 22 µF tantalum",
+      "category": "Power",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 8,
+      "notes": "5V_ESP and 3V3 (v1 stability fix kept)."
+    },
+    {
+      "item": "Protection: SMCJ22CA, AOD4185 P-MOSFET, 4 A fuse, SMAJ18A, π filter, BAT54S, 2N7002",
+      "category": "Power",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 8,
+      "notes": "Load dump, jump start, reverse battery, AM-band noise."
+    },
+    {
+      "item": "2 × PC817 + 1206 resistors + 1N4148 + LM75A",
+      "category": "Signals",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 3,
+      "notes": "Blinker inputs (~6 mA each) and the board temperature for the hot-start hold."
+    },
+    {
+      "item": "Micro-Fit 3.0 right-angle headers + housings + crimps; JST-GH kit",
+      "category": "Harness",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 18,
+      "notes": "Right-angle at the board edges so mated plugs stay under the 16 mm height budget."
+    },
+    {
+      "item": "12 V active piezo (3–24 V, sharp tone)",
+      "category": "Alert pod",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 3,
+      "notes": "Measure it for POD_BUZ_D / POD_BUZ_H."
+    },
+    {
+      "item": "2 × amber 5 mm LEDs + bezels",
+      "category": "Visual alert",
+      "source": "BUY",
+      "qty": 2,
+      "inv_stock": 0,
+      "cost_usd": 3,
+      "notes": "Amber only (no red near the windshield)."
+    },
+    {
+      "item": "Add-A-Circuit fuse tap (5 A) + ring terminal",
+      "category": "Harness",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 8,
+      "notes": "One tap on a non-critical ACC fuse."
+    },
+    {
+      "item": "90° USB-C pigtail, 2 × 90° USB-A adapters, 90° Dupont housings",
+      "category": "Enclosure",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 12,
+      "notes": "Keep the Pi's plugs inside the enclosure's height budget and the pocket."
+    },
+    {
+      "item": "RG316 SMA pigtail + SMA bulkhead + 30 cm extension + 315 MHz whip",
+      "category": "TPMS RF",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 12,
+      "notes": "Antenna out of the enclosure, away from the Pi."
+    },
+    {
+      "item": "ASA filament 1 kg (or MJF PA12 parts from JLC3DP)",
+      "category": "Enclosure",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 25,
+      "notes": "Never PLA. The parts are ~225 cm³ solid."
+    },
+    {
+      "item": "Split grommet, VHB tape, ferrites, butyl tape, neutral-cure RTV",
+      "category": "Install",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 18,
+      "notes": "Cable exit, pod, EMI, door vapour barrier, camera seal."
+    },
+    {
+      "item": "High-endurance microSD 32 GB",
+      "category": "Storage",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 12,
+      "notes": "Read-only root on top."
+    },
+    {
+      "item": "Multimeter, trim tools, JST-GH crimper (or pre-crimped leads), step drill",
+      "category": "Tools",
+      "source": "BUY",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 55,
+      "notes": "No multimeter in the inventory."
+    },
+    {
+      "item": "RAM-B-202U AMPS base + arm (Option B only)",
+      "category": "Mount (opt)",
+      "source": "OPTIONAL",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 30,
+      "notes": "Screws to the AMPS M4 nuts in the enclosure's bottom wall."
+    },
+    {
+      "item": "CANable-type USB CAN adapter (phase 2)",
+      "category": "CAN (opt)",
+      "source": "OPTIONAL",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 30,
+      "notes": "Phase 2: listen-only SocketCAN on the Pi, HS-CAN at OBD pins 6/14: a cross-check of the blinker taps and the speed. Replaces the ESP32 CAN of the earlier draft."
+    },
+    {
+      "item": "Toyota service information subscription (wiring diagram)",
+      "category": "Info (opt)",
+      "source": "OPTIONAL",
+      "qty": 1,
+      "inv_stock": 0,
+      "cost_usd": 25,
+      "notes": "techinfo.toyota.com, short subscription: find the turn-signal feeds."
+    }
+  ],
+  "checklist_collect": [
+    {
+      "id": "col_pi",
+      "text": "Raspberry Pi 4 Model B; check the RAM (≥ 2 GB)",
+      "where": "SBC shelf (2 in the lab)"
+    },
+    {
+      "id": "col_disp",
+      "text": "Official 7\" Touch Display: glass + touch + adapter board + DSI ribbon + 4 standoffs + jumpers (the inventory lists only the adapter)",
+      "where": "Displays shelf"
+    },
+    {
+      "id": "col_esp",
+      "text": "ESP32-WROOM-32 DevKit (30-pin): WROOM, not WROVER",
+      "where": "SBC shelf (2)"
+    },
+    {
+      "id": "col_rf",
+      "text": "CC1101 module (bench), RTL-SDR or USRP B205mini, OEC-T5 / EL-50448 TPMS tool",
+      "where": "RF shelf"
+    },
+    {
+      "id": "col_cams",
+      "text": "2 USB camera modules for the bench vision test",
+      "where": "Sensor cart (4)"
+    },
+    {
+      "id": "col_gps",
+      "text": "NEO-M8N GPS (Holybro) or 3DR GTPA010",
+      "where": "Drone shelf"
+    },
+    {
+      "id": "col_obd",
+      "text": "Your OBD-II Bluetooth dongle: model, Bluetooth Classic or BLE (if it works with an iPhone it is BLE), PIN (1234 / 0000), MAC address",
+      "where": "Car / glovebox"
+    },
+    {
+      "id": "col_fan",
+      "text": "30 mm 5 V fan from the black Pi case",
+      "where": "Cases & enclosures"
+    },
+    {
+      "id": "col_btn",
+      "text": "Panel-mount round pushbutton (alert pod)",
+      "where": "Components"
+    },
+    {
+      "id": "col_fast",
+      "text": "M3 screws 6 / 10 / 12 / 16 mm, M3 nuts, M4 nuts + M4 × 10 (VIGRUE, Zuorery, Fgruh kits)",
+      "where": "Fastener organizers"
+    },
+    {
+      "id": "col_bench",
+      "text": "12 V bench source: ATX PSU 12 V rail or 3S LiPo, with a 5 A inline fuse",
+      "where": "Power shelf"
+    },
+    {
+      "id": "col_opt",
+      "text": "Optional: VL6180X light sensor, 60 GHz radar (phase 2)",
+      "where": "Sensor table"
+    }
+  ],
+  "checklist_buy": [
+    {
+      "id": "buy_cams",
+      "text": "2 USB UVC mirror cameras meeting the acceptance criteria (only after the bench frame-rate test V1)",
+      "cost": "~$90"
+    },
+    {
+      "id": "buy_rf",
+      "text": "315 MHz CC1101 module + RG316 SMA pigtail + SMA bulkhead + 30 cm extension + 315 MHz whip",
+      "cost": "~$15"
+    },
+    {
+      "id": "buy_pwr",
+      "text": "Pololu D36V50F5, TSR 1-2450, AMS1117-3.3 + 22 µF Ta, SMCJ22CA, AOD4185, 4 A fuse, SMAJ18A, π-filter parts, BAT54S, 2N7002",
+      "cost": "~$36"
+    },
+    {
+      "id": "buy_sig",
+      "text": "2 × PC817, 1206 resistors, 1N4148, LM75A, 2 amber LEDs + bezels, 12 V active piezo",
+      "cost": "~$9"
+    },
+    {
+      "id": "buy_conn",
+      "text": "Micro-Fit 3.0 right-angle headers + housings + crimps, JST-GH kit, Add-A-Circuit (5 A)",
+      "cost": "~$26"
+    },
+    {
+      "id": "buy_encl",
+      "text": "ASA filament (or MJF PA12 parts), split grommet, VHB, 90° USB-C pigtail, 2 × 90° USB-A adapters, 90° Dupont housings",
+      "cost": "~$45"
+    },
+    {
+      "id": "buy_inst",
+      "text": "Ferrites, butyl tape, neutral-cure RTV, high-endurance microSD",
+      "cost": "~$25"
+    },
+    {
+      "id": "buy_tools",
+      "text": "Multimeter, trim tools, JST-GH crimper (or pre-crimped leads), step drill",
+      "cost": "~$55"
+    },
+    {
+      "id": "buy_pcb",
+      "text": "5 × 6-layer 100 × 100 mm carrier PCBs, only after every gate G1–G8 is green",
+      "cost": "$2 + shipping"
+    },
+    {
+      "id": "buy_opt",
+      "text": "Optional: RAM-B-202U base (Option B), CANable USB CAN adapter (phase 2), Toyota service info",
+      "cost": "~$85"
+    }
+  ],
+  "checklist_measure": [
+    {
+      "id": "ms_seat",
+      "text": "PI_SEAT: glass front → top of the display's standoffs (enclosure parameter)",
+      "where": "Caliper, bench"
+    },
+    {
+      "id": "ms_pi",
+      "text": "Pi orientation on the display: ports to the right seen from behind (the enclosure assumes it)",
+      "where": "Bench"
+    },
+    {
+      "id": "ms_m3",
+      "text": "Thread depth of the display's 4 M3 frame holes (screws are M3 × 6 through a 3 mm plate)",
+      "where": "Bench"
+    },
+    {
+      "id": "ms_btn",
+      "text": "Pushbutton thread (BUTTON_D) and the piezo's diameter / height (POD_BUZ_D / POD_BUZ_H)",
+      "where": "Caliper"
+    },
+    {
+      "id": "ms_fan",
+      "text": "Fan thickness and hole spacing (default 30 × 30 × 10, 24 mm)",
+      "where": "Caliper"
+    },
+    {
+      "id": "ms_pocket",
+      "text": "Console pocket: clear depth where the box goes (≥ 66 mm), width at the box, position of the car's USB / 12 V strip",
+      "where": "Car, foam mock-up"
+    },
+    {
+      "id": "ms_shift",
+      "text": "Mock-up in place: shifter P-R-N-D-M with your hand on it, HVAC knobs, view from the seat",
+      "where": "Car"
+    },
+    {
+      "id": "ms_acc",
+      "text": "ACC fuse: hot in ACC and ON, dead with the key out, behaviour during START",
+      "where": "Car, multimeter"
+    },
+    {
+      "id": "ms_obd",
+      "text": "OBD dongle parked current at pin 16, key out, after 15 min (B8a): keep it plugged in only below ~5 mA",
+      "where": "Car, OBD extension + multimeter"
+    },
+    {
+      "id": "ms_blink",
+      "text": "Turn-signal feeds: wire colours / pins from the wiring diagram, confirmed with a meter",
+      "where": "Car"
+    },
+    {
+      "id": "ms_mirror",
+      "text": "Mirror cap: room for the camera barrel, drilling spot, cable path through the hinge",
+      "where": "Car"
+    },
+    {
+      "id": "ms_ids",
+      "text": "The four tyre IDs (rtl_433 -f 315M while driving)",
+      "where": "Car + SDR"
+    }
+  ],
+  "checklist_bench": [
+    {
+      "id": "b1",
+      "text": "B1: Pololu EN delay (22 kΩ + 100 µF) at 12.6 V and 14.4 V",
+      "where": "Pass: 5 V after 1.3–1.6 s; nothing below ~7.5 V"
+    },
+    {
+      "id": "b2",
+      "text": "B2: inhibit through a 2N7002 + 100 Ω from 3.3 V",
+      "where": "Pass: off within ms, ~1.5 s restart"
+    },
+    {
+      "id": "b3",
+      "text": "B3: crank simulation 12.4 V 0.5 s → 0 V 1.5 s → 14.2 V",
+      "where": "Pass: the Pi starts only after the engine voltage"
+    },
+    {
+      "id": "b4",
+      "text": "B4: Pi + display + cameras + fan, CPU stress 30 min",
+      "where": "Pass: get_throttled 0x0, regulator < 80 °C"
+    },
+    {
+      "id": "b5",
+      "text": "B5: AM radio next to the running setup",
+      "where": "Pass: no whine on 530–1700 kHz"
+    },
+    {
+      "id": "b6",
+      "text": "B6: CC1101 noise floor with everything off, then on",
+      "where": "Pass: rise < 6 dB"
+    },
+    {
+      "id": "b7",
+      "text": "B7: display upside down, image rotated 180°, touch inverted",
+      "where": "Pass: touch lands where you tap; better contrast from above"
+    },
+    {
+      "id": "b8",
+      "text": "B8: OBD dongle: parked current; ESP32 ↔ dongle over Bluetooth with the TPMS decoder running; optional ATCRA 09A sniff while signalling",
+      "where": "Pass: < ~5 mA parked; speed within ~3 s and matching the speedometer; TPMS decode rate unchanged"
+    },
+    {
+      "id": "t1",
+      "text": "T1: in the printed enclosure, in a sun-soaked car, vision app 30 min",
+      "where": "Pass: < 80 °C, get_throttled 0x0"
+    },
+    {
+      "id": "t2",
+      "text": "Host tests and audits: test_logic (120 checks), check_pinmap.py (+ --selftest), make_enclosure.py (38 checks), sync_plan.py --check",
+      "where": "Pass: all green"
+    }
+  ],
+  "checklist_tools": [
+    {
+      "id": "tl_meter",
+      "text": "Multimeter (not in the inventory)",
+      "where": "Buy"
+    },
+    {
+      "id": "tl_trim",
+      "text": "Plastic trim tools, 10 mm socket, Phillips #1 / #2, 2 mm and 2.5 mm hex keys",
+      "where": "Car work"
+    },
+    {
+      "id": "tl_crimp",
+      "text": "Micro-Fit crimper and a fine JST-GH crimper, or pre-crimped JST-GH leads",
+      "where": "Harness"
+    },
+    {
+      "id": "tl_solder",
+      "text": "Soldering iron with a fine tip and a large tip (6-layer ground pads), flux, heat-shrink, heat gun",
+      "where": "Bench"
+    },
+    {
+      "id": "tl_drill",
+      "text": "Step drill and a deburring tool for the mirror caps (practise on a spare cap)",
+      "where": "Car work"
+    },
+    {
+      "id": "tl_print",
+      "text": "Printer that does ASA / ABS (enclosed), or order MJF PA12",
+      "where": "Enclosure"
+    },
+    {
+      "id": "tl_caliper",
+      "text": "Caliper (template check, PI_SEAT, part sizes)",
+      "where": "Bench"
+    }
+  ],
+  "build_steps": [
+    {
+      "id": "st_01",
+      "phase": "Phase 0 · Baseline",
+      "text": "Drive with rtl_433 -f 315M (wake each wheel with the OEC-T5) and log the four EG53MA4 tyre IDs; check the v1 decoder on the capture."
+    },
+    {
+      "id": "st_02",
+      "phase": "Phase 0 · Baseline",
+      "text": "Display + Pi 4 on the bench: Bookworm, touch, brightness; rotate 180° and invert touch (B7)."
+    },
+    {
+      "id": "st_02b",
+      "phase": "Phase 0 · Baseline",
+      "text": "Optional: identify your OBD-II dongle (Classic or BLE, PIN, MAC), read the speed with a phone app, measure its parked current (B8a). It feeds the speed gate only, never the blinker."
+    },
+    {
+      "id": "st_03",
+      "phase": "Phase 1 · Bench vision",
+      "text": "Two inventory USB cameras on the Pi: capture thread + 320 × 320 detector; measure the frame rate (V1) before buying car cameras."
+    },
+    {
+      "id": "st_04",
+      "phase": "Phase 1 · Bench vision",
+      "text": "Breadboard ESP32 + CC1101 + GPS + two blinker switches + piezo; run the v2 logic (120 host checks already pass) against the Pi over the UART protocol."
+    },
+    {
+      "id": "st_05",
+      "phase": "Phase 2 · Enclosure",
+      "text": "Print the fit template; tape the 112 × 120 × 61 mm foam block behind the glass outline; check the pocket, shifter and HVAC in the car (G5)."
+    },
+    {
+      "id": "st_06",
+      "phase": "Phase 2 · Enclosure",
+      "text": "Measure PI_SEAT and the parts; regenerate (make_enclosure.py, 38 checks); print the bezel, then the housing, lid and pod in ASA; fit the display and the Pi (G6)."
+    },
+    {
+      "id": "st_07",
+      "phase": "Phase 3 · Power path",
+      "text": "Breadboard the power path (fuse, SMCJ22CA, P-MOSFET, π filter, Pololu with the EN delay, TSR) from the ATX / LiPo 12 V: B1–B6 (G4)."
+    },
+    {
+      "id": "st_08",
+      "phase": "Phase 4 · 6-layer PCB",
+      "text": "KiCad layout inside the enclosure keep-outs (16 mm height, fan zone, SMA strip, pin-free corners); ERC / DRC 0 / 0, Gerber check, 1:1 print with the real parts (G7)."
+    },
+    {
+      "id": "st_09",
+      "phase": "Phase 4 · 6-layer PCB",
+      "text": "JLCPCB quote: confirm the 6-layer 100 × 100 promo and ENIG (G8); order 5."
+    },
+    {
+      "id": "st_10",
+      "phase": "Phase 5 · Bring-up",
+      "text": "Power the bare board from the bench at 12.0–14.4 V; check the rails, the EN delay and the inhibit before fitting the Pi; then the ESP32 and the CC1101; noise floor with everything on (B6)."
+    },
+    {
+      "id": "st_11",
+      "phase": "Phase 6 · Car install",
+      "text": "Cameras into the mirror caps (O-ring + neutral-cure RTV); cables through the hinges and door boots with service loops; reseal the vapour barriers with butyl; LEDs in the door sails."
+    },
+    {
+      "id": "st_12",
+      "phase": "Phase 6 · Car install",
+      "text": "One Add-A-Circuit on the metered ACC fuse + chassis ground; blinker feeds from the wiring diagram; GPS on the dash top (fallback speed); the OBD dongle in its port if it passed B8; alert pod by the shifter."
+    },
+    {
+      "id": "st_13",
+      "phase": "Phase 6 · Car install",
+      "text": "Enclosure into the pocket (or onto the RAM base): 90° USB adapters, harness through the grommet, antenna lead out; never seal the gap round the plate."
+    },
+    {
+      "id": "st_14",
+      "phase": "Phase 7 · Calibrate & road",
+      "text": "Mark the blind-spot zones on the touch screen with a car parked in each lane; check the mirror-alignment reference; T1 thermal test in a hot car."
+    },
+    {
+      "id": "st_15",
+      "phase": "Phase 7 · Calibrate & road",
+      "text": "Read-only root on; road test by day, at night, on the highway, in rain and in a parking lot (quiet below 8 mph); all four tyres reporting."
+    }
+  ],
+  "premortem": [
+    {
+      "id": "C1",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "HS-CAN on ESP32 GPIO2 plus an MCP2515 on IO15 for MS-CAN",
+      "cause": "GPIO2 must be low at reset or serial flashing fails, and a CAN receiver idles high. The MCP2515 also needs an interrupt pin, and no pins were left",
+      "fix": "CAN moves to a USB CAN adapter (CANable / gs_usb) on the Pi in phase 2: SocketCAN, listen-only, no PCB change",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C2",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Power latch from 12 V BAT with an \"OR gate\" and a \"30 s hardware watchdog\"",
+      "cause": "Never designed; a stuck latch flattens the battery, and the ESP32 controlled the Pi's power",
+      "fix": "<b>ACC-only power (P1).</b> No latch, no battery tap, zero draw parked by construction. A read-only root makes hard power-off safe",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C3",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "The ESP32 enables the Pi rail",
+      "cause": "Flashing the ESP32 from the Pi resets it, the rail drops, the Pi dies mid-flash: deadlock",
+      "fix": "The Pi regulator is <b>on by default</b> with ACC (Pololu EN has an internal 100 kΩ pull-up). The ESP32 can only delay it (<code>PIN_PI_INHIBIT</code>, pulled down)",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C4",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Pololu D36V50F5 treated as a 36 V part",
+      "cause": "Pololu's page: 5.5–50 V in, reverse protection to 40 V, ~5.5 A, EN on by default, 3 A per header pin",
+      "fix": "Kept, with its real ratings. Power pins on both header rows (6 A per pair)",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C5",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "1.5KE24CA TVS",
+      "cause": "Minimum breakdown 22.8 V: it conducts on a 24 V jump start and burns",
+      "fix": "SMCJ22CA: 24.4 V minimum breakdown, 35.5 V clamp, 1500 W. Same choice as the v1 audit, sized up",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C6",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "(implied) series Schottky for reverse polarity",
+      "cause": "~1 W at 2.5 A in an SMA package",
+      "fix": "P-MOSFET reverse protection (−40 V, ≤ 20 mΩ, e.g. AOD4185) with a 12 V gate clamp",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C7",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Blind-spot LEDs in the \"A-pillar mirror-sail triangles, zero door-boot wires\"",
+      "cause": "The Yaris iA has side-curtain airbags behind the A-pillar trim, and the triangle at the mirror base belongs to the door",
+      "fix": "LEDs on the inner door sail or in the mirror housing, wired with the camera cable through the door boot. Nothing in the A-pillar trim or on the dash top",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C8",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Piezo under the steering-column lower shroud",
+      "cause": "Next to the collapsible column and the knee-bolster area",
+      "fix": "In the alert pod with the mute button, near the shifter: one 4-wire lead",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C9",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Bi-colour amber/red LEDs",
+      "cause": "Red light near the windshield is a legal grey zone and isn't the OEM convention",
+      "fix": "Amber only: steady = vehicle in the blind spot, flashing = you are signalling towards it",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C10",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "\"50 Ω microstrip from the CC1101 to an SMA\" on the PCB",
+      "cause": "The module has its own SMA; there is no RF trace",
+      "fix": "Module at the board edge with its SMA overhanging; ground plane under it",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C11",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Pi 4 M2.5 hole pattern (58 × 49 mm) so the PCB can stack behind the Pi",
+      "cause": "Those holes land under the ESP32 DevKit and the CC1101, and stacking blocks the Pi's fan and USB",
+      "fix": "Dropped from rev A; 4 × M3 on 92 × 92 mm only",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C12",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "The 7\" display \"floats in the pocket and clears the shifter\"",
+      "cause": "The glass is 192.96 mm wide; the opening is 191 mm at the top and 132.6 mm at the glass's bottom edge",
+      "fix": "It can only sit in front of the trim, overhanging ~30 mm per side. Decide with the 1:1 mock-up",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C13",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "The display is \"in inventory\"",
+      "cause": "The inventory lists only the Touch Display <b>Adapter v1.1</b> board",
+      "fix": "Confirm the LCD glass, touch panel and both ribbons exist (G3)",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C14",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Blinker inputs on IO36 / IO39 as interrupts",
+      "cause": "ESP32 errata 3.11: these pins glitch low for ~80 ns when the ADC or Wi-Fi powers up",
+      "fix": "Polled at 1 kHz with an RC filter (<code>poll</code> tag, enforced by the audit)",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C15",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "\"Mirror LED turn signals\" on the Yaris iA (drawn in the viewer)",
+      "cause": "Not verified",
+      "fix": "Check your mirrors; the plan no longer depends on them",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C16",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "v2 still listed the v1 front-panel controls (EC11 encoder, menu buttons) plus a \"camera toggle\" button",
+      "cause": "The 7\" touch screen does menus, settings, TPMS pairing and camera calibration; the 2.7\" OLED and the 4 tyre LEDs are redundant too",
+      "fix": "All removed. One mute/acknowledge button stays (IO4, same RC as v1), in the alert pod with the buzzer: it works while the Pi is down, and you can find it without looking",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C17",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Our own fit template placed the display's M3 holes 0.65 mm off",
+      "cause": "The drawing dimensions them from the outer frame flange (11.89 line), not the frame body (12.54)",
+      "fix": "Fixed: x = 34.87 / 161.07 mm (front view), now centred on the flange. Template regenerated; the enclosure uses the same values",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C18",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Display \"0–50 °C, brightness not specified\"",
+      "cause": "The product brief's safety notes say 0–50 °C; the documentation page lists −20 to +70 °C operating, −30 to +80 °C storage, 250 cd/m², 500:1, viewing 50° top / 70° bottom",
+      "fix": "Design for the brief; 250 cd/m² is dim in daylight (D2); the viewing angles confirm the upside-down mount (D3)",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C19",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "\"The Pi's USB end can face either side\"",
+      "cause": "The docs photo shows the documented way: GPIO on top and ports to the right, seen from behind",
+      "fix": "The enclosure is built for it (ports to the driver's right when mounted upside down). Turned round, 2 fit checks fail",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "C20",
+      "category": "Corrections to the earlier plan",
+      "likelihood": "Caught",
+      "title": "Phase 2: \"HS-CAN speed/reverse, MS-CAN turn signals\"",
+      "cause": "For the 2016–21 Mazdas that openpilot supports, the turn lamps (<code>BLINK_INFO</code>, 0x9A) and the stalk (<code>TURN_SWITCH</code>, 0x91) are on the powertrain HS-CAN, next to the speed (<code>ENGINE_DATA</code>, 0x202). This car uses that message family: Metasploit's <code>mazda_ic_mover</code> drives the Mazda 2 / Scion iA / Yaris iA cluster with one 0x202 frame",
+      "fix": "Phase 2 listens on HS-CAN (OBD pins 6/14). The IDs come from opendbc's reverse-engineered <code>mazda_2017.dbc</code>: confirm each one on this car (B8) before relying on it",
+      "status": "Fixed",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "P1",
+      "category": "Power and wiring",
+      "likelihood": "High",
+      "title": "The key passes through ACC on the way to START; the Pi starts booting and the crank browns it out, or it boot-loops",
+      "cause": "",
+      "fix": "Pololu EN RC delay (22 kΩ + 100 µF: ~1.3–1.6 s at 12.6–14.4 V, no start below ~7.5 V). Firmware holds the Pi until the engine runs (≥ 13.0 V for 1 s) or 15 s in ACC",
+      "status": "Fixed (design + firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "P2",
+      "category": "Power and wiring",
+      "likelihood": "High with a latch",
+      "title": "Battery flat after a week parked",
+      "cause": "",
+      "fix": "ACC-only power: nothing is connected when the key is out",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "P3",
+      "category": "Power and wiring",
+      "likelihood": "High without protection",
+      "title": "SD card corrupted by hard power-off",
+      "cause": "",
+      "fix": "Read-only root (<code>raspi-config</code> overlay FS), journal in RAM, settings in ESP32 NVS, a high-endurance card",
+      "status": "Fixed (design) + You (Pi setup)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "P4",
+      "category": "Power and wiring",
+      "likelihood": "High",
+      "title": "5 V sags under load: undervoltage flag, USB cameras drop out",
+      "cause": "",
+      "fix": "5.5 A regulator, 18 AWG under 0.5 m, 470 µF at the Pi end; budget ~2.4 A typical, ~3.8 A peak. Pass = <code>get_throttled</code> 0x0 after a 30-minute load test",
+      "status": "Fixed (design) + You (B4)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "P5",
+      "category": "Power and wiring",
+      "likelihood": "Medium",
+      "title": "Load dump, jump start, reverse battery or negative spikes kill the board",
+      "cause": "",
+      "fix": "Onboard 4 A fuse + SMCJ22CA + P-MOSFET; downstream ratings TSR 1-2450 36 V, Pololu 50 V, MOSFET 40 V. A load dump above 35 V on a car without central suppression is an accepted trade-off (as in v1)",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "P6",
+      "category": "Power and wiring",
+      "likelihood": "Medium",
+      "title": "AM radio buzz: the ~500 kHz regulator's harmonics fall in the AM band",
+      "cause": "",
+      "fix": "π filter (ferrite + 2.2 µH + 2 × 10 µF) on 12 V, short twisted leads, ferrites. Test with the AM radio. Rev B could use a 2.1 MHz automotive buck",
+      "status": "Fixed (design) + You (B5)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "P7",
+      "category": "Power and wiring",
+      "likelihood": "Medium",
+      "title": "A fuse tap on the wrong fuse (SRS, engine ECU) or the wrong way round",
+      "cause": "",
+      "fix": "One Add-A-Circuit, 5 A, on a non-critical ACC fuse. Meter it: hot in ACC and ON, dead with the key out; note whether it drops in START. Never a yellow SRS circuit",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "P8",
+      "category": "Power and wiring",
+      "likelihood": "High if solid",
+      "title": "Hand-soldering a 6-layer board: through-hole pins on inner planes won't wet",
+      "cause": "",
+      "fix": "Thermal reliefs on all plane connections; ENIG",
+      "status": "Fixed (layout rule)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "P9",
+      "category": "Power and wiring",
+      "likelihood": "Medium",
+      "title": "5 A on 0.5 oz inner copper overheats",
+      "cause": "",
+      "fix": "High-current paths as ≥ 3 mm outer-layer pours with stitching vias",
+      "status": "Fixed (layout rule)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "P10",
+      "category": "Power and wiring",
+      "likelihood": "Medium",
+      "title": "The ESP32 back-powers an unpowered Pi through the UART",
+      "cause": "",
+      "fix": "1 k / 4.7 k series resistors; firmware keeps UART TX off while the Pi rail is off",
+      "status": "Fixed (design + firmware rule)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "P11",
+      "category": "Power and wiring",
+      "likelihood": "Low",
+      "title": "Opto resistors overheat on a load dump",
+      "cause": "",
+      "fix": "2 × 1.1 kΩ 1206 in series per input (0.5 W), 1N4148 reverse diode",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "E1",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "High (the earlier drafts did it twice)",
+      "title": "A strapping pin is misused: GPIO12 high at reset (wrong flash voltage), GPIO2 high (flashing fails)",
+      "cause": "",
+      "fix": "Pin map audit with rules for strapping, input-only, flash, boot-glitch, ADC1 and UART0 pins",
+      "status": "Fixed (<code>check_pinmap.py</code>)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "E2",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "Medium",
+      "title": "Opening <code>/dev/ttyUSB0</code> toggles DTR/RTS and resets the ESP32",
+      "cause": "",
+      "fix": "The runtime link is the GPIO UART (Pi GPIO14/15 ↔ ESP32 UART2); USB is only for flashing. The Pi's power no longer depends on the ESP32",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "E3",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "High on a default image",
+      "title": "The Pi's UART carries Bluetooth or a login console",
+      "cause": "",
+      "fix": "<code>enable_uart=1</code>, <code>dtoverlay=disable-bt</code>, remove <code>console=serial0,...</code> from <code>cmdline.txt</code>",
+      "status": "You (Pi setup checklist)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "E4",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "Medium",
+      "title": "Garbage, partial lines or a corrupted message trigger a wrong alert",
+      "cause": "",
+      "fix": "NMEA-style lines with XOR checksum, strict field parsing, resync on <code>$</code>, overlong lines dropped",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "E5",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "Low",
+      "title": "A ground offset or noise between the boards corrupts the UART",
+      "cause": "",
+      "fix": "Common star ground at the regulator; 115200 Bd over &lt; 1 m",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V1",
+      "category": "Vision and compute",
+      "likelihood": "High",
+      "title": "Pi 4 too slow for two streams plus YOLO",
+      "cause": "",
+      "fix": "320 × 320 NCNN, alternate sides, blinker side first, hardware JPEG decode; fall back to motion-in-ROI. Measure in phase 1 with the two USB cameras you already have, before buying cameras",
+      "status": "You (bench)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "V2",
+      "category": "Vision and compute",
+      "likelihood": "Medium",
+      "title": "The Pi 4 has 1 GB of RAM",
+      "cause": "",
+      "fix": "<code>free -h</code>; need ≥ 2 GB",
+      "status": "You (G3)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "V3",
+      "category": "Vision and compute",
+      "likelihood": "High in summer",
+      "title": "The Pi throttles in a hot cabin, worse inside a closed enclosure",
+      "cause": "",
+      "fix": "Enclosure airflow: chin intake slots → past the Pi and round the PCB → 30 mm lid fan (inventory) blowing out → a 2 mm gap round the plate (bumps), so the pocket is never sealed. Heatsinks; hot-start hold (board ≥ 60 °C: wait for 55 °C, at most 10 min). Test T1 in a sun-soaked car: SoC &lt; 80 °C, <code>get_throttled</code> = <code>0x0</code>. If it fails: lower clock, bigger gap, or the PCB in its own box",
+      "status": "Fixed (design + firmware) + You (T1)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "V4",
+      "category": "Vision and compute",
+      "likelihood": "High",
+      "title": "No small USB camera fits under the mirror (most \"mirror cameras\" are analog/AHD)",
+      "cause": "",
+      "fix": "Acceptance criteria before buying: UVC MJPEG 720p30, WDR (Starvis), no IR LEDs, −20…+70 °C, IP67, barrel ≤ 20 mm, ≥ 3 m cable, 90–110° lens. Fallback: AHD cameras + a 2-channel USB capture. Measure the barrel before drilling",
+      "status": "Decision + You",
+      "status_keys": [
+        "you",
+        "plan"
+      ]
+    },
+    {
+      "id": "V5",
+      "category": "Vision and compute",
+      "likelihood": "Medium",
+      "title": "Cutting the USB cable for the door boot breaks USB 2.0 high-speed",
+      "cause": "",
+      "fix": "No JST-GH in the data path: splice with the pairs kept twisted and the shield continuous, or a solder-type USB-A plug. Pass = no resets in <code>dmesg</code> on a 30-minute drive",
+      "status": "Fixed (design) + You",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "V6",
+      "category": "Vision and compute",
+      "likelihood": "Medium",
+      "title": "A folded or bumped mirror points the camera elsewhere; the blind-spot zone is wrong",
+      "cause": "",
+      "fix": "At start-up the Pi compares the car-body edge with the stored reference; on mismatch it sets <code>camFault</code> for that side → fault pattern on that LED, no alerts from that side",
+      "status": "Fixed (protocol + ESP32 logic); Pi side to implement",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V7",
+      "category": "Vision and compute",
+      "likelihood": "High",
+      "title": "Night, rain or low sun hides vehicles; motorcycles are tiny",
+      "cause": "",
+      "fix": "Starvis WDR, no IR LEDs, hydrophobic lens coating, headlight-blob fallback in the ROI, lower motorcycle threshold with persistence",
+      "status": "Pi software (phase 2 of the build)",
+      "status_keys": [
+        "phase2",
+        "plan"
+      ]
+    },
+    {
+      "id": "V8",
+      "category": "Vision and compute",
+      "likelihood": "Medium",
+      "title": "The vision app crashes or freezes and the system fails silently",
+      "cause": "",
+      "fix": "systemd <code>Restart=always</code> + watchdog on the Pi; the ESP32 shows the fault pattern and gives one fault beep after 1 s without a fresh report",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V9",
+      "category": "Vision and compute",
+      "likelihood": "Certain",
+      "title": "20–35 s boot: no blind-spot help just after starting",
+      "cause": "",
+      "fix": "Lamp test when the system becomes ready, so you know when it works",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V10",
+      "category": "Vision and compute",
+      "likelihood": "Medium",
+      "title": "OpenCV / NCNN / Python dependency breakage on a later image",
+      "cause": "",
+      "fix": "Pinned versions, a provisioning script, a golden SD-card image",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "D1",
+      "category": "Display and driver interface",
+      "likelihood": "High on the dash top",
+      "title": "The display is damaged by a parked car's heat",
+      "cause": "",
+      "fix": "Ratings disagree (brief 0–50 °C, docs −20…+70 °C operating, −30…+80 °C storage): design for the brief. Shaded console mount preferred, sunshade, AMPS quick-release for heat waves, hot-start hold",
+      "status": "Decision (G5) + Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "D2",
+      "category": "Display and driver interface",
+      "likelihood": "High by day",
+      "title": "Washed out in sunlight: the docs give only 250 cd/m² and 500:1",
+      "cause": "",
+      "fix": "Shaded mount; the bezel lip shades the border; full backlight by day; high-contrast UI (white on black, large icons). Test in the sun with the mock-up",
+      "status": "You (G5)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "D3",
+      "category": "Display and driver interface",
+      "likelihood": "High in the console",
+      "title": "Poor contrast from the driver's seat",
+      "cause": "",
+      "fix": "<b>6 o'clock viewing direction</b>; the docs give 50° from the top, 70° from the bottom. Looking down at it: mount it upside down (the enclosure's default, <code>MOUNT=inverted</code>). Rotate the image 180° (Screen Configuration → Inverted, or in the app); touch: <code>dtoverlay=vc4-kms-dsi-7inch,invx,invy</code>",
+      "status": "Fixed (design) + You (bench check)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "D4",
+      "category": "Display and driver interface",
+      "likelihood": "Medium",
+      "title": "The screen and LEDs glare at night",
+      "cause": "",
+      "fix": "LED level sent by the Pi (from camera exposure); backlight dimming; optional VL6180X light sensor on I2C",
+      "status": "Fixed (protocol + firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "D5",
+      "category": "Display and driver interface",
+      "likelihood": "Medium",
+      "title": "Distraction: touching the screen while driving",
+      "cause": "",
+      "fix": "Nothing needs touch while moving; camera view only on blinker or danger; the one action you need while driving (mute) is the physical pod button",
+      "status": "Fixed (design) + Pi software",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "D6",
+      "category": "Display and driver interface",
+      "likelihood": "Low",
+      "title": "A video screen visible to the driver is illegal",
+      "cause": "",
+      "fix": "Camera views for manoeuvring are generally allowed (e.g. California VC 27602(b)(4)); no entertainment video. Check your state",
+      "status": "Accepted",
+      "status_keys": [
+        "accepted"
+      ]
+    },
+    {
+      "id": "D7",
+      "category": "Display and driver interface",
+      "likelihood": "Medium",
+      "title": "Touch-only controls: no way to silence an alarm while the Pi boots (20–35 s) or after it crashes; gloves",
+      "cause": "",
+      "fix": "Mute/acknowledge button in the alert pod, wired to the ESP32 (IO4), which also drives the buzzer and the TPMS logic on its own",
+      "status": "Fixed (design + firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "D8",
+      "category": "Display and driver interface",
+      "likelihood": "Low",
+      "title": "Phantom touches or a cracked glass from a bezel that presses on it",
+      "cause": "",
+      "fix": "The display hangs on its own 4 × M3 frame holes; the lip sits 0.3 mm clear of the glass and only over the black border, outside the touch area",
+      "status": "Fixed (enclosure) + You (check after assembly)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "M1",
+      "category": "Mechanical and installation",
+      "likelihood": "High",
+      "title": "The display doesn't fit: shifter in P/R/N/D/M, your hand, the HVAC knobs",
+      "cause": "",
+      "fix": "1:1 template + a foam block the size of the enclosure's rear box. The bezel is 127.9 mm tall, under the 129 mm opening, so it doesn't climb onto the HVAC panel (checked by the generator)",
+      "status": "You (G5)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M2",
+      "category": "Mechanical and installation",
+      "likelihood": "High",
+      "title": "The enclosure's rear box (112 × 120 × 61 mm) is deeper than the pocket or hits the car's USB/12 V strip, which sits behind the panel ~34 mm below the top of the opening",
+      "cause": "",
+      "fix": "Measure ≥ 66 mm clear depth with the mock-up. If not: the car's USB moves to a passthrough, or the PCB goes in its own box (same 92 × 92 posts) and the enclosure shrinks to ~45 mm",
+      "status": "You (G5)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M3",
+      "category": "Mechanical and installation",
+      "likelihood": "High in PLA",
+      "title": "Printed parts warp or creep in the heat",
+      "cause": "",
+      "fix": "You can print: ASA or ABS (enclosed printer), PETG only in the shaded console, never PLA (soft at ~55–60 °C). Or MJF PA12 from JLC3DP with the PCB",
+      "status": "Plan",
+      "status_keys": [
+        "plan"
+      ]
+    },
+    {
+      "id": "M4",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The display comes loose in a crash or on bumps",
+      "cause": "",
+      "fix": "The display bolts to the housing through its own M3 frame holes; the housing bolts to the car via the AMPS M4 nuts or a pocket bracket, never tape only; no sharp edges; nothing in airbag zones",
+      "status": "Fixed (enclosure)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "M5",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "Vibration loosens sockets and connectors",
+      "cause": "",
+      "fix": "Latching connectors (Micro-Fit, JST-GH), strain relief, machined sockets + a dab of RTV (v1 rule), nylon lock nuts",
+      "status": "Fixed (design rule)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "M6",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "Cracking the mirror cap while drilling",
+      "cause": "",
+      "fix": "Practise on a used mirror cap; step drill; measure the camera barrel first",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M7",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "Water in the camera, the door or the footwell",
+      "cause": "",
+      "fix": "O-ring + neutral-cure (oxime) RTV, drip loop, silicone grease only on the boot, <b>reseal the door's vapour barrier with butyl</b> after routing",
+      "status": "Fixed (procedure)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "M8",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "Cables break in the mirror hinge or the door boot",
+      "cause": "",
+      "fix": "Service loop, follow the factory harness, cycle door / window / mirror 50 times after the install",
+      "status": "Fixed (procedure) + You",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "M9",
+      "category": "Mechanical and installation",
+      "likelihood": "Low",
+      "title": "Cables snag the pedals, the steering column or the seat rails",
+      "cause": "",
+      "fix": "Tie them up high along existing harnesses; never splice into the yellow SRS harness",
+      "status": "Fixed (procedure)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "M10",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The enclosure is drawn from estimates: the Pi seat height isn't in any drawing; straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
+      "cause": "",
+      "fix": "<code>PI_SEAT</code> and <code>PI_TOP_H</code> are parameters: measure, regenerate, and the 38 checks re-run. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
+      "status": "You (G6)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M11",
+      "category": "Mechanical and installation",
+      "likelihood": "Low",
+      "title": "Screws into the display's frame bottom out and press on the panel",
+      "cause": "",
+      "fix": "M3 × 6 through a 3 mm plate; check the thread depth first",
+      "status": "You (assembly)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "M12",
+      "category": "Mechanical and installation",
+      "likelihood": "Low",
+      "title": "Fingers reach the boards through vents (Raspberry Pi docs: the enclosure must make the boards unreachable)",
+      "cause": "",
+      "fix": "Chin slots 2.5 mm; fan grille with 2.5 mm gaps; split grommet in the cable exit",
+      "status": "Fixed (enclosure)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "M13",
+      "category": "Mechanical and installation",
+      "likelihood": "Medium",
+      "title": "The camera USB plugs and the antenna lead don't fit beside the box in the pocket",
+      "cause": "",
+      "fix": "90° USB-A adapters and an SMA bulkhead; the generator checks plugs (+15 mm) and the lead inside the opening's outline (1.3 mm margin at the tightest point)",
+      "status": "Fixed (enclosure) + You (mock-up)",
+      "status_keys": [
+        "fixed",
+        "you"
+      ]
+    },
+    {
+      "id": "I1",
+      "category": "Vehicle integration",
+      "likelihood": "High",
+      "title": "No 12 V turn-signal wire found at the kick panel",
+      "cause": "",
+      "fix": "Get the wiring diagram (the Yaris iA is in Toyota's service information, techinfo.toyota.com, short subscriptions) and confirm with a meter. Fallback: the tail-lamp feeds in the trunk. Phase 2: CAN",
+      "status": "You (G9)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "I2",
+      "category": "Vehicle integration",
+      "likelihood": "Medium",
+      "title": "The body control module drives the lamps with PWM; a simple input sees noise",
+      "cause": "",
+      "fix": "The detector bridges PWM gaps up to 25 ms and needs 50 ms to count, so PWM reads as a steady flash and spikes are ignored",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "I3",
+      "category": "Vehicle integration",
+      "likelihood": "High",
+      "title": "Hazards cause a danger beep (both sides look like turns)",
+      "cause": "",
+      "fix": "Hazards are recognised when both sides light within 150 ms; a single side is reported only after that window, and after hazards end only after a fresh flash",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "I4",
+      "category": "Vehicle integration",
+      "likelihood": "Low",
+      "title": "The added load trips bulb-out detection (fast flash)",
+      "cause": "",
+      "fix": "Each opto input draws ~6 mA",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "I5",
+      "category": "Vehicle integration",
+      "likelihood": "Low",
+      "title": "Our electronics desensitise the 315 MHz key fob receiver",
+      "cause": "",
+      "fix": "ACC-only: everything is off when you use the fob",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "I6",
+      "category": "Vehicle integration",
+      "likelihood": "Unknown",
+      "title": "CAN not on the OBD port, or behind a gateway",
+      "cause": "",
+      "fix": "Doesn't matter for the speed: OBD-II requires every car to answer standard requests such as PID 0x0D at the port. Only the phase-2 CAN cross-check needs the broadcasts on pins 6/14: check with a filtered sniff (B8)",
+      "status": "Phase 2",
+      "status_keys": [
+        "phase2"
+      ]
+    },
+    {
+      "id": "O1",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "High if done",
+      "title": "The blinker is read from the dongle instead of the lamp wires, and a dropped Bluetooth link looks like \"not signalling\": no danger beep, silently",
+      "cause": "",
+      "fix": "Standard OBD-II has no turn-signal data; the lamps exist only as a Mazda-private broadcast (0x9A). The blinker stays on the opto taps (G9); OBD is used for the speed only. A CAN blinker is at most a phase-2 cross-check on a wired, listen-only adapter",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "O2",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "High if done",
+      "title": "The ELM327 is asked to listen to the bus (<code>AT MA</code>) and overflows",
+      "cause": "",
+      "fix": "Datasheet: a 512-byte buffer, and at the 38.4 kbaud a typical Bluetooth clone uses inside, printing one frame takes ~5.2 ms, while a 40 %-loaded 500 kbit/s bus delivers one every ~0.35 ms: <code>BUFFER FULL</code>. Monitoring also blocks requests. The firmware only *requests* PID 0x0D (<code>010D1</code>), one at a time",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "O3",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "High (cheap clones)",
+      "title": "The dongle sleeps, hangs, answers <code>?</code> or <code>NO DATA</code>, or the link drops; the speed goes stale",
+      "cause": "",
+      "fix": "1 s timeouts, a reset (<code>ATZ</code>) after 3 failures, plain <code>010D</code> for clones without the response-count digit, reconnect. OBD speed counts only while &lt; 1 s old; then the GPS takes over, then the 10 s hold, then LEDs only. A bad dongle can only make the buzzer quieter",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "O4",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "High for no-name clones",
+      "title": "Flat battery: the dongle is powered from OBD pin 16, always on. ELM327 datasheet: \"about as much current as a dome lamp\" (29.8 mA for its reference circuit, 17.6 mA in low-power mode)",
+      "cause": "",
+      "fix": "Measure its parked current (B8). Keep it plugged in only if it sleeps below ~5 mA; otherwise unplug it when parked for days, or use an OBD extension with a switch",
+      "status": "You (B8)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "O5",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "Low",
+      "title": "Anyone in Bluetooth range connects with the default PIN and injects CAN frames: <code>mazda_ic_mover</code> moves this car's cluster needles with one 0x202 frame",
+      "cause": "",
+      "fix": "A dongle that needs a button press to pair, or sleeps its radio when parked; change the PIN if it allows; unplug it for long parking. The ESP32 itself only sends the setup <code>AT</code> commands and <code>010D</code>",
+      "status": "You (choice of dongle)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "O6",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "Low",
+      "title": "Bluetooth on the ESP32 disturbs the 315 MHz decoder's edge interrupt or the 1 kHz loop",
+      "cause": "",
+      "fix": "Bluetooth stack on core 0; the RF edge interrupt (<code>rf_capture.cpp</code>) and the 1 kHz loop on core 1. B8 compares the TPMS decode rate with the link on and off",
+      "status": "You (B8)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "O7",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "Certain",
+      "title": "The Pi would be the natural Bluetooth host, but its Bluetooth is off (<code>dtoverlay=disable-bt</code>: the PL011 UART carries the ESP32 link)",
+      "cause": "",
+      "fix": "The ESP32 talks to the dongle: the WROOM-32 has Bluetooth Classic. Connect by MAC address (a name search takes seconds), PIN usually 1234 or 0000. No change on the Pi or the PCB",
+      "status": "Fixed (design)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "O8",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "Medium",
+      "title": "The dongle is BLE-only (if it works with an iPhone, it is BLE or Wi-Fi), so Bluetooth Classic serial can't reach it",
+      "cause": "",
+      "fix": "Identify it first. The client logic doesn't depend on the transport: a BLE dongle needs a GATT client (NimBLE) instead of <code>BluetoothSerial</code>; a Wi-Fi one is out (the ESP32's Wi-Fi stays off)",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "O9",
+      "category": "OBD-II dongle (optional speed source)",
+      "likelihood": "Low",
+      "title": "A long dongle or an extension at the driver's knee catches a foot or a knee",
+      "cause": "",
+      "fix": "Low-profile dongle, or a short right-angle extension tied up out of the footwell",
+      "status": "Plan",
+      "status_keys": [
+        "plan"
+      ]
+    },
+    {
+      "id": "R1",
+      "category": "TPMS radio",
+      "likelihood": "Medium",
+      "title": "The 433 MHz-tuned CC1101 module loses up to ~10 dB at 315 MHz; rear wheels drop out",
+      "cause": "",
+      "fix": "Buy a 315 MHz-tuned CC1101 module with the same 2 × 4 pinout (~$3); keep the 433 one as a spare. Check RSSI per wheel",
+      "status": "Buy + You",
+      "status_keys": [
+        "you",
+        "plan"
+      ]
+    },
+    {
+      "id": "R2",
+      "category": "TPMS radio",
+      "likelihood": "Medium-High",
+      "title": "The Pi 4, its USB 3 ports, the display and the regulator raise the 315 MHz noise floor",
+      "cause": "",
+      "fix": "The antenna leaves the enclosure: CC1101 → short RG316 → SMA bulkhead in the box wall → 30 cm RG316 → whip away from the Pi; cameras on the USB 2.0 ports; ferrites. Compare the noise floor with everything on and off",
+      "status": "You (B6)",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "R3",
+      "category": "TPMS radio",
+      "likelihood": "Medium",
+      "title": "The EG53MA4 decoder fails on real frames",
+      "cause": "",
+      "fix": "Not yet tested on a real capture: drive with <code>rtl_433 -f 315M</code> first (v1 premortem step 1)",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "S1",
+      "category": "Safety and nuisance",
+      "likelihood": "High",
+      "title": "Nuisance alerts in parking lots, drive-thrus and queues",
+      "cause": "",
+      "fix": "No alerts below 8 mph, on again at 12 mph (hysteresis); hazards silent; the mute button silences the current turn only; at most one danger beep per 3 s, and a flickering detection can't beep more than once a second",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "S2",
+      "category": "Safety and nuisance",
+      "likelihood": "Medium",
+      "title": "GPS lost under a bridge or in a tunnel: alerts stop or go wild",
+      "cause": "",
+      "fix": "The car's own speed from the OBD dongle covers tunnels, garages and GPS cold starts. Without both, the last moving/slow decision is held 10 s; after that the LEDs keep working and the buzzer stays quiet",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "S3",
+      "category": "Safety and nuisance",
+      "likelihood": "Medium",
+      "title": "Trusting it: a missed motorcycle at night",
+      "cause": "",
+      "fix": "It is an aid: always look over your shoulder. Disclaimer on the start screen",
+      "status": "Accepted",
+      "status_keys": [
+        "accepted"
+      ]
+    },
+    {
+      "id": "S4",
+      "category": "Safety and nuisance",
+      "likelihood": "Medium",
+      "title": "A silent failure looks like \"all clear\"",
+      "cause": "",
+      "fix": "Fault pattern + one beep on a lost Pi link; per-side fault for a camera",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "S5",
+      "category": "Safety and nuisance",
+      "likelihood": "Low",
+      "title": "The blind-spot beep is drowned out by a TPMS reminder or vice versa",
+      "cause": "",
+      "fix": "Priorities: danger, then fault, then TPMS; TPMS repeats at most every 10 minutes",
+      "status": "Fixed (firmware)",
+      "status_keys": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "J1",
+      "category": "Project",
+      "likelihood": "High",
+      "title": "Scope creep: the project never finishes",
+      "cause": "",
+      "fix": "Ship in useful steps: (1) the camera view switches on the blinker, no AI; (2) detection, LEDs and buzzer; (3) CAN and the 60 GHz radar",
+      "status": "Plan",
+      "status_keys": [
+        "plan"
+      ]
+    },
+    {
+      "id": "J2",
+      "category": "Project",
+      "likelihood": "Medium",
+      "title": "Footprint errors (Pololu module, DevKit, connectors)",
+      "cause": "",
+      "fix": "Print the layout 1:1 and set the real parts on it before ordering, as for v1",
+      "status": "G7",
+      "status_keys": [
+        "plan"
+      ]
+    },
+    {
+      "id": "J3",
+      "category": "Project",
+      "likelihood": "Medium",
+      "title": "Inventory entries are wrong or incomplete",
+      "cause": "",
+      "fix": "Collect every part before the layout freeze (G3)",
+      "status": "You",
+      "status_keys": [
+        "you"
+      ]
+    },
+    {
+      "id": "J4",
+      "category": "Project",
+      "likelihood": "Medium",
+      "title": "Tools missing for the car work",
+      "cause": "",
+      "fix": "Multimeter, trim tools, fine crimper for JST-GH (or pre-crimped leads), solder-type USB-A plugs, step drill, heat gun: see the tools checklist in the viewer",
+      "status": "Plan",
+      "status_keys": [
+        "plan"
+      ]
+    },
+    {
+      "id": "J5",
+      "category": "Project",
+      "likelihood": "Medium",
+      "title": "The enclosure becomes the long pole (~12 h of printing per try, ASA needs an enclosed printer)",
+      "cause": "",
+      "fix": "Parametric generator with fit checks; print the bezel first; foam mock-up before any printing; MJF PA12 as the no-printer route",
+      "status": "Plan",
+      "status_keys": [
+        "plan"
+      ]
+    }
+  ],
+  "order_gate": [
+    {
+      "id": "G1",
+      "needed": "Electrical spec frozen; pin map passes the audit",
+      "status": "done",
+      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/include/pins_v2.h\" target=\"_blank\">pins_v2.h</a>, <code>python 01-hardware/v2/check_pinmap.py</code> → 0 errors, its self-test catches all six earlier pin errors"
+    },
+    {
+      "id": "G2",
+      "needed": "Safety logic written and unit-tested (power-up, blinker, alerts, Pi link, OBD-II speed)",
+      "status": "done",
+      "detail": "<b>Done:</b> <a href=\"../../02-firmware/v2/README.md\" target=\"_blank\">02-firmware/v2</a>, 120 host checks pass; removing the hazard fixes, the TPMS acknowledge or the OBD fallbacks makes them fail"
+    },
+    {
+      "id": "G3",
+      "needed": "Every part physically on hand and identified",
+      "status": "you",
+      "detail": "<b>You:</b> 7\" LCD glass + touch + both ribbons (the inventory lists only the adapter board), Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout, Pololu D36V50F5 bought"
+    },
+    {
+      "id": "G4",
+      "needed": "Power path breadboarded: EN delay, inhibit, crank dip, 4 A load, <code>vcgencmd get_throttled</code> = <code>0x0</code>",
+      "status": "you",
+      "detail": "<b>You:</b> procedure in Bench test B1–B6"
+    },
+    {
+      "id": "G5",
+      "needed": "Display location chosen with the 1:1 mock-up (Option A console or B dash top)",
+      "status": "you",
+      "detail": "<b>You:</b> print <a href=\"../../01-hardware/docs/v2_fit_template_1to1.pdf\" target=\"_blank\">v2_fit_template_1to1.pdf</a>, tape a 112 × 120 × 61 mm foam block behind the glass outline (the enclosure's rear box), check ≥ 66 mm of pocket depth, the shifter, the HVAC knobs and the car's USB/12 V strip"
+    },
+    {
+      "id": "G6",
+      "needed": "<code>PI_SEAT</code> measured and the enclosure regenerated; bezel and housing test-printed and fitted to the real display and Pi",
+      "status": "you",
+      "detail": "<b>You:</b> 1 measurement + ~12 h of printing. The PCB's keep-outs (fan zone, SMA strip, corners, 16 mm height) come from this"
+    },
+    {
+      "id": "G7",
+      "needed": "KiCad schematic and layout inside the enclosure's keep-outs, ERC/DRC 0/0, independent Gerber check, footprints printed 1:1 and test-fitted with the real parts",
+      "status": "next",
+      "detail": "Next step, after G3–G6 (generator based on the v1 build script)"
+    },
+    {
+      "id": "G8",
+      "needed": "JLCPCB quote confirms the 6-layer 100 × 100 mm promo price and options",
+      "status": "you",
+      "detail": "<b>You</b>, at checkout. Verified from JLCPCB's capability page: 6+ layer FR-4 is ENIG only (no HASL), inner copper is 0.5 oz by default"
+    }
+  ],
+  "enclosure": {
+    "overall_mm": {
+      "width": 205.56,
+      "height": 127.86,
+      "depth": 71.8
+    },
+    "box_mm": {
+      "width": 112.0,
+      "width_with_ears": 126.0,
+      "height": 120.16,
+      "behind_plate": 60.54,
+      "clear_pocket_depth_needed": 65.5
+    },
+    "z_levels_mm": {
+      "lip_front": 2.3,
+      "glass": 0.0,
+      "module_back": -5.96,
+      "plate_back": -8.96,
+      "pi_seat": -24.0,
+      "pi_top": -25.4,
+      "pi_tall": -42.4,
+      "pcb_bottom": -47.9,
+      "pcb_top": -49.5,
+      "parts_top": -65.5,
+      "lid_inner": -67.0,
+      "lid_outer": -69.5
+    },
+    "mount": "inverted",
+    "ports_face": "driver's right (+X)",
+    "pcb_constraints": {
+      "outline": "100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
+      "max_part_height_mm": 16.0,
+      "fan_zone": "32 × 32 mm centred at template [45.0, 46.0] (mm from the top-left, parts side up): parts ≤ 6 mm",
+      "sma_strip": "14 mm into the board × 12 mm along the edge, on the edge away from the Pi's ports, centred 34.5 mm below the board's top edge: no parts",
+      "corners": "10 × 10 mm round each mounting hole: no through-hole pins (posts and ribs underneath)",
+      "pins_below_mm": 2.5
+    },
+    "hardware": {
+      "display_to_plate": "4× M3 × 6 button head (check how deep the display's threads are first)",
+      "bezel_to_plate": "6× M3 × 10 into 2.6 mm pilots",
+      "lid_to_box": "4× M3 × 12 into the ears",
+      "pcb_to_posts": "4× M3 × 6",
+      "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
+      "amps": "4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
+      "pod": "2× M3 × 8, VHB tape under the base"
+    },
+    "volumes_cm3": {
+      "bezel": 45.6,
+      "housing": 126.6,
+      "lid": 34.1,
+      "pod_shell": 14.3,
+      "pod_base": 4.5
+    },
+    "checks": {
+      "passed": 38,
+      "total": 38,
+      "all_ok": true
+    },
+    "assembly": [
+      {
+        "name": "bezel",
+        "file": "../../01-hardware/enclosure/stl/asm_bezel.stl",
+        "color": "#1f2937",
+        "label": "Bezel: front frame + 10 mm air-intake chin (print face down)"
+      },
+      {
+        "name": "housing",
+        "file": "../../01-hardware/enclosure/stl/asm_housing.stl",
+        "color": "#334155",
+        "label": "Housing: plate the display screws to + rear box for the Pi and the PCB (print plate down)"
+      },
+      {
+        "name": "lid",
+        "file": "../../01-hardware/enclosure/stl/asm_lid.stl",
+        "color": "#475569",
+        "label": "Lid: 30 mm exhaust fan + cable exit (print outside face down)"
+      },
+      {
+        "name": "display",
+        "file": "../../01-hardware/enclosure/stl/asm_display.stl",
+        "color": "#0b1220",
+        "label": "Official 7\" Touch Display (dummy)"
+      },
+      {
+        "name": "pi",
+        "file": "../../01-hardware/enclosure/stl/asm_pi.stl",
+        "color": "#15803d",
+        "label": "Raspberry Pi 4, display adapter and cables (dummy)"
+      },
+      {
+        "name": "pcb",
+        "file": "../../01-hardware/enclosure/stl/asm_pcb.stl",
+        "color": "#065f46",
+        "label": "100 × 100 mm carrier PCB (dummy)"
+      },
+      {
+        "name": "pcb_parts",
+        "file": "../../01-hardware/enclosure/stl/asm_pcb_parts.stl",
+        "color": "#f59e0b",
+        "label": "PCB part-height budget (dummy)"
+      },
+      {
+        "name": "fan",
+        "file": "../../01-hardware/enclosure/stl/asm_fan.stl",
+        "color": "#111827",
+        "label": "30 mm fan (dummy)"
+      }
+    ],
+    "print_files": [
+      "../../01-hardware/enclosure/stl/print_bezel.stl",
+      "../../01-hardware/enclosure/stl/print_housing.stl",
+      "../../01-hardware/enclosure/stl/print_lid.stl",
+      "../../01-hardware/enclosure/stl/print_pod_shell.stl",
+      "../../01-hardware/enclosure/stl/print_pod_base.stl"
+    ]
+  }
+}
