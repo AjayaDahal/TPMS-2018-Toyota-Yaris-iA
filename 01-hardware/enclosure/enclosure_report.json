@@ -1,0 +1,419 @@
+{
+  "generator": "01-hardware/enclosure/make_enclosure.py",
+  "mount": "inverted",
+  "overall_mm": {
+    "width": 205.56,
+    "height": 127.86,
+    "depth": 71.8
+  },
+  "box_mm": {
+    "width": 112.0,
+    "width_with_ears": 126.0,
+    "height": 120.16,
+    "behind_plate": 60.54,
+    "clear_pocket_depth_needed": 65.5
+  },
+  "z_levels_mm": {
+    "lip_front": 2.3,
+    "glass": 0.0,
+    "module_back": -5.96,
+    "plate_back": -8.96,
+    "pi_seat": -24.0,
+    "pi_top": -25.4,
+    "pi_tall": -42.4,
+    "pcb_bottom": -47.9,
+    "pcb_top": -49.5,
+    "parts_top": -65.5,
+    "lid_inner": -67.0,
+    "lid_outer": -69.5
+  },
+  "ports_face": "driver's right (+X)",
+  "pcb_constraints": {
+    "outline": "100 × 100 mm, parts face the lid, 4× M3 on 92 × 92 into the posts",
+    "max_part_height_mm": 16.0,
+    "fan_zone": "32 × 32 mm centred at template [45.0, 46.0] (mm from the top-left, parts side up): parts ≤ 6 mm",
+    "sma_strip": "14 mm into the board × 12 mm along the edge, on the edge away from the Pi's ports, centred 34.5 mm below the board's top edge: no parts",
+    "corners": "10 × 10 mm round each mounting hole: no through-hole pins (posts and ribs underneath)",
+    "pins_below_mm": 2.5
+  },
+  "hardware": {
+    "display_to_plate": "4× M3 × 6 button head (check how deep the display's threads are first)",
+    "bezel_to_plate": "6× M3 × 10 into 2.6 mm pilots",
+    "lid_to_box": "4× M3 × 12 into the ears",
+    "pcb_to_posts": "4× M3 × 6",
+    "fan": "30 mm 5 V fan from the black Pi case, 4× M3 × 16 + nuts, blowing OUT through the lid",
+    "amps": "4× M4 nuts in the bottom bosses, M4 × 10 (RAM-B-202U round base, or a car bracket)",
+    "pod": "2× M3 × 8, VHB tape under the base"
+  },
+  "parameters": {
+    "MOUNT": "inverted",
+    "GW": 192.96,
+    "GH": 110.76,
+    "MODULE_T": 5.96,
+    "M3_U": [
+      34.87,
+      161.07
+    ],
+    "M3_V": [
+      21.58,
+      87.23
+    ],
+    "M25_U": [
+      73.97,
+      131.97
+    ],
+    "M25_V": [
+      27.43,
+      76.43
+    ],
+    "ACTIVE_U": [
+      19.44,
+      173.52
+    ],
+    "ACTIVE_V": [
+      11.41,
+      97.33
+    ],
+    "FPC_U": [
+      83.72,
+      109.22
+    ],
+    "PI_SEAT": 24.0,
+    "PI_ROT180": 0,
+    "PI_BOARD_T": 1.4,
+    "PI_TOP_H": 17.0,
+    "JACK_OVER": 2.5,
+    "PCB_W": 100.0,
+    "PCB_T": 1.6,
+    "PCB_HOLE_IN": 4.0,
+    "PCB_PIN_H": 2.5,
+    "PCB_COMP_H": 16.0,
+    "PCB_EDGE": 3.5,
+    "AIR_GAP": 3.0,
+    "FAN_PCB_XY": [
+      45.0,
+      46.0
+    ],
+    "FAN_ZONE_H": 6.0,
+    "SMA_FROM_TOP": 38.0,
+    "SMA_PCB_KEEP": [
+      14.0,
+      12.0
+    ],
+    "WALL": 2.5,
+    "PLATE_T": 3.0,
+    "LID_T": 2.5,
+    "LID_GAP": 1.5,
+    "BEZEL_WALL": 6.0,
+    "BEZEL_TOP": 4.0,
+    "LIP_T": 2.0,
+    "LIP_GAP": 0.3,
+    "GLASS_CLR": 0.3,
+    "FPC_CLR": 2.8,
+    "LIP_MARGIN": 1.0,
+    "CHIN_H": 10.0,
+    "CHIN_SKIN": 2.0,
+    "SLOT_W": 2.5,
+    "PILOT_D": 2.6,
+    "CLEAR_D": 3.4,
+    "FAN": 30.0,
+    "FAN_T": 10.0,
+    "FAN_HOLE": 24.0,
+    "SMA_D": 6.6,
+    "CABLE_SLOT": [
+      22.0,
+      8.0
+    ],
+    "AMPS": [
+      38.0,
+      30.0
+    ],
+    "AMPS_D": 4.4,
+    "M4_NUT_AF": 7.0,
+    "M4_NUT_T": 3.4,
+    "BUTTON_D": 12.2,
+    "POD_BUZ_D": 23.2,
+    "POD_BUZ_H": 12.0,
+    "POD": [
+      60.0,
+      30.0,
+      28.0
+    ],
+    "BED": [
+      220.0,
+      220.0,
+      250.0
+    ],
+    "SEG": 40
+  },
+  "volumes_cm3": {
+    "bezel": 45.6,
+    "housing": 126.6,
+    "lid": 34.1,
+    "pod_shell": 14.3,
+    "pod_base": 4.5
+  },
+  "files": {
+    "print_bezel": {
+      "file": "stl/print_bezel.stl",
+      "triangles": 1428
+    },
+    "print_housing": {
+      "file": "stl/print_housing.stl",
+      "triangles": 6742
+    },
+    "print_lid": {
+      "file": "stl/print_lid.stl",
+      "triangles": 2092
+    },
+    "print_pod_shell": {
+      "file": "stl/print_pod_shell.stl",
+      "triangles": 1730
+    },
+    "print_pod_base": {
+      "file": "stl/print_pod_base.stl",
+      "triangles": 340
+    },
+    "asm_bezel": {
+      "file": "stl/asm_bezel.stl",
+      "triangles": 1428,
+      "color": "#1f2937",
+      "label": "Bezel: front frame + 10 mm air-intake chin (print face down)"
+    },
+    "asm_housing": {
+      "file": "stl/asm_housing.stl",
+      "triangles": 6742,
+      "color": "#334155",
+      "label": "Housing: plate the display screws to + rear box for the Pi and the PCB (print plate down)"
+    },
+    "asm_lid": {
+      "file": "stl/asm_lid.stl",
+      "triangles": 2092,
+      "color": "#475569",
+      "label": "Lid: 30 mm exhaust fan + cable exit (print outside face down)"
+    },
+    "asm_display": {
+      "file": "stl/asm_display.stl",
+      "triangles": 44,
+      "color": "#0b1220",
+      "label": "Official 7\" Touch Display (dummy)"
+    },
+    "asm_pi": {
+      "file": "stl/asm_pi.stl",
+      "triangles": 122,
+      "color": "#15803d",
+      "label": "Raspberry Pi 4, display adapter and cables (dummy)"
+    },
+    "asm_pcb": {
+      "file": "stl/asm_pcb.stl",
+      "triangles": 668,
+      "color": "#065f46",
+      "label": "100 × 100 mm carrier PCB (dummy)"
+    },
+    "asm_pcb_parts": {
+      "file": "stl/asm_pcb_parts.stl",
+      "triangles": 88,
+      "color": "#f59e0b",
+      "label": "PCB part-height budget (dummy)"
+    },
+    "asm_fan": {
+      "file": "stl/asm_fan.stl",
+      "triangles": 12,
+      "color": "#111827",
+      "label": "30 mm fan (dummy)"
+    }
+  },
+  "checks": [
+    {
+      "check": "bezel: valid solid",
+      "ok": true,
+      "detail": "NoError, 45.6 cm³, genus 21"
+    },
+    {
+      "check": "bezel: fits a 220 × 220 bed",
+      "ok": true,
+      "detail": "print size 205.6 × 127.9 × 8.3 mm, flat face on the bed"
+    },
+    {
+      "check": "housing: valid solid",
+      "ok": true,
+      "detail": "NoError, 126.6 cm³, genus 22"
+    },
+    {
+      "check": "housing: fits a 220 × 220 bed",
+      "ok": true,
+      "detail": "print size 205.6 × 127.9 × 61.0 mm, flat face on the bed"
+    },
+    {
+      "check": "lid: valid solid",
+      "ok": true,
+      "detail": "NoError, 34.1 cm³, genus 15"
+    },
+    {
+      "check": "lid: fits a 220 × 220 bed",
+      "ok": true,
+      "detail": "print size 126.0 × 120.2 × 4.5 mm, flat face on the bed"
+    },
+    {
+      "check": "pod_shell: valid solid",
+      "ok": true,
+      "detail": "NoError, 14.3 cm³, genus 9"
+    },
+    {
+      "check": "pod_shell: fits a 220 × 220 bed",
+      "ok": true,
+      "detail": "print size 60.0 × 30.0 × 28.0 mm, flat face on the bed"
+    },
+    {
+      "check": "pod_base: valid solid",
+      "ok": true,
+      "detail": "NoError, 4.5 cm³, genus 2"
+    },
+    {
+      "check": "pod_base: fits a 220 × 220 bed",
+      "ok": true,
+      "detail": "print size 60.0 × 30.0 × 2.5 mm, flat face on the bed"
+    },
+    {
+      "check": "no clash: bezel / display",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / display",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / pi",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / pcb",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / pcb_parts",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / fan",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: housing / lid",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: lid / pcb_parts",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: lid / pcb",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: fan / pcb_parts",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: pi / pcb_parts",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: pi / pcb",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: bezel / pi",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: sma / pcb_parts",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: sma / housing",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: bezel / housing",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: pod_shell / pod_button",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: pod_shell / pod_buzzer",
+      "ok": true,
+      "detail": "overlap -0.000 mm³"
+    },
+    {
+      "check": "no clash: pod_button / pod_buzzer",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "no clash: pod_shell / pod_base",
+      "ok": true,
+      "detail": "overlap 0.000 mm³"
+    },
+    {
+      "check": "display M3 pattern 126.2 × 65.65 (drawing)",
+      "ok": true,
+      "detail": "126.20 × 65.65, flange-referenced"
+    },
+    {
+      "check": "display M3 screws reachable from behind",
+      "ok": true,
+      "detail": "axis ≥ 4.1 mm from the box wall, ≥ 12.8 mm from a lid ear (2 mm hex key / #1 driver)"
+    },
+    {
+      "check": "PCB posts on 92 × 92",
+      "ok": true,
+      "detail": "92.00 × 92.00"
+    },
+    {
+      "check": "bezel screws in solid wall",
+      "ok": true,
+      "detail": "6 × M3 into 2.6 mm pilots"
+    },
+    {
+      "check": "air gap Pi -> PCB pins",
+      "ok": true,
+      "detail": "3.0 mm"
+    },
+    {
+      "check": "vent openings finger-safe",
+      "ok": true,
+      "detail": "20 chin slots 2.5 mm wide; fan grille 2.5 mm gaps"
+    },
+    {
+      "check": "box, ears, 90° USB plugs and SMA lead fit the console opening",
+      "ok": true,
+      "detail": "tightest margin 1.3 mm (opening 191 top / 123 bottom × 129)"
+    },
+    {
+      "check": "bezel no taller than the opening",
+      "ok": true,
+      "detail": "bezel 205.6 × 127.9 mm; opening 129 high, its top edge is under the HVAC"
+    }
+  ],
+  "all_ok": true
+}
