@@ -6,16 +6,22 @@
 //    Manchester / differential Manchester / raw chips for analysis. Turn the knob (or send 'p') to change profile.
 #include <Arduino.h>
 #include <SPI.h>
+#ifndef TPMS_BENCH_BARE
 #include <U8g2lib.h>
+#endif
 
 #include <algorithm>
 
 #include "cc1101.h"
+#ifndef TPMS_BENCH_BARE
 #include "driver/gpio.h"
+#endif
 #include "eg53ma4.h"
 #include "pins.h"
 #include "rf.h"
+#ifndef TPMS_BENCH_BARE
 #include "soc/gpio_reg.h"
+#endif
 
 namespace {
 
@@ -35,7 +41,9 @@ constexpr int kModes = kCcModes + 1;   // last mode: optional MX-05V on IO36 (CC
 constexpr int kModes = kCcModes;       // MX-05V mode off: IO36 floats unless R9/R10/J3 are fitted (README §6)
 #endif
 
+#ifndef TPMS_BENCH_BARE
 U8G2_SSD1322_NHD_128X64_F_4W_HW_SPI oled(U8G2_R0, PIN_OLED_CS, PIN_OLED_DC, PIN_OLED_RES);
+#endif
 CC1101 cc(SPI, PIN_CC_CS, PIN_SPI_MISO);
 
 bool ccOk = false;
@@ -45,7 +53,9 @@ uint32_t nBursts = 0, nFrames = 0;
 int peakRssi = -200, liveRssi = -200, lastRssi = 0;
 rf::Burst burst;
 rf::Frame frame, lastFrame;
+#ifndef TPMS_BENCH_BARE
 uint32_t ledsOffAt = 0, buzzerOffAt = 0;
+#endif
 
 // EG53MA4 sensors heard so far (the 4 in the tyres plus any from nearby cars)
 struct Sensor {
@@ -80,6 +90,7 @@ void remember(const eg53ma4::Reading& r, int rssi) {
   sensors[slot].count++;
 }
 
+#ifndef TPMS_BENCH_BARE
 // ---- encoder: quadrature state machine on both edges of A and B (EC11: 4 counts per detent)
 volatile int32_t encCount = 0;
 volatile uint8_t encState = 0;
@@ -91,9 +102,11 @@ void IRAM_ATTR onEncoder() {
   encCount += kStep[(encState << 2) | s];
   encState = s;
 }
+#endif
 
 const char* modeName(int m) { return m < kCcModes ? kProfiles[m].name : "MX-05V on IO36"; }
 
+#ifndef TPMS_BENCH_BARE
 void setLeds(bool on) {
   for (int p : {PIN_LED_FL, PIN_LED_FR, PIN_LED_RL, PIN_LED_RR}) digitalWrite(p, on ? HIGH : LOW);
 }
@@ -110,6 +123,7 @@ void ledWalk() {
     digitalWrite(p, LOW);
   }
 }
+#endif
 
 void setMode(int m) {
   mode = ((m % kModes) + kModes) % kModes;
@@ -134,13 +148,38 @@ void setMode(int m) {
                 mode < kCcModes && ccOk ? (inRx ? "  (CC1101 in RX)" : "  (CC1101 NOT in RX!)") : "");
 }
 
+void dumpCc1101() {
+  if (!ccOk) {
+    Serial.println("CC1101: NOT FOUND (cannot dump registers)");
+    return;
+  }
+  Serial.printf(
+      "CC1101 dump: PARTNUM=0x%02X VERSION=0x%02X MARCSTATE=0x%02X RSSI=%d dBm GDO0=%d GDO2=%d\n",
+      cc.partnum(), cc.version(), cc.marcState(), cc.rssiDbm(),
+      digitalRead(PIN_CC_GDO0), digitalRead(PIN_CC_GDO2));
+  Serial.printf(
+      "  FREQ=0x%02X%02X%02X MDMCFG4/3/2=0x%02X/0x%02X/0x%02X AGCCTRL2/1/0=0x%02X/0x%02X/0x%02X FOCCFG=0x%02X FREND1=0x%02X TEST0=0x%02X\n",
+      cc.readReg(0x0D), cc.readReg(0x0E), cc.readReg(0x0F),
+      cc.readReg(0x10), cc.readReg(0x11), cc.readReg(0x12),
+      cc.readReg(0x1B), cc.readReg(0x1C), cc.readReg(0x1D),
+      cc.readReg(0x19), cc.readReg(0x21), cc.readReg(0x2E));
+}
+
 void printHelp() {
-  Serial.println("keys: p = next profile, r = raw pulse dump on/off, t = LED/buzzer test, h = help");
+#ifdef TPMS_BENCH_BARE
+  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, h = help");
+#else
+  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, t = LED/buzzer test, h = help");
+#endif
   Serial.println("Profile 0 (OOK) decodes your GM/Schrader EG53MA4 sensors: wake one with the OEC-T5 tool, or drive.");
 }
 
 void selfTest() {
+#ifdef TPMS_BENCH_BARE
+  Serial.println("\n=== TPMS bare-bench CC1101 bring-up ===");
+#else
   Serial.println("\n=== TPMS panel bring-up ===");
+#endif
   ccOk = cc.begin();
   Serial.printf("CC1101: PARTNUM 0x%02X VERSION 0x%02X -> %s\n", cc.partnum(), cc.version(),
                 ccOk ? (cc.version() == 0x14 || cc.version() == 0x04 ? "TI chip OK" : "clone chip, should work")
@@ -156,6 +195,7 @@ void selfTest() {
     Serial.printf("CC1101: state 0x%02X (0x0D = RX), noise floor %d dBm at 315 MHz\n", cc.marcState(), sum / 16);
     Serial.println("        (about -100 dBm or lower is good; much higher = interference from the board or nearby)");
   }
+#ifndef TPMS_BENCH_BARE
   oled.clearBuffer();
   oled.setFont(u8g2_font_6x10_tf);
   oled.drawStr(0, 10, "TPMS panel bring-up");
@@ -170,8 +210,10 @@ void selfTest() {
   Serial.println("LEDs: walked FL FR RR RL. Buzzer: one beep.");
   Serial.printf("Encoder: A=%d B=%d, button=%s (idle should be A/B either level, button 1)\n",
                 digitalRead(PIN_ENC_A), digitalRead(PIN_ENC_B), digitalRead(PIN_ENC_SW) ? "up" : "PRESSED");
+#endif
 }
 
+#ifndef TPMS_BENCH_BARE
 void drawScreen() {
   char line[32];
   oled.clearBuffer();
@@ -218,6 +260,7 @@ void drawScreen() {
   }
   oled.sendBuffer();
 }
+#endif
 
 void printHex(const char* label, const uint8_t* bytes, int nbits) {
   Serial.printf("    %-6s(%3d bits) ", label, nbits);
@@ -255,14 +298,17 @@ void handleBurst() {
     printHex("DMAN", frame.dman, frame.ndman);
     printHex("chips", frame.chips, frame.nchips);
   }
+#ifndef TPMS_BENCH_BARE
   setLeds(true);
   ledsOffAt = millis() + 40;
+#endif
 }
 
 }  // namespace
 
 void setup() {
   Serial.begin(115200);
+#ifndef TPMS_BENCH_BARE
   for (int p : {PIN_LED_FL, PIN_LED_FR, PIN_LED_RL, PIN_LED_RR, PIN_BUZZER}) {
     pinMode(p, OUTPUT);
     digitalWrite(p, LOW);
@@ -270,6 +316,8 @@ void setup() {
   pinMode(PIN_ENC_A, INPUT);    // the board has the pull-ups and RC filters
   pinMode(PIN_ENC_B, INPUT);
   pinMode(PIN_ENC_SW, INPUT);
+#endif
+  pinMode(PIN_CC_GDO0, INPUT);
   pinMode(PIN_CC_GDO2, INPUT);
   pinMode(PIN_CC_CS, OUTPUT);   // both chip selects idle high before the shared bus starts
   digitalWrite(PIN_CC_CS, HIGH);
@@ -277,16 +325,20 @@ void setup() {
   digitalWrite(PIN_OLED_CS, HIGH);
 
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
+#ifndef TPMS_BENCH_BARE
   // SCK/MOSI run ~100-130 mm to two loads: weaker drive = slower edges = no ringing / double clocking
   gpio_set_drive_capability((gpio_num_t)PIN_SPI_SCK, GPIO_DRIVE_CAP_1);
   gpio_set_drive_capability((gpio_num_t)PIN_SPI_MOSI, GPIO_DRIVE_CAP_1);
   oled.setBusClock(4000000);
   oled.begin();
+#endif
 
   selfTest();
+#ifndef TPMS_BENCH_BARE
   encState = (digitalRead(PIN_ENC_A) << 1) | digitalRead(PIN_ENC_B);
   attachInterrupt(digitalPinToInterrupt(PIN_ENC_A), onEncoder, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_ENC_B), onEncoder, CHANGE);
+#endif
   setMode(0);
   printHelp();
 }
@@ -294,6 +346,7 @@ void setup() {
 void loop() {
   const uint32_t now = millis();
 
+#ifndef TPMS_BENCH_BARE
   // One step per full detent (4 counts), with hysteresis: wiggling the knob at a detent doesn't step twice
   static int32_t encRef = 0;
   const int32_t moved = encCount - encRef;
@@ -317,12 +370,16 @@ void loop() {
       Serial.println("button pressed");
     }
   }
+#endif
 
   while (Serial.available()) {
     switch (Serial.read()) {
       case 'p': setMode(mode + 1); break;
       case 'r': rawDump = !rawDump; Serial.printf("raw dump %s\n", rawDump ? "on" : "off"); break;
+      case 'd': dumpCc1101(); break;
+#ifndef TPMS_BENCH_BARE
       case 't': ledWalk(); beep(80); break;
+#endif
       case 'h': printHelp(); break;
       default: break;
     }
@@ -337,6 +394,7 @@ void loop() {
 
   while (rf::nextBurst(burst)) handleBurst();
 
+#ifndef TPMS_BENCH_BARE
   if (ledsOffAt && now >= ledsOffAt) {
     setLeds(false);
     ledsOffAt = 0;
@@ -346,15 +404,18 @@ void loop() {
     buzzerOffAt = 0;
   }
 
-  static uint32_t lastDraw = 0, lastStats = 0;
+  static uint32_t lastDraw = 0;
   if (now - lastDraw >= 250) {
     lastDraw = now;
     drawScreen();
   }
+#endif
+  static uint32_t lastStats = 0;
   if (now - lastStats >= 10000) {
     lastStats = now;
-    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm\n",
+    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm, GDO2=%d\n",
                   (unsigned long)(now / 1000), (unsigned long)nBursts, (unsigned long)nFrames,
-                  (unsigned long)rf::edges(), (unsigned long)rf::dropped(), liveRssi);
+                  (unsigned long)rf::edges(), (unsigned long)rf::dropped(), liveRssi,
+                  digitalRead(PIN_CC_GDO2));
   }
 }

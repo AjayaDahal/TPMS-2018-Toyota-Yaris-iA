@@ -4,6 +4,7 @@ import { STLLoader } from "three/addons/STLLoader.js";
 import { createCarBlueprintScene } from "./car_scene.js";
 import { createPcb6Scene } from "./pcb6_scene.js";
 import { createProductsScene } from "./products_scene.js";
+import { createRfBenchUI } from "./rf_bench.js";
 
 const stageEl = document.getElementById("scene");
 const inspectHud = document.getElementById("inspect-hud");
@@ -62,7 +63,8 @@ let systemPlan = null;
 let carCtx = null;
 let pcb6Ctx = null;
 let partsCtx = null;
-let activeMode = "car"; // "car" | "pcb6" | "parts" | "v1"
+let rfBenchCtx = null;
+let activeMode = "car"; // "car" | "pcb6" | "parts" | "v1" | "rf"
 
 // v1 PCB state
 const v1Records = [];
@@ -364,6 +366,7 @@ const TABS = [
   ["tab-premortem", "Premortem"],
   ["tab-v1", "v1 PCB"],
   ["tab-docs", "Renders"],
+  ["tab-rf", "RF Bench"],
 ];
 
 function activateTab(tabId) {
@@ -387,6 +390,18 @@ async function switchMode(mode, syncTab = true) {
   partsRoot.visible = mode === "parts";
   v1Root.visible = mode === "v1";
 
+  const isRf = mode === "rf";
+  renderer.domElement.hidden = isRf;
+  const overlayEl = document.getElementById("overlay");
+  if (overlayEl) overlayEl.hidden = isRf;
+  const titleEl = document.querySelector(".stage-title");
+  if (titleEl) titleEl.hidden = isRf;
+  const footEl = document.getElementById("stage-foot");
+  if (footEl) footEl.hidden = isRf;
+  const rfStageEl = document.getElementById("rf-stage");
+  if (rfStageEl) rfStageEl.hidden = !isRf;
+  if (rfBenchCtx) rfBenchCtx.setActive(isRf);
+
   document.querySelectorAll(".mode-switch button").forEach((b) => {
     b.classList.toggle("active", b.dataset.mode === mode);
   });
@@ -394,7 +409,9 @@ async function switchMode(mode, syncTab = true) {
   const pipChecked = document.getElementById("sim-hud-pip")?.checked;
   hudPreviewBox.hidden = !(mode === "car" && pipChecked);
 
-  if (mode === "car") {
+  if (mode === "rf") {
+    if (syncTab) activateTab("tab-rf");
+  } else if (mode === "car") {
     document.getElementById("eyebrow").textContent = "2018 TOYOTA YARIS iA (MAZDA2 DJ SEDAN) · FULL-CAR BLUEPRINT";
     document.getElementById("stage-title").textContent = "TPMS + Dual-Camera Blind-Spot System";
     document.getElementById("dimension").textContent = "4360 × 1695 × 1485 mm · WB 2570 mm · Mirrors 1983 mm";
@@ -457,6 +474,7 @@ function buildUI() {
       else if (id === "tab-pcb6" && activeMode !== "pcb6") switchMode("pcb6", false);
       else if (id === "tab-parts" && activeMode !== "parts") switchMode("parts", false);
       else if (id === "tab-v1" && activeMode !== "v1") switchMode("v1", false);
+      else if (id === "tab-rf" && activeMode !== "rf") switchMode("rf", false);
     };
     tabsEl.appendChild(btn);
   });
@@ -1045,6 +1063,7 @@ async function init() {
     carCtx = createCarBlueprintScene(carRoot);
     pcb6Ctx = createPcb6Scene(pcb6Root, systemPlan.pcb6_stackup || [], systemPlan.enclosure || null);
     partsCtx = createProductsScene(partsRoot);
+    rfBenchCtx = createRfBenchUI();
     buildUI();
     await switchMode("car", true);
   } catch (err) {

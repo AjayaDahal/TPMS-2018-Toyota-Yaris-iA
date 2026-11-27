@@ -18,6 +18,7 @@
         <button class="hdr-btn" id="mode-pcb6" data-mode="pcb6">2. 6-Layer PCB (100×100 · $2)</button>
         <button class="hdr-btn" id="mode-parts" data-mode="parts">3. Printed Parts &amp; Assembly</button>
         <button class="hdr-btn" id="mode-v1" data-mode="v1">4. v1 TPMS Panel (189×128)</button>
+        <button class="hdr-btn" id="mode-rf" data-mode="rf">5. RF Bench (TX/RX)</button>
       </div>
       <div class="hdr-actions">
         <a href="../../03-manufacturing/production/tpms_panel_gerbers_jlcpcb.zip" download>v1 Gerbers</a>
@@ -51,6 +52,70 @@
           <button id="media-close" class="hud-btn primary">✕ Return to 3-D View</button>
           <img id="studio-img" alt="KiCad 3-D PCB Render" hidden />
           <div id="caption"></div>
+        </div>
+        <div id="rf-stage" hidden>
+          <div class="rf-head">
+            <div>
+              <small>315.000 MHz ASK/OOK BENCH TELEMETRY</small>
+              <h2>USRP B205mini TX ↔ ESP32 + E07-M1101D (CC1101) RX</h2>
+            </div>
+            <span class="muted">OTA bench only — keep ≥40–50 dB attenuation if cabled</span>
+          </div>
+          <div class="rf-kpis">
+            <div class="rf-kpi"><small>CC1101 Radio</small><div id="rf-kpi-cc"><strong>Offline</strong><span>Connect ESP32</span></div></div>
+            <div class="rf-kpi"><small>Live RSSI</small><div id="rf-kpi-rssi"><strong>—</strong><span>Noise floor —</span></div></div>
+            <div class="rf-kpi"><small>Carrier Sense</small><div id="rf-kpi-gdo2"><strong>—</strong><span>GDO0=—</span></div></div>
+            <div class="rf-kpi"><small>USRP TX</small><div id="rf-kpi-tx"><strong>0 bursts</strong><span>0 EG53 frames</span></div></div>
+            <div class="rf-kpi"><small>ESP32 RX</small><div id="rf-kpi-rx"><strong>0 decoded</strong><span>Waiting</span></div></div>
+            <div class="rf-kpi"><small>Demod Activity</small><div id="rf-kpi-noise"><strong>0 edges</strong><span>bursts 0 · drop 0</span></div></div>
+          </div>
+          <div class="rf-card">
+            <div class="rf-card-head">
+              <span>Live CC1101 RSSI &amp; GDO2 Carrier Sense</span>
+              <span class="muted">Cyan: RSSI (dBm) · Green bar: GDO2=1 · Orange band: USRP TX active</span>
+            </div>
+            <canvas id="rf-rssi-canvas" width="960" height="165"></canvas>
+          </div>
+          <div class="rf-split">
+            <div class="rf-card">
+              <div class="rf-card-head">
+                <span>Transmitted (USRP B205mini · 315 MHz)</span>
+                <span id="rf-tx-count" class="muted">0 burst(s)</span>
+              </div>
+              <div class="rf-table-wrap">
+                <table class="rf-table">
+                  <thead><tr><th>#</th><th>Time</th><th>Mode</th><th>ID</th><th>Payload</th><th>Gain</th><th>TX</th><th>RX Match</th></tr></thead>
+                  <tbody id="rf-tx-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="rf-card">
+              <div class="rf-card-head">
+                <span>Received (ESP32 + E07-M1101D)</span>
+                <span id="rf-rx-count" class="muted">0 frame(s)</span>
+              </div>
+              <div class="rf-table-wrap">
+                <table class="rf-table">
+                  <thead><tr><th>Time</th><th>ID</th><th>Pressure</th><th>Temp</th><th>Flags</th><th>RSSI</th><th>Source</th></tr></thead>
+                  <tbody id="rf-rx-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="rf-card">
+            <div class="rf-card-head">
+              <span>Schrader EG53MA4 ASK/OOK Manchester Waveform</span>
+              <span id="rf-wave-meta" class="muted"></span>
+            </div>
+            <canvas id="rf-wave-canvas" width="960" height="115"></canvas>
+          </div>
+          <div class="rf-card">
+            <div class="rf-card-head">
+              <span>ESP32 Live Serial Log</span>
+              <span class="muted">115200 baud</span>
+            </div>
+            <div id="rf-serial-log" class="rf-console"></div>
+          </div>
         </div>
       </div>
       <aside>
@@ -257,6 +322,59 @@
             <h3>v1 Hardware &amp; ESP32 Bring-Up Firmware</h3>
             <dl id="hw-dl"></dl>
             <dl id="fw-dl" style="margin-top:8px;"></dl>
+          </section>
+
+          <!-- TAB 7: LIVE RF BENCH (USRP B205mini TX + ESP32/E07-M1101D RX) -->
+          <section id="tab-rf" hidden>
+            <h3>ESP32 + E07-M1101D Serial</h3>
+            <select id="rf-port-select" class="rf-input" aria-label="ESP32 Serial Port"></select>
+            <div class="buttons" style="margin-top:6px;">
+              <button id="rf-btn-connect" class="accent-btn">Connect</button>
+              <button id="rf-btn-disconnect">Disconnect</button>
+              <button id="rf-btn-reset">Reset ESP32</button>
+              <button id="rf-btn-dump">Dump Regs (d)</button>
+              <button id="rf-btn-profile">Next Profile (p)</button>
+              <button id="rf-btn-raw">Toggle Raw (r)</button>
+            </div>
+            <div id="rf-esp-status" class="card">Disconnected</div>
+
+            <h3>USRP B205mini Transmitter (315 MHz)</h3>
+            <div id="rf-usrp-status" class="card">Checking UHD...</div>
+            <button id="rf-btn-probe" class="reset">Re-scan USRP (uhd_find_devices)</button>
+
+            <h3>Simulate TX Signal</h3>
+            <div id="rf-tx-presets" class="buttons" style="margin-bottom:6px;">
+              <button data-id="0x123456" data-psi="31.9" data-temp="77" data-flags="0x058F2001">FL 123456 · 31.9 psi</button>
+              <button data-id="0xABCDEF" data-psi="35.0" data-temp="68" data-flags="0x058F2002">FR ABCDEF · 35.0 psi</button>
+              <button data-id="0x2FC871" data-psi="33.0" data-temp="72" data-flags="0x058F2001">RL 2FC871 · 33.0 psi</button>
+              <button data-id="0x3495AC" data-psi="24.0" data-temp="80" data-flags="0x058F2001">Low 3495AC · 24.0 psi</button>
+            </div>
+            <div class="rf-form">
+              <label>Mode
+                <select id="rf-tx-mode" class="rf-input">
+                  <option value="eg53ma4">Schrader EG53MA4 (ASK/OOK)</option>
+                  <option value="cw">315.000 MHz CW Pulse</option>
+                </select>
+              </label>
+              <label>Sensor ID (hex) <input id="rf-tx-id" class="rf-input" value="0x123456" /></label>
+              <label>Pressure (psi) <input id="rf-tx-psi" class="rf-input" type="number" step="0.1" value="31.9" /></label>
+              <label>Temp (°F) <input id="rf-tx-temp" class="rf-input" type="number" value="77" /></label>
+              <label>Flags (hex) <input id="rf-tx-flags" class="rf-input" value="0x058F2001" /></label>
+              <label>Repeats / Burst <input id="rf-tx-repeats" class="rf-input" type="number" min="1" max="4" value="2" /></label>
+              <label>Burst Count <input id="rf-tx-count-in" class="rf-input" type="number" min="1" max="10" value="3" /></label>
+            </div>
+            <label class="range">
+              B205mini TX Gain (safe OTA ≤ 55 dB) <output id="rf-tx-gain-out">25 dB</output>
+              <input type="range" id="rf-tx-gain" min="0" max="55" value="25" />
+            </label>
+            <div class="buttons">
+              <button id="rf-btn-tx" class="accent-btn">▶ Transmit Burst</button>
+              <button id="rf-btn-clear">Clear Logs</button>
+            </div>
+            <div id="rf-tx-msg" class="muted" style="margin-top:6px;"></div>
+
+            <h3>CC1101 Live Registers</h3>
+            <dl id="rf-regs-dl"></dl>
           </section>
         </div>
       </aside>

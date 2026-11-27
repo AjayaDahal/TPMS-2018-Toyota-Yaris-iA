@@ -5,6 +5,7 @@ Only files that belong to the repository are served: tracked files and new files
 and requests must carry a localhost Host header (a web page can't read the files through DNS rebinding).
 """
 import argparse
+import json
 import socket
 import subprocess
 import sys
@@ -14,6 +15,8 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+from rf_bench_backend import RfBenchManager
 
 ROOT = Path(__file__).resolve().parents[1]
 # Without git (a zip download): serve only these folders and top-level files.
@@ -62,6 +65,7 @@ class RepoFiles:
 class Handler(SimpleHTTPRequestHandler):
     repo = None
     port = 0
+    rf_bench = None
     extensions_map = {
         **SimpleHTTPRequestHandler.extensions_map,
         # Explicit: Python reads the Windows registry, where .js is sometimes text/plain (module scripts then fail)
@@ -79,6 +83,57 @@ class Handler(SimpleHTTPRequestHandler):
     def host_ok(self):
         host = (self.headers.get("Host") or "").lower()
         return host in {f"127.0.0.1:{self.port}", f"localhost:{self.port}", f"[::1]:{self.port}"}
+
+    def send_json(self, code, payload):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def read_json_body(self):
+        length = int(self.headers.get("Content-Length") or "0")
+        raw = self.rfile.read(length) if length > 0 else b"{}"
+        return json.loads(raw.decode("utf-8") or "{}")
+
+    def do_GET(self):
+        if urlsplit(self.path).path == "/api/rf/state":
+            if not self.host_ok():
+                self.send_error(421)
+                return
+            self.send_json(200, self.rf_bench.get_state())
+            return
+        super().do_GET()
+
+    def do_POST(self):
+        if not self.host_ok():
+            self.send_error(421)
+            return
+        path = urlsplit(self.path).path
+        try:
+            data = self.read_json_body()
+        except Exception as exc:
+            self.send_json(400, {"ok": False, "error": f"Invalid JSON: {exc}"})
+            return
+
+        if path == "/api/rf/connect":
+            res = self.rf_bench.connect(data.get("port", ""), int(data.get("baud", 115200)))
+            self.send_json(200 if res.get("ok") else 400, res)
+        elif path == "/api/rf/disconnect":
+            self.send_json(200, self.rf_bench.disconnect())
+        elif path == "/api/rf/cmd":
+            res = self.rf_bench.send_cmd(data.get("cmd", ""))
+            self.send_json(200 if res.get("ok") else 400, res)
+        elif path == "/api/rf/tx":
+            res = self.rf_bench.start_tx(data)
+            self.send_json(200 if res.get("ok") else 400, res)
+        elif path == "/api/rf/probe-usrp":
+            self.send_json(200, {"ok": True, "usrp": self.rf_bench.probe_usrp()})
+        elif path == "/api/rf/clear":
+            self.send_json(200, self.rf_bench.clear_logs())
+        else:
+            self.send_error(404)
 
     def send_head(self):
         if not self.host_ok():
@@ -119,7 +174,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("port", type=int, nargs="?", default=28776)
     port = parser.parse_args().port
-    Handler.repo, Handler.port = RepoFiles(), port
+    Handler.repo, Handler.port, Handler.rf_bench = RepoFiles(), port, RfBenchManager()
     if not Handler.repo.git:
         print("git not found: serving only the project folders", file=sys.stderr)
     try:
