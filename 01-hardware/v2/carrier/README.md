@@ -195,3 +195,8 @@ An estimate for 5 boards with 2 assembled, from JLCPCB's live part prices with t
 | Shipping, depending on the carrier | ~$10–30 |
 
 Then the parts you solder yourself: the 10 SMD power parts (~$4 for 2 boards on one LCSC order, plus its shipping; `C104` can come from your lab bin) and the 5 THT items in [Hand soldering](#hand-soldering) (~$5). The three spare bare boards cost nothing extra and can be hand-built if needed.
+
+Having JLCPCB fit the 10 SMD power parts instead would add ~$24 to its quote, and no LCSC order would be needed:
+- ~$18.40 of feeder fees: they are 6 more extended lines, and the fee is per part number, not per part;
+- ~$5.20 for the parts, with JLCPCB's attrition and minimum quantities;
+- ~$0.07 for their 21 solder joints a board.

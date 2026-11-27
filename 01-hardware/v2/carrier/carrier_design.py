@@ -61,7 +61,8 @@ FP_CC1101 = "TPMS2:CC1101_2x4_Socket"
 FP_LTV357 = "TPMS2:SOP-4_LTV-357T_P2.54mm_Rows6.5mm"
 
 # ------------------------------------------------------------------ JLCPCB / LCSC part numbers
-# Basic and Preferred Extended parts cost no loading fee on Economic PCBA; Extended parts cost ~$3 each per order.
+# Basic and Preferred Extended parts cost no loading fee on Economic PCBA; Extended parts cost ~$3 per part number
+# (feeder loading), once per order whatever the quantity.
 LCSC = {
     (R0603, "0"): "C21189", (R0603, "10"): "C22859", (R0603, "33"): "C23140", (R0603, "100"): "C22775",
     (R0603, "330"): "C23138", (R0603, "1k"): "C21190", (R0603, "4.7k"): "C23162", (R0603, "10k"): "C25804",
