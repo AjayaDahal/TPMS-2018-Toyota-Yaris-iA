@@ -26,9 +26,9 @@ The route of record is committed: `tpms_v2_carrier_route.ses` (the Freerouting s
 | Block | Parts | Notes |
 |---|---|---|
 | 12 V in (J1) | 4 A NANO2 fuse → SMCJ24CA TVS → SUD50P06-15 P-FET (−60 V, reverse battery) → π filter (6.8 µH, 3 × 10 µF, 47 µF electrolytic for damping) → 10 mΩ shunt | INA226 at 0x40 measures the 12 V input voltage and the current to both bucks and the piezo |
-| 5V_PI (J5) | TPS54560B, 441 kHz, 6.8 µH, B560C, 4 × 47 µF → 5.17 V, 5 A | 10 mΩ shunt + INA226 at 0x41; SMBJ6.0A clamp; EN start delay ~1.3 s; `PI_INHIBIT` (GPIO26) can only hold it off; rail-up divider to GPIO15 |
+| 5V_PI (J5) | TPS54560B, 441 kHz, 6.8 µH, SS56C (5 A / 60 V), 4 × 47 µF → 5.17 V, 5 A | 10 mΩ shunt + INA226 at 0x41; SMBJ6.0CA clamp; EN start delay ~1.3 s; `PI_INHIBIT` (GPIO26) can only hold it off; rail-up divider to GPIO15 |
 | 5V_ESP | TPS54560B, 485 kHz → 5.17 V, 1 A | SS14 into the DevKit's VIN (a USB-powered DevKit can't back-feed the board); XC6206 → 3V3 for the I2C chips; ferrite → 3V3_RF for the CC1101 |
-| Inputs | 3 × LTV-357T optos: left and right blinker, AUX (J1 pin 3) | 2 × 1.2 kΩ + indicator LED per input; each lamp return has its own pin |
+| Inputs | 3 × ICPL-356-50C SOP-4 optos (CTR 200–400 %, 80 V): left and right blinker, AUX (J1 pin 3) | 2 × 1.2 kΩ + indicator LED per input; each lamp return has its own pin |
 | Outputs | 2 × AO3400A door LEDs (PWM), 2N7002 piezo (12 V from after the shunt, through a PTC), AO3400A fan (on by default) | — |
 | Monitors | TMP75 (0x48) board temperature, beside the Pi buck; TCA9534 (0x20) expander: AUX in, fan, Pi AUX, 5 spare pins | — |
 | Ports | J2/J3 doors, J4 pod, J6 Pi UART, J7 GPS (JST-GH); J8 fan | GPS is optional: a fallback speed source after the OBD-II dongle, on the standard 6-pin Pixhawk pinout |
@@ -50,18 +50,16 @@ Every ESP32 signal passes a series resistor next to its DevKit pin. It limits fa
 
    Every line should match its LCSC part. Parts that aren't in the files (sockets, terminals, DNP options) are in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
 3. **Placement preview:** check every polarized part before you confirm:
-   - the diodes: B560C at D201/D301, SMBJ6.0A at D203/D302, SS14 at D304, the 1N4148Ws; the SMCJ24CA at D101 is bidirectional, so either way is fine;
+   - the diodes: SS56C at D201/D301, SS14 at D304, the 1N4148Ws; the SMCJ24CA at D101 and SMBJ6.0CA at D203/D302 are bidirectional, so either way is fine;
    - the LEDs: D102, D204, D303, D305, D501, D503, D505;
-   - the electrolytic C104;
-   - pin 1 of every IC: U101, U201, U202, U301, U302, U501–U503, U801, U802;
-   - Q101's tab.
+   - pin 1 of every IC: U101, U201, U202, U301, U302, U501–U503, U801, U802.
 
-   The CPL rotations are fitted to JLCPCB's own footprints by the build, and it reports the worst fit, but the preview is the last check.
-4. **Price:** expect the board promo plus Economic assembly. The 16 extended parts cost about $3 each per order, on top of the parts and the setup fee: see [Cost](#cost).
+   The CPL rotations are fitted to JLCPCB's own footprints by the build, and it reports the worst fit (0.29 mm), but the preview is the last check.
+4. **Price:** expect the board promo plus Economic assembly. Four former extended lines were swapped to JLCPCB Preferred ($0 fee) and six large 2/3-pad SMD power parts moved to hand-solder, leaving only **6 extended parts** (~$3.07 each) on top of the parts and the setup fee: see [Cost](#cost).
 
 ## Hand soldering
 
-Fit these after the boards arrive (the list with part numbers is `tpms_v2_carrier_hand_solder_and_dnp.csv`):
+Fit these after the boards arrive (the list with LCSC/MPN numbers is `tpms_v2_carrier_hand_solder_and_dnp.csv`):
 
 | Ref | Part | Notes |
 |---|---|---|
@@ -70,6 +68,12 @@ Fit these after the boards arrive (the list with part numbers is `tpms_v2_carrie
 | J1 | 4-pole screw terminal, 5.08 mm | Wire entries toward the board edge |
 | J5 | 6-pole screw terminal, 5.08 mm | Same |
 | J8 | 1×2 right-angle pin header, 2.54 mm | Lid fan |
+| C104 | 47 µF / 50 V electrolytic, 6.3×7.7 SMD (`C970679`) | Or a leaded 47 µF / 50 V electrolytic from your lab bin, bent onto the two pads (check polarity: `+` toward `12V_PROT`) |
+| F101 | 4 A 2410 NANO2 fast SMD fuse (`C27515`, Littelfuse `0451004.MRL`) | Large 6 mm 2-pad SMD; easy to replace if it ever blows |
+| F601, F901 | 2 × 0.5 A / 60 V 1812 PTC polyfuse (`C70113`, `mSMD050-60V`) | Large 4.5 mm 2-pad SMD |
+| L101, L201, L301 | 3 × 6.8 µH 11×10 mm shielded inductor (`C408485`, `MWSA1004S-6R8MT`) | Large 2-pad SMD; pads extend 1.3 mm past each end of the body |
+| Q101 | −60 V P-MOSFET TO-252 DPAK (`C7503186`, `SUD50P06-15`) | Large drain tab + 2 gull-wing leads |
+| R104, R211 | 2 × 10 mΩ 1 % 2 W 2512 current shunt (`C192580`, `RLM25FEER010`) | Large 6.3 mm 2-pad SMD |
 
 The ground pins connect to the solid GND plane on L2 and the GND pours on the other layers, through thermal reliefs. Use a 60–80 W iron with a chisel tip and keep it on a little longer than for a 2-layer board.
 
@@ -118,11 +122,11 @@ An estimate for 5 boards with 2 assembled. JLCPCB's quote at checkout is the rea
 | Item | Estimate |
 |---|---|
 | 5 bare boards: 6 layers, 100 × 100 mm, 1.6 mm, ENIG, epoxy-filled and capped vias | ~$2 at the current 6-layer promo |
-| Economic PCBA: setup fee and stencil | ~$8 + ~$1.50 |
-| Extended-part fees: 16 lines × ~$3, charged once per order | ~$48 |
-| Parts for 2 boards: the 16 extended lines come to ~$12 a board (the two TPS54560B and two INA226 are ~$7 of it), the 41 basic lines to ~$2; plus surplus where a part has a minimum order | ~$30 |
-| Placement: 173 parts and 441 solder joints a board at ~$0.0017 a joint | ~$2 |
-| **Total before shipping** | **~$90** |
+| Economic PCBA: setup fee and stencil | ~$9.70 ($8.18 + $1.53) |
+| Extended-part fees: **6 lines** × ~$3.07 (4 lines moved to Preferred at $0, 6 large 2/3-pad SMD parts moved to hand-solder) | ~$18.40 |
+| Parts for 2 boards: 6 extended + 4 preferred + 41 basic (live LCSC pricing, incl. min-order surplus) | ~$18–21 |
+| Placement: 163 parts and ~420 solder joints a board at ~$0.0016 a joint | ~$1.40 |
+| **Total before shipping (before any $6–$10 monthly SMT coupon)** | **~$50–53** |
 | Shipping, depending on the carrier | ~$10–30 |
 
-Then the parts you solder yourself: the five items in [Hand soldering](#hand-soldering), from your own stock or ~$5. The three spare bare boards cost nothing extra and can be hand-built if needed.
+Then the parts you solder yourself: the 5 THT items + 6 large SMD power parts in [Hand soldering](#hand-soldering) (~$8–9 total for 2 boards when bundled on one LCSC/DigiKey order; `C104` is in your lab bin). The three spare bare boards cost nothing extra and can be hand-built if needed.

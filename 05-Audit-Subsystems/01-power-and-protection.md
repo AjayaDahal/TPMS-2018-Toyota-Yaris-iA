@@ -16,7 +16,7 @@ The start-up logic that drives `PI_INHIBIT` is in [Raspberry Pi](06-raspberry-pi
 
 | Check | Evidence | Result |
 |---|---|---|
-| Component ratings | From the datasheets: TPS54560B 4.5–60 V in, 5 A, 0.8 V ±1 % reference, RT 100 kHz–2.5 MHz, 135 ns minimum on-time, EN threshold with hysteresis current. SMCJ24CA: 24 V stand-off, 26.7 V minimum breakdown, 38.9 V clamp. SUD50P06-15: −60 V, ±20 V gate. B560C: 60 V, 5 A Schottky. LTV-357T, INA226 (bus and shunt inputs to 40 V absolute) | All above their worst case |
+| Component ratings | From the datasheets: TPS54560B 4.5–60 V in, 5 A, 0.8 V ±1 % reference, RT 100 kHz–2.5 MHz, 135 ns minimum on-time, EN threshold with hysteresis current. SMCJ24CA: 24 V stand-off, 26.7 V minimum breakdown, 38.9 V clamp. SUD50P06-15: −60 V, ±20 V gate. SS56C (Preferred, replaces B560C): 60 V, 5 A Schottky, 680 mV @ 5 A. ICPL-356-50CEAXW (Preferred, SOP-4 LTV-357T drop-in: 80 V, CTR 200–400 %), INA226 (bus and shunt inputs to 40 V absolute) | All above their worst case |
 | 5 V at the Pi | 82 k / 15 k → **5.17 V** at the regulator (5.07–5.27 V with the reference and 1 % resistors). Minus the 10 mΩ shunt (33 mV at 3.3 A) and the lead to the Pi (30–50 mΩ: 100–165 mV): **4.87–5.17 V at the Pi at peak**, typically ~5.0 V. The Pi flags undervoltage at 4.63 V ±5 % (4.40–4.86 V) | Above the threshold even in the worst case (PWR-01 fixed) |
 | Over-voltage | The TVS clamps at ≤ 38.9 V. Downstream: the bucks are rated 60 V, the P-FET −60 V, the INA226 inputs 40 V absolute; the Pi buck's EN divider puts ≤ 5.1 V on EN at 39 V | OK |
 | Reverse battery | The P-FET blocks; the TVS is bidirectional; the AUX input on J1 is behind an opto | OK |

@@ -485,7 +485,7 @@
       "qty": 2,
       "inv_stock": 0,
       "cost_usd": 90,
-      "notes": "Every SMD part: two TPS54560B bucks (5.17 V / 5 A and 1 A), the 12 V protection, two INA226 monitors, the optos, drivers, TMP75 and TCA9534. Setup fee, 16 extended-part fees (~$3 each) and ~$15–20 of parts per board: confirm at checkout. Files in 03-manufacturing/v2_carrier"
+      "notes": "JLCPCB Economic PCBA: 41 basic + 4 preferred ($0 fee) + 6 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Six large 2/3-pad SMD power parts (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211) moved to hand-solder to cut ~$31 in feeder fees. ~$50–53 before shipping (~$40–45 with monthly SMT coupon). Files in 03-manufacturing/v2_carrier"
     },
     {
       "item": "Carrier hand-solder parts + JST-GH leads",
@@ -689,7 +689,7 @@
     {
       "id": "buy_cams",
       "text": "2 USB UVC mirror cameras meeting the acceptance criteria (only after the bench frame-rate test V1)",
-      "cost": "~$90"
+      "cost": "~$52"
     },
     {
       "id": "buy_rf",
@@ -699,7 +699,7 @@
     {
       "id": "buy_pwr",
       "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): both bucks, the protection, INA226s, optos, drivers — every SMD part",
-      "cost": "~$90 (setup, extended-part fees, parts)"
+      "cost": "~$52 (setup, 6 extended fees, parts; ~$42–46 w/ coupon)"
     },
     {
       "id": "buy_sig",

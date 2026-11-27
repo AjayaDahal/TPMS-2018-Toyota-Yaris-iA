@@ -2049,7 +2049,7 @@ def write_jlc_files(board):
         for (code, value, fpn), refs in sorted(groups.items(), key=lambda kv: kv[1][0]):
             mpn = D.MPN.get(code, "")
             w.writerow([f"{value} {mpn}".strip(), ",".join(refs), fpn, code, len(refs),
-                        "extended" if code in D.EXTENDED else "basic"])
+                        "extended" if code in D.EXTENDED else ("preferred" if code in D.PREFERRED else "basic")])
     with open(os.path.join(PROD, NAME + "_hand_solder_and_dnp.csv"), "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["Designator", "What", "Buy / fit", "Notes"])

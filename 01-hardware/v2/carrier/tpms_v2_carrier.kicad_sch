@@ -3170,178 +3170,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Device:D_Zener"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 1.016)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(in_pos_files yes)
-			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "D_Zener"
-				(at 0 -2.54 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Description" "Zener diode"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_keywords" "diode"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
-				(at 0 0 0)
-				(show_name no)
-				(do_not_autoplace no)
-				(hide yes)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(symbol "D_Zener_0_1"
-				(polyline
-					(pts
-						(xy -1.27 -1.27)
-						(xy -1.27 1.27)
-						(xy -0.762 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 0)
-						(xy -1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 -1.27)
-						(xy 1.27 1.27)
-						(xy -1.27 0)
-						(xy 1.27 -1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "D_Zener_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Device:FerriteBead"
 			(pin_numbers
 				(hide yes)
@@ -7835,16 +7663,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C27515"
-			(at 57.15 38.1 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Littelfuse 0451004.MRL"
+		(property "MPN" "4A 2410 NANO2 fast SMD fuse (LCSC C27515, Littelfuse 0451004.MRL)"
 			(at 57.15 38.1 0)
 			(hide yes)
 			(effects
@@ -7995,7 +7814,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C78430"
+		(property "LCSC" "C41411747"
 			(at 95.25 38.1 0)
 			(hide yes)
 			(effects
@@ -8004,7 +7823,7 @@
 				)
 			)
 		)
-		(property "MPN" "Littelfuse SMCJ24CA"
+		(property "MPN" "SMCJ24CA"
 			(at 95.25 38.1 0)
 			(hide yes)
 			(effects
@@ -8198,16 +8017,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C7503186"
-			(at 123.19 54.61 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "UMW SUD50P06-15"
+		(property "MPN" "-60V P-MOSFET TO-252 DPAK (LCSC C7503186, UMW SUD50P06-15)"
 			(at 123.19 54.61 0)
 			(hide yes)
 			(effects
@@ -8915,16 +8725,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C408485"
-			(at 86.36 74.93 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Sunlord MWSA1004S-6R8MT"
+		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)"
 			(at 86.36 74.93 0)
 			(hide yes)
 			(effects
@@ -9445,16 +9246,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C970679"
-			(at 34.29 81.28 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Lelon RVT1H470M0607"
+		(property "MPN" "47u/50V electrolytic, 6.3x7.7 SMD (LCSC C970679, Lelon RVT1H470M0607) or leaded 47u/50V from lab bin"
 			(at 34.29 81.28 0)
 			(hide yes)
 			(effects
@@ -9833,16 +9625,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C192580"
-			(at 92.71 81.28 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Viking RLM25FEER010"
+		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)"
 			(at 92.71 81.28 0)
 			(hide yes)
 			(effects
@@ -13147,7 +12930,7 @@
 				)
 			)
 		)
-		(property "Value" "B560C"
+		(property "Value" "SS56C"
 			(at 138.43 132.08 0)
 			(effects
 				(font
@@ -13182,7 +12965,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C85100"
+		(property "LCSC" "C18199187"
 			(at 138.43 129.54 0)
 			(hide yes)
 			(effects
@@ -13191,7 +12974,7 @@
 				)
 			)
 		)
-		(property "MPN" "Diodes B560C-13-F"
+		(property "MPN" "SS56C"
 			(at 138.43 129.54 0)
 			(hide yes)
 			(effects
@@ -13200,7 +12983,7 @@
 				)
 			)
 		)
-		(property "Notes" "Catch diode 60 V 5 A"
+		(property "Notes" "Catch diode 60 V 5 A (Preferred)"
 			(at 138.43 129.54 0)
 			(hide yes)
 			(effects
@@ -13385,16 +13168,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C408485"
-			(at 30.48 144.78 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Sunlord MWSA1004S-6R8MT"
+		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)"
 			(at 30.48 144.78 0)
 			(hide yes)
 			(effects
@@ -16786,16 +16560,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C192580"
-			(at 148.59 166.37 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Viking RLM25FEER010"
+		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)"
 			(at 148.59 166.37 0)
 			(hide yes)
 			(effects
@@ -18011,7 +17776,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:D_Zener")
+		(lib_id "Device:D_TVS")
 		(at 55.88 207.01 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -18027,7 +17792,7 @@
 				)
 			)
 		)
-		(property "Value" "SMBJ6.0A"
+		(property "Value" "SMBJ6.0CA"
 			(at 55.88 209.55 0)
 			(effects
 				(font
@@ -18053,7 +17818,7 @@
 				)
 			)
 		)
-		(property "Description" "Zener diode"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 55.88 207.01 0)
 			(hide yes)
 			(effects
@@ -18062,7 +17827,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C113976"
+		(property "LCSC" "C2925451"
 			(at 55.88 207.01 0)
 			(hide yes)
 			(effects
@@ -18071,7 +17836,7 @@
 				)
 			)
 		)
-		(property "MPN" "Littelfuse SMBJ6.0A"
+		(property "MPN" "SMBJ6.0CA"
 			(at 55.88 207.01 0)
 			(hide yes)
 			(effects
@@ -18080,7 +17845,7 @@
 				)
 			)
 		)
-		(property "Notes" "Overvoltage clamp: a shorted buck blows F101 instead of the Pi"
+		(property "Notes" "Overvoltage clamp (Preferred): a shorted buck blows F101 instead of the Pi"
 			(at 55.88 207.01 0)
 			(hide yes)
 			(effects
@@ -21178,7 +20943,7 @@
 				)
 			)
 		)
-		(property "Value" "B560C"
+		(property "Value" "SS56C"
 			(at 114.3 254 0)
 			(effects
 				(font
@@ -21213,7 +20978,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C85100"
+		(property "LCSC" "C18199187"
 			(at 114.3 251.46 0)
 			(hide yes)
 			(effects
@@ -21222,7 +20987,7 @@
 				)
 			)
 		)
-		(property "MPN" "Diodes B560C-13-F"
+		(property "MPN" "SS56C"
 			(at 114.3 251.46 0)
 			(hide yes)
 			(effects
@@ -21407,16 +21172,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C408485"
-			(at 142.24 251.46 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Sunlord MWSA1004S-6R8MT"
+		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)"
 			(at 142.24 251.46 0)
 			(hide yes)
 			(effects
@@ -24137,7 +23893,7 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:D_Zener")
+		(lib_id "Device:D_TVS")
 		(at 68.58 288.29 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -24153,7 +23909,7 @@
 				)
 			)
 		)
-		(property "Value" "SMBJ6.0A"
+		(property "Value" "SMBJ6.0CA"
 			(at 68.58 290.83 0)
 			(effects
 				(font
@@ -24179,7 +23935,7 @@
 				)
 			)
 		)
-		(property "Description" "Zener diode"
+		(property "Description" "Bidirectional transient-voltage-suppression diode"
 			(at 68.58 288.29 0)
 			(hide yes)
 			(effects
@@ -24188,7 +23944,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C113976"
+		(property "LCSC" "C2925451"
 			(at 68.58 288.29 0)
 			(hide yes)
 			(effects
@@ -24197,7 +23953,7 @@
 				)
 			)
 		)
-		(property "MPN" "Littelfuse SMBJ6.0A"
+		(property "MPN" "SMBJ6.0CA"
 			(at 68.58 288.29 0)
 			(hide yes)
 			(effects
@@ -29029,7 +28785,7 @@
 				)
 			)
 		)
-		(property "Value" "LTV-357T-C"
+		(property "Value" "ICPL-356-50C"
 			(at 129.54 394.97 0)
 			(effects
 				(font
@@ -29064,7 +28820,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C119091"
+		(property "LCSC" "C42432283"
 			(at 134.62 389.89 0)
 			(hide yes)
 			(effects
@@ -29073,7 +28829,7 @@
 				)
 			)
 		)
-		(property "MPN" "Lite-On LTV-357T-C"
+		(property "MPN" "ICPL-356-50CEAXW"
 			(at 134.62 389.89 0)
 			(hide yes)
 			(effects
@@ -29082,7 +28838,7 @@
 				)
 			)
 		)
-		(property "Notes" "Optocoupler, CTR 200-400 %"
+		(property "Notes" "Optocoupler, CTR 200-400 % (Preferred)"
 			(at 134.62 389.89 0)
 			(hide yes)
 			(effects
@@ -30553,7 +30309,7 @@
 				)
 			)
 		)
-		(property "Value" "LTV-357T-C"
+		(property "Value" "ICPL-356-50C"
 			(at 33.02 416.56 0)
 			(effects
 				(font
@@ -30588,7 +30344,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C119091"
+		(property "LCSC" "C42432283"
 			(at 38.1 411.48 0)
 			(hide yes)
 			(effects
@@ -30597,7 +30353,7 @@
 				)
 			)
 		)
-		(property "MPN" "Lite-On LTV-357T-C"
+		(property "MPN" "ICPL-356-50CEAXW"
 			(at 38.1 411.48 0)
 			(hide yes)
 			(effects
@@ -30606,7 +30362,7 @@
 				)
 			)
 		)
-		(property "Notes" "Optocoupler, CTR 200-400 %"
+		(property "Notes" "Optocoupler, CTR 200-400 % (Preferred)"
 			(at 38.1 411.48 0)
 			(hide yes)
 			(effects
@@ -32077,7 +31833,7 @@
 				)
 			)
 		)
-		(property "Value" "LTV-357T-C"
+		(property "Value" "ICPL-356-50C"
 			(at 62.23 430.53 0)
 			(effects
 				(font
@@ -32112,7 +31868,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C119091"
+		(property "LCSC" "C42432283"
 			(at 67.31 425.45 0)
 			(hide yes)
 			(effects
@@ -32121,7 +31877,7 @@
 				)
 			)
 		)
-		(property "MPN" "Lite-On LTV-357T-C"
+		(property "MPN" "ICPL-356-50CEAXW"
 			(at 67.31 425.45 0)
 			(hide yes)
 			(effects
@@ -37765,7 +37521,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C70113"
+		(property "MPN" "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)"
 			(at 224.79 127 0)
 			(hide yes)
 			(effects
@@ -37774,16 +37530,7 @@
 				)
 			)
 		)
-		(property "MPN" "Littelfuse mSMD050-60V"
-			(at 224.79 127 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Notes" "Piezo feed PTC, after the 12 V shunt: the INA226 at 0x40 sees a shorted pod cable"
+		(property "Notes" "Piezo feed PTC, after the 12 V shunt: the INA226 at 0x40 sees a shorted piezo lead"
 			(at 224.79 127 0)
 			(hide yes)
 			(effects
@@ -44728,16 +44475,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C70113"
-			(at 223.52 295.91 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "Littelfuse mSMD050-60V"
+		(property "MPN" "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)"
 			(at 223.52 295.91 0)
 			(hide yes)
 			(effects

@@ -228,7 +228,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
     id: "p6_buck_pi", zone: ZONES.buck_pi, h: 4.5, color: 0x0f766e, subsystem: "power_io",
     title: "U201: 5V_PI buck — TPS54560B, 5.17 V / 5 A, 441 kHz",
     category: "Power (P1, ACC only)", source: "JLCPCB assembly",
-    mount: "6.8 µH MWSA1004S, B560C catch diode, 2 × 10 µF in, 4 × 47 µF out, all on 2 mm straps; PowerPAD with 6 filled vias into the planes. 10 mΩ shunt + INA226 (0x41) on Kelvin taps; SMBJ6.0A clamp.",
+    mount: "6.8 µH MWSA1004S, SS56C catch diode, 2 × 10 µF in, 4 × 47 µF out, all on 2 mm straps; PowerPAD with 6 filled vias into the planes. 10 mΩ shunt + INA226 (0x41) on Kelvin taps; SMBJ6.0CA clamp.",
     wiring: "Starts at 8.0 V, 1.2–1.4 s after ACC (EN 1 MΩ / 150 kΩ + 10 µF), so the ESP32 boots first; Q201 (IO26, PI_INHIBIT) can only hold it off; a 22 k / 33 k rail-up divider → IO15. Remove R201/R202 to isolate it and feed J5 from a module via J11. RT → 43 kΩ moves it above the AM band if B5 hears it.",
   });
 
@@ -274,7 +274,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
 
   addPart({
     id: "p6_io", zone: ZONES.io, h: 3, color: 0xfacc15, subsystem: "signals",
-    title: "LTV-357T blinker / AUX optos + door LED, piezo and fan drivers",
+    title: "ICPL-356-50C blinker / AUX optos + door LED, piezo and fan drivers",
     category: "Blinker sensing and alerts (tested in firmware)", source: "JLCPCB assembly",
     mount: "Per input: 2 × 1.2 kΩ + indicator LED + opto, 1N4148W reverse diode, separate lamp return. Low-side AO3400A for the LEDs and the fan, 2N7002 (60 V) for the piezo behind a 0.5 A PTC.",
     wiring: "Opto outputs active-low with 10 k pull-ups, polled at 1 kHz (ESP32 errata 3.11). LEDs: steady = vehicle in the blind spot, flashing = you are signalling towards it. The fan runs by default; the TCA9534 (0x20) can stop it. TMP75 (0x48) drives the hot-start hold.",
