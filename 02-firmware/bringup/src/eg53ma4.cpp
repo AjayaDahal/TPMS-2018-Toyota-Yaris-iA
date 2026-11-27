@@ -1,7 +1,7 @@
 // GM / Schrader EG53MA4 decoder (no ESP32 dependencies, unit-tested on a PC). The slicing follows the
 // behaviour of rtl_433's OOK_PULSE_MANCHESTER_ZEROBIT slicer with short width 123 us and reset limit
 // 300 us, and the frame checks follow rtl_433's schrader_EG53MA4 decoder. One addition: rtl_433 needs exactly
-// 120 bits; a frame of 100-119 bits whose remaining preamble bits are all zeros (it lost its first preamble pulses
+// 120 bits; a frame of 88-119 bits whose remaining preamble bits are all zeros (it lost its first preamble pulses
 // while the receiver's AGC settled) is accepted too, with its payload taken from the last 80 bits.
 #include "eg53ma4.h"
 
@@ -11,7 +11,7 @@ namespace {
 constexpr int kShortUs = 123;    // Manchester half-bit
 constexpr int kResetUs = 300;    // a longer gap ends a message
 constexpr int kFrameBits = 120;  // 40 sync/preamble bits + 80 payload bits
-constexpr int kMinBits = 100;    // at least 20 of the 40 zero preamble bits left
+constexpr int kMinBits = 88;     // at least 8 of the 40 zero preamble bits left
 
 struct Row {
   uint8_t bits[kFrameBits];

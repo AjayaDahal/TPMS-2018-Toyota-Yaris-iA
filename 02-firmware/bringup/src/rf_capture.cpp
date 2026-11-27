@@ -127,7 +127,13 @@ bool nextBurst(Burst& out) {
     }
     if (cur.n < kMaxPulses) cur.us[cur.n++] = d;
   }
-  if (inBurst && (uint32_t)esp_timer_get_time() - lastEdgeUs > kGapUs) return finish(out);
+  if (inBurst) {
+    // Sample lastEdgeUs before esp_timer_get_time() and verify no new edge arrived in the ring;
+    // evaluating now before lastEdgeUs allows onEdge() to advance lastEdgeUs > now and wrap unsigned.
+    const uint32_t last = lastEdgeUs;
+    const uint32_t now = (uint32_t)esp_timer_get_time();
+    if (tail == head && (int32_t)(now - last) > (int32_t)kGapUs) return finish(out);
+  }
   return false;
 }
 

@@ -212,17 +212,17 @@ void testEg53ma4() {
   CHECK(rf::decode(eg53Burst({eg53Message(p)}, 10), f), "EG53MA4 burst not seen by the generic decoder");
 
   // Real frames start with 40 zero bits. One that lost its first preamble pulses (receiver AGC settling) still
-  // decodes while at least 100 bits are left and they are all zeros before the payload; rtl_433 needs all 120.
+  // decodes while at least 88 bits are left and they are all zeros before the payload; rtl_433 needs all 120.
   Bits zeroSync(40, 0);
   for (int i = 0; i < 80; i++) zeroSync.push_back((p[i / 8] >> (7 - i % 8)) & 1);
   int shortOk = 0;
-  for (int lost = 1; lost <= 20; lost++) {
+  for (int lost = 1; lost <= 32; lost++) {
     Bits m(zeroSync.begin() + lost, zeroSync.end());
     shortOk += eg53ma4::decode(eg53Burst({m}, 10), r, 4) == 1 && r[0].id == 0x123456 && r[0].kPa10 == 2200;
   }
-  CHECK(shortOk == 20, "EG53MA4: %d of 20 frames missing 1-20 preamble bits decoded", shortOk);
-  Bits tooShort(zeroSync.begin() + 21, zeroSync.end());
-  CHECK(eg53ma4::decode(eg53Burst({tooShort}, 10), r, 4) == 0, "EG53MA4: 99-bit frame accepted");
+  CHECK(shortOk == 32, "EG53MA4: %d of 32 frames missing 1-32 preamble bits decoded", shortOk);
+  Bits tooShort(zeroSync.begin() + 33, zeroSync.end());
+  CHECK(eg53ma4::decode(eg53Burst({tooShort}, 10), r, 4) == 0, "EG53MA4: 87-bit frame accepted");
   Bits noisyPreamble = zeroSync;
   noisyPreamble[30] = 1;
   noisyPreamble.erase(noisyPreamble.begin(), noisyPreamble.begin() + 5);

@@ -466,9 +466,17 @@ class RfBenchManager:
 
         def worker():
             try:
-                res = subprocess.run(cmd, capture_output=True, text=True, timeout=30.0)
+                res = subprocess.run(cmd, capture_output=True, text=True, timeout=60.0)
                 ok = res.returncode == 0
-                err = "" if ok else ((res.stderr or res.stdout or "TX failed").strip().splitlines()[-1])
+                if ok:
+                    err = ""
+                else:
+                    lines = [ln.strip() for ln in (res.stderr or res.stdout or "").splitlines() if ln.strip()]
+                    key_lines = [
+                        ln for ln in lines
+                        if any(tok in ln for tok in ("RuntimeError:", "ERROR", "Error:", "LookupError:", "IOError:"))
+                    ]
+                    err = key_lines[-1] if key_lines else (" | ".join(lines[-3:]) or "TX failed")
                 with self._lock:
                     tx_rec["status"] = "sent" if ok else "error"
                     tx_rec["error"] = err

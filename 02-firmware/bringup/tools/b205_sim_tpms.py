@@ -15,7 +15,7 @@ import time
 import numpy as np
 
 CHIP_US = 123
-SAMPLE_RATE = 500_000.0  # 500 kS/s (2 us/sample): clean USB 2.0/3.0 streaming with zero underflows
+SAMPLE_RATE = 250_000.0  # 250 kS/s (4 us/sample): fits a 1-repeat burst cleanly in USB 2.0 UHD TX buffers
 
 
 def build_eg53ma4_payload(sensor_id: int, psi: float, temp_f: int, flags: int) -> bytes:
@@ -62,7 +62,7 @@ def build_eg53ma4_iq(
     payload: bytes,
     repeats: int = 2,
     gap_us: int = 1000,
-    pad_us: int = 5000,
+    pad_us: int = 3000,
     amp: float = 0.7,
 ) -> tuple[np.ndarray, list[tuple[int, int]]]:
     """Build complex64 OOK baseband IQ array (1 MS/s) and run-length list (level, us)."""
@@ -124,7 +124,7 @@ def run_self_test() -> int:
         assert payload[7] == exp_p, f"expected {exp_p}, got {payload[7]}"
         assert (sum(payload[:9]) & 0xFF) == payload[9]
 
-        iq, runs = build_eg53ma4_iq(payload, repeats=2, gap_us=1000, pad_us=5000, amp=0.7)
+        iq, runs = build_eg53ma4_iq(payload, repeats=2, gap_us=1000, pad_us=3000, amp=0.7)
         assert iq.dtype == np.complex64 and iq.flags["C_CONTIGUOUS"]
         active_runs = [r for r in runs[1:-1] if r[1] != 1000]
         assert active_runs[0][0] == 1 and active_runs[-1][0] == 1
@@ -137,7 +137,7 @@ def run_self_test() -> int:
         edges = np.flatnonzero(on[1:] != on[:-1]) + 1
         bounds = np.concatenate(([0], edges, [len(on)]))
         pulses = [(int(on[s]), int(round((e - s) * 1e6 / SAMPLE_RATE))) for s, e in zip(bounds[:-1], bounds[1:])]
-        assert pulses[0] == (0, 5000) and pulses[-1] == (0, 5000)
+        assert pulses[0] == (0, 3000) and pulses[-1] == (0, 3000)
         inner = pulses[1:-1]
 
         msgs = []
@@ -190,7 +190,16 @@ def transmit(args: argparse.Namespace) -> int:
     import uhd
 
     print("WARNING: Keep TX over-the-air or use >=40-50 dB inline attenuation before E07-M1101D RX.")
-    usrp = uhd.usrp.MultiUSRP(args.args)
+    usrp = None
+    for attempt in range(3):
+        try:
+            usrp = uhd.usrp.MultiUSRP(args.args)
+            break
+        except RuntimeError as exc:
+            if attempt == 2:
+                raise
+            print(f"WARNING: USRP open attempt {attempt + 1}/3 failed ({exc}); retrying in 1.5 s...", file=sys.stderr)
+            time.sleep(1.5)
     usrp.set_tx_rate(SAMPLE_RATE, 0)
     tune_req = uhd.types.TuneRequest(args.freq, args.lo_offset)
     tune_res = usrp.set_tx_freq(tune_req, 0)
@@ -218,37 +227,42 @@ def transmit(args: argparse.Namespace) -> int:
             f"psi={args.psi:.1f} temp={args.temp_f}F payload={payload.hex().upper()}"
         )
 
-    max_samps = tx_stream.get_max_num_samps()
+    uf_codes = {uhd.types.TXMetadataEventCode.underflow}
+    if hasattr(uhd.types.TXMetadataEventCode, "underflow_in_packet"):
+        uf_codes.add(uhd.types.TXMetadataEventCode.underflow_in_packet)
+
     underflows = 0
+    total = len(buf)
     for n in range(args.count):
         md = uhd.types.TXMetadata()
         md.start_of_burst = True
-        md.end_of_burst = False
+        md.end_of_burst = True
         md.has_time_spec = True
         md.time_spec = usrp.get_time_now() + uhd.types.TimeSpec(0.05)
-        sent = 0
-        total = len(buf)
+        n_sent = tx_stream.send(buf, md, 5.0)
+        if n_sent <= 0:
+            raise RuntimeError(f"UHD TX send returned {n_sent} at sample 0/{total}")
+        sent = n_sent
         while sent < total:
-            chunk = buf[sent : sent + max_samps]
-            if sent + len(chunk) >= total:
-                md.end_of_burst = True
+            md.start_of_burst = False
+            md.has_time_spec = False
+            chunk = buf[sent:]
+            md.end_of_burst = True
             n_sent = tx_stream.send(chunk, md, 5.0)
             if n_sent <= 0:
                 raise RuntimeError(f"UHD TX send returned {n_sent} at sample {sent}/{total}")
             sent += n_sent
-            md.start_of_burst = False
-            md.has_time_spec = False
 
         # Wait for scheduled burst ACK / check for underflow or late packet
         async_md = uhd.types.TXAsyncMetadata()
-        deadline = time.time() + (len(buf) / SAMPLE_RATE) + 0.5
+        deadline = time.time() + (total / SAMPLE_RATE) + 0.5
         while time.time() < deadline:
             if not tx_stream.recv_async_msg(async_md, 0.05):
                 continue
             code = async_md.event_code
-            if code == uhd.types.TXMetadataEventCode.underflow:
+            if code in uf_codes:
                 underflows += 1
-                print(f"  WARNING: burst {n + 1} UHD underflow", file=sys.stderr)
+                print(f"  WARNING: burst {n + 1} UHD underflow ({code})", file=sys.stderr)
             elif code == uhd.types.TXMetadataEventCode.time_error:
                 print(f"  WARNING: burst {n + 1} UHD time_error", file=sys.stderr)
             elif code == uhd.types.TXMetadataEventCode.burst_ack:
@@ -267,7 +281,7 @@ def main() -> int:
     p.add_argument("--mode", choices=("eg53ma4", "cw"), default="eg53ma4")
     p.add_argument("--args", default="type=b200", help="UHD device args")
     p.add_argument("--freq", type=float, default=315.0e6, help="Center frequency in Hz")
-    p.add_argument("--lo-offset", type=float, default=150e3, help="TX LO offset in Hz (keeps LO leakage out of 203 kHz RX BW)")
+    p.add_argument("--lo-offset", type=float, default=110e3, help="TX LO offset in Hz (keeps LO leakage out of 203 kHz RX BW)")
     p.add_argument("--gain", type=float, default=25.0, help="TX gain in dB (0..89.75; default 25 dB for safe OTA bench)")
     p.add_argument("--allow-high-gain", action="store_true", help="Allow TX gain > 60 dB")
     p.add_argument("--amp", type=float, default=0.7, help="Baseband amplitude (0..1)")

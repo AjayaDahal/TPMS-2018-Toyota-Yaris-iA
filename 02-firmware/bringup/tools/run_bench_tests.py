@@ -106,12 +106,12 @@ def run_t4_cw(cap: SerialCapture, gains: list[float]):
             stderr=subprocess.STDOUT,
             text=True,
         )
-        # Poll 'd' across the 1.2s CW pulse (including UHD init ~1.5s)
+        # Poll 'd' across the 1.2s CW pulse (allow up to 40s for first-time UHD FPGA load)
         t0 = time.time()
-        while proc.poll() is None and time.time() - t0 < 8.0:
+        while proc.poll() is None and time.time() - t0 < 40.0:
             cap.send(b"d")
             time.sleep(0.2)
-        out, _ = proc.communicate(timeout=5)
+        out, _ = proc.communicate(timeout=10)
         lines = cap.drain()
         rssis = []
         gdo2s = []

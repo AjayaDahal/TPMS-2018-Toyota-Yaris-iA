@@ -93,9 +93,9 @@ Per [`CC1101_E07-M1101D_Socket.kicad_mod`](../../01-hardware/lib/TPMS.pretty/CC1
 | **T1** | USB serial detection & bare-ESP32 bring-up flash | `/dev/ttyUSB*` or `/dev/ttyACM*` detected; bare-bench guard prevents floating-pin `mode` drift; firmware flashes & boots at `115200` baud | ✅ **PASS** (`/dev/ttyUSB0`, `bench-cc1101` flashed) |
 | **T2** | CC1101 SPI bring-up & 315 MHz RX state | `PARTNUM 0x00`, `VERSION 0x14`/`0x04`/`0x17`/`0x03`, `MARCSTATE 0x0D` (RX) | ✅ **PASS** (`PARTNUM=0x00`, `VERSION=0x14` TI chip, `MARCSTATE=0x0D`, registers verified) |
 | **T3** | Idle 315 MHz noise floor & edge rate | Baseline `noise floor` (dBm) and 10 s idle `edges` count recorded | ✅ **MEASURED** (noise floor `-87` to `-89 dBm`, `26572 edges / 10 s`, `163 bursts`, `dropped=0`, `GDO2=1` at idle) |
-| **T4** | USRP B205mini detection & 315 MHz CW RSSI / GDO2 check | `uhd_find_devices` detects B205mini; low-power 315.000 MHz CW raises CC1101 `rssiDbm()` & `GDO2` on the 433 MHz-labeled E07 | ✅ **PASS** (user bench session: RSSI jumped from `-90 dBm` idle to `-73 dBm` peak during `25 dB` TX bursts on the 433 MHz-labeled E07) |
-| **T5** | Simulated Schrader EG53MA4 ASK/OOK TX → E07 RX decode | B205mini transmits synthetic EG53MA4 frame (40-bit zero preamble + 80-bit payload, Manchester 123 µs half-bit); ESP32 decodes exact ID / pressure / temp / flags & logs RSSI sweep | ⚠️ **Partial (2/60 decodes pre-fix; ready for re-test)** — `ID 123456` decoded cleanly (`31.9 psi`, `77 F`, `-73 dBm`), other bursts fragmented by untimed UHD TX underflows; TX script fixed (`500 kS/s` timed). Re-test with the squelch on and off (Entry #5) |
-| **T6** | Carrier-sense gating & noise rejection (**RF-01**) | Reduce idle noise bursts/edges without losing sensitivity | ✅ **IDLE VERIFIED** — hardware `AGCCTRL1/2` CS (`0x03/0x07`, `0x04/0x07`) stayed `GDO2=1` at `-91 dBm`; adaptive `noiseFloor + 6 dB` RSSI squelch gate dropped idle noise from `~27,842 edges / 10 s` (`162 bursts`) to **`80 edges / 10 s` (`1 burst`)** (`99.7%` reduction). ⚠️ Decoding with the gate on is untested, and the review changed its timing (40 ms hold, dithered 0.5–1 ms RSSI reads): re-test both halves (Entry #5) |
+| **T4** | USRP B205mini detection & 315 MHz CW RSSI / GDO2 check | `uhd_find_devices` detects B205mini; low-power 315.000 MHz CW raises CC1101 `rssiDbm()` & `GDO2` on the 433 MHz-labeled E07 | ✅ **PASS** (CW sweep: `-95 dBm` idle → `-74` @ 25 dB, `-66` @ 35 dB, `-56` @ 45 dB, `-45 dBm` @ 50 dB) |
+| **T5** | Simulated Schrader EG53MA4 ASK/OOK TX → E07 RX decode | B205mini/B210 transmits synthetic EG53MA4 frame (40-bit zero preamble + 80-bit payload, Manchester 123 µs half-bit); ESP32 decodes exact ID / pressure / temp / flags & logs RSSI sweep | ✅ **PASS** (`65/66` = `98.5%` post-fix T5b sweep `50–20 dB` + `ABCDEF`, `non_eg=0`; `24/24` = `100.0%` across all 4 viewer presets @ `45 dB`) |
+| **T6** | Carrier-sense gating & noise rejection (**RF-01**) | Reduce idle noise bursts/edges without losing sensitivity | ✅ **PASS** (`0 edges/s` idle with `squelch=on` vs `2,636–3,359 edges/s` `squelch=off` = **100% reduction**; A/B decode `65/66` on vs `54/66` off — meets parity and wins at `20 dB`) |
 
 ---
 
@@ -188,3 +188,38 @@ Per [`CC1101_E07-M1101D_Socket.kicad_mod`](../../01-hardware/lib/TPMS.pretty/CC1
   6. **If decodes drop with the squelch on:** watch the RSSI during frames (`d` dumps). Try a +4 dB threshold before anything else.
   7. **If idle noise is too high:** shorten the hold to 20 ms.
   8. Then port the gate, as tuned, to the v2 receiver (RF-01).
+
+### Entry #6 — 2026-11-27 (T4 CW Sweep, T5b / T6b A/B Verification, ISR Race Fix, and Live 4-Preset Viewer Test)
+- **T4 CW RSSI Sweep (`B205mini` serial `3186924`, `run_bench_tests.py --t4`):**
+  - Idle floor: `-95 dBm`; `25 dB → -74 dBm`; `35 dB → -66 dBm`; `45 dB → -56 dBm`; `50 dB → -45 dBm` (linear ~1 dB/dB tracking on the 433 MHz-labeled E07-M1101D at `315.000 MHz`).
+- **T6b Idle Noise Reduction (A/B with 40 ms hold + dithered 0.5–1 ms RSSI reads):**
+  - `B205mini` bench run: `squelch on` = **`0 edges/s`** (`floor=-95 dBm`, `1950 → 1950` over 10 s) vs `squelch off` = **`3,359 edges/s`** (**100% reduction**, target `≥ 90%`).
+  - `B210` (`serial 31E2C0A`, `RF A TX/RX`) bench run: `squelch on` = **`0 edges/s`** (`floor=-89 dBm`, `1952 → 1952` over 10 s) vs `squelch off` = **`2,636 edges/s`** (**100% reduction**).
+- **Root causes found during initial T5b / multi-preset testing & fixes applied:**
+  1. **Capture ISR unsigned-underflow split race ([`src/rf_capture.cpp`](src/rf_capture.cpp)):** `nextBurst()` evaluated `(uint32_t)esp_timer_get_time() - lastEdgeUs > kGapUs` before sampling `volatile lastEdgeUs`; when `onEdge()` fired in between, `now - lastEdgeUs` wrapped unsigned and spuriously closed active frames mid-burst (splitting frames into halves and driving `20–50%` yield with `non_eg` fragments). **Fix:** sample `last = lastEdgeUs` before `now = (uint32_t)esp_timer_get_time()` and require `tail == head && (int32_t)(now - last) > (int32_t)kGapUs`.
+  2. **AGC preamble settling threshold ([`src/eg53ma4.cpp`](src/eg53ma4.cpp), [`test/host/test_decode.cpp`](test/host/test_decode.cpp)):** Reduced `kMinBits` from `100` to **`88`** (requires `≥ 8` zero preamble bits before the 80-bit payload); host tests updated (`32/32` shortened frames pass, `87`-bit rejected -> `all decoder tests passed`).
+  3. **USRP TX streaming & reopen resilience ([`tools/b205_sim_tpms.py`](tools/b205_sim_tpms.py)):** Lowered `SAMPLE_RATE` from `500 kS/s` to **`250 kS/s`**, `pad_us` default to `3000`, `--lo-offset` default to `110e3`, sent the full burst buffer in one `tx_stream.send()` call, added `underflow_in_packet` detection, and added a 3-attempt `MultiUSRP` open retry (`--self-test` verified across all 4 presets).
+  4. **RF Bench viewer defaults & error reporting ([`04-viewer/viewer/index.html`](../../04-viewer/viewer/index.html), [`04-viewer/rf_bench_backend.py`](../../04-viewer/rf_bench_backend.py)):** Set default TX controls to `Repeats / Burst = 1`, `Burst Count = 6`, `TX Gain = 45 dB`; improved UHD subprocess stderr extraction to preserve actual exception lines; increased `run_bench_tests.py` `run_t4_cw()` timeout to `cmd_timeout + 40 s` for cold USB 2.0 FPGA loads.
+- **Post-fix T5b A/B Decode Sweep (`USRP B210` `serial 31E2C0A`, `RF A TX/RX`, `/dev/ttyUSB0`, `run_bench_tests.py --idle-sec 25 --t5 --tx-gains 50,45,40,35,30,20 --squelch both`):**
+
+  | Step | `squelch=on` | `squelch=on` RSSI | `squelch=off` | `squelch=off` RSSI | A/B Verdict |
+  |---|---|---|---|---|---|
+  | Idle Noise | **`0 edges/s`** | `-89 dBm` | `2,636 edges/s` | `-89 dBm` | **100% reduction (PASS)** |
+  | `50 dB` (`123456`) | **`10/10`** (`non_eg=0`) | `-41..-31 dBm` | `9/10` (`non_eg=0`) | `-37..-30 dBm` | PASS (`+1/10`) |
+  | `45 dB` (`123456`) | **`10/10`** (`non_eg=0`) | `-47..-31 dBm` | `10/10` (`non_eg=0`) | `-38..-34 dBm` | PASS (`0`) |
+  | `40 dB` (`123456`) | **`9/10`** (`non_eg=0`) | `-52..-38 dBm` | `9/10` (`non_eg=0`) | `-49..-40 dBm` | PASS (`0`) |
+  | `35 dB` (`123456`) | **`10/10`** (`non_eg=0`) | `-53..-44 dBm` | `8/10` (`non_eg=0`) | `-52..-44 dBm` | PASS (`+2/10`) |
+  | `30 dB` (`123456`) | **`10/10`** (`non_eg=0`) | `-55..-51 dBm` | `9/10` (`non_eg=0`) | `-55..-51 dBm` | PASS (`+1/10`) |
+  | `20 dB` (`123456`) | **`10/10`** (`non_eg=0`) | `-71..-65 dBm` | `5/10` (`non_eg=0`) | `-71..-65 dBm` | PASS (`+5/10`, squelch protects weak bursts) |
+  | `50 dB` (`ABCDEF`) | **`6/6`** | `-30 dBm` | `4/6` | `-37 dBm` | PASS (`+2/6`) |
+  | **Total** | **`65/66` (`98.5%`)** | — | **`54/66` (`81.8%`)** | — | **All PASS (`0` `non_eg`)** |
+
+- **Live 4-Preset RF Bench Viewer Verification (`http://127.0.0.1:28778`, `gain=45 dB`, `repeats=1`, `count=6`, `interval=0.15 s`, `squelch=on`):**
+
+  | Preset | Payload Hex | TX Status | Exact RX Matched |
+  |---|---|---|---|
+  | `FL 0x123456` (`31.9 psi`, `77 F`, `0x058F2001`) | `058F2001123456584DF6` | `sent` | **`6/6`** |
+  | `FR 0xABCDEF` (`35.0 psi`, `68 F`, `0x058F2002`) | `058F2002ABCDEF6144C2` | `sent` | **`6/6`** |
+  | `RL 0x2FC871` (`33.0 psi`, `72 F`, `0x058F2003`) | `058F20032FC8715B48C2` | `sent` | **`6/6`** |
+  | `RR 0x3495AC` (`24.0 psi`, `80 F`, `0x058F2001`) | `058F20013495AC4250BC` | `sent` | **`6/6`** |
+  | **Total** | — | `4/4 sent`, `dropped=0` | **`24/24` (`100.0%`)** |

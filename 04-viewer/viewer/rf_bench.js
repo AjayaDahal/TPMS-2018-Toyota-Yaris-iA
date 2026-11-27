@@ -323,11 +323,17 @@ export function createRfBenchUI() {
             <td><code>${t.mode === "eg53ma4" ? esc(t.sensor_id) : "—"}</code></td>
             <td>${t.mode === "eg53ma4" ? `${t.psi.toFixed(1)} psi / ${t.temp_f}F` : "—"}</td>
             <td>${t.gain_db.toFixed(0)} dB</td>
-            <td><span class="pill ${stCls}">${esc(t.status)}</span></td>
+            <td title="${esc(t.error)}"><span class="pill ${stCls}" title="${esc(t.error)}">${esc(t.status)}</span></td>
             <td><span class="pill ${t.rx_matched > 0 ? "pass" : "opt"}">${esc(matchStr)}</span></td>
           </tr>`;
         }).join("")
       : `<tr><td colspan="8" class="muted">No USRP transmissions yet. Configure TX in the inspector and click Transmit Burst.</td></tr>`;
+
+    if (txList.length && txList[0].status === "error" && txList[0].error) {
+      txMsg.textContent = `TX #${txList[0].id} error: ${txList[0].error}`;
+    } else if (txList.length && txList[0].status === "sent" && txMsg.textContent.startsWith("Queued TX")) {
+      txMsg.textContent = `TX #${txList[0].id} sent`;
+    }
 
     txBody.querySelectorAll("tr[data-tx-id]").forEach((tr) => {
       tr.onclick = () => {
