@@ -1,6 +1,9 @@
 {
-  "route_key": "161e207417a1f2bc432ac24d6f6f9e4a0cdb10893cbb4cad4a93f9685de9fa2f",
-  "result": null,
-  "kicad_unconnected": 0,
-  "source": "freerouting + KiCad DRC: 0 errors, 0 warnings, 0 unconnected, parity exact; re-imported unchanged (--route-from) after the outline inset of 2026-11-27"
+ "route_key": "f98c0e996610c45f3f31a62a581efd51f26faa02b1f5c75b67a384b8d44811b2",
+ "result": [
+  13,
+  0
+ ],
+ "kicad_unconnected": 0,
+ "source": "freerouting"
 }

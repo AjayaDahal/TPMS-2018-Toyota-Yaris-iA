@@ -65,7 +65,7 @@ P = dict(
     # Pi 4 on four posts behind the plate
     PI_POST_H=5.0,          # plate back -> underside of the Pi
     PI_BOARD_T=1.4,
-    PI_TOP_H=17.0,          # tallest part above the Pi's board: USB/Ethernet ~16; GPIO plugs must be 90° / low profile
+    PI_TOP_H=17.0,          # tallest part above the Pi's board: USB/Ethernet ~16; the 40-pin ribbon's IDC ~12.5
     JACK_OVER=2.5,          # USB/Ethernet jacks stick out past the board edge
     # carrier PCB (components face the lid)
     PCB_W=100.0, PCB_T=1.6, PCB_HOLE_IN=4.0,
@@ -415,7 +415,8 @@ def build():
         box(*prect(64, 85 + P["JACK_OVER"], 1.5, 54.5), z_pi_top - 16.0, z_pi_top),        # USB / Ethernet
         box(*prect(5.2, 17.2, -13.0, 0.0), z_pi_top - 9.0, z_pi_top + 1.0),                # 90° USB-C plug
         box(*prect(20.0, 32.0, -18.0, 0.0), z_pi_top - 8.0, z_pi_top + 0.5),               # micro-HDMI FPC adapter
-        box(*prect(11.0, 21.0, 50.0, 71.0), z_pi_top - 12.0, z_pi_top),                    # 90° UART plug on the GPIO
+        box(*prect(4.5, 60.5, 49.5, 56.0), z_pi_top - 12.5, z_pi_top),                    # 40-pin ribbon's IDC plug
+        box(*prect(5.0, 60.0, 49.5, 70.0), z_pi_top - 13.7, z_pi_top - 12.5),              # its ribbon, toward the box bottom
         box(*prect(-2.5, 15.0, 22.0, 34.0), z_pi_bot, z_pi_bot + 1.5),                     # micro-SD card
         under,
     ])
@@ -865,7 +866,7 @@ LABELS = dict(
     housing="Housing: plate + rear box for the Pi and the PCB (print plate down)",
     lid="Lid: 30 mm exhaust fan + cable exit (print outside face down)",
     display="SunFounder TS-7 7\" HDMI touch display (dummy)",
-    pi="Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)",
+    pi="Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 40-pin ribbon IDC (dummy)",
     pcb="100 × 100 mm carrier PCB (dummy)", pcb_parts="PCB part-height budget (dummy)", fan="30 mm fan (dummy)",
     cables="HDMI flat-cable adapter and 90° micro-USB plug, rising to the plate's cable slot (dummy)",
     buzzer="12 V active piezo, behind the right intake slots (dummy)",

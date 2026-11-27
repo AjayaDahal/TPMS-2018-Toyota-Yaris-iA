@@ -91,6 +91,15 @@ ESP32 -> Pi, when a learned tyre sensor is heard:
 
 A `$` always starts a new line, so garbage before it is dropped. Lines over 96 characters are discarded and counted. A bad checksum rejects the line.
 
+**The I2C bus is shared, with one master at a time** ([LNK-10](../../05-Audit-Subsystems/07-esp32-pi-link.md)). The Pi reaches the carrier's I2C bus (INA226 0x40 / 0x41, TMP75 0x48, TCA9534 0x20, anything on J9) through J6: its I2C6 on GPIO22/23, switched on by its GPIO18, which the ESP32 reads on expander P2 (an input: never drive it). The BCM2711 can't arbitrate, so the ESP32 owns the bus and the Pi raises GPIO18 only with the DevKit out or held in reset, or after a hand-over on this link. The hand-over is reserved, not written:
+
+```
+Pi -> ESP32:  $I2C,REQ*HH    the ESP32 finishes its transaction, stops polling, answers $I2C,GRANT*HH
+Pi -> ESP32:  $I2C,DONE*HH   after GPIO18 is low again; the ESP32 resumes. No DONE within 5 s: it logs a fault
+```
+
+The ESP32 rewrites the expander's and the INA226s' configuration registers every cycle, so a collision can't leave them wrong. The ROM bootloader only listens on UART0 (the DevKit's USB bridge), so the Pi flashes the ESP32 over that USB lead or the Wi-Fi OTA service mode, not over this link.
+
 ## Running the tests
 
 From this folder (`02-firmware/v2`), with any C++17 compiler (`pip install ziglang` gives one on Windows):

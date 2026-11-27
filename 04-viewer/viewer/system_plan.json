@@ -52,7 +52,7 @@
     {
       "pin": "IO21 / IO22",
       "v1": "I2C SDA / SCL on J4 (4.7 k)",
-      "v2": "I2C: optional VL6180X light sensor + LM75A board temperature",
+      "v2": "I2C (4.7 k): TMP75 board temperature (0x48), TCA9534 expander (0x20), INA226 × 2 (0x40 12 V in, 0x41 5V_PI), optional VL6180X. The Pi joins it through J6 (its I2C6) only while it drives GPIO18 high",
       "match": "EXACT"
     },
     {
@@ -218,10 +218,10 @@
     {
       "id": "pi_uart",
       "layer": "signals",
-      "name": "Pi ↔ ESP32 link (inside the enclosure)",
-      "route": "Pi GPIO14 / 15 + GND (90° Dupont) ↔ JST-GH on the carrier → UART2 IO16 / IO17",
-      "cable": "3 wires, ~10 cm",
-      "protection": "1 k / 4.7 k series; the ESP32 keeps TX off while the Pi is unpowered; checksummed lines"
+      "name": "Pi ↔ ESP32 link (inside the enclosure): UART + I2C",
+      "route": "Pi GPIO header → your 40-pin ribbon (IDC, red stripe on pin 1; conductor n = pin n) → conductors 6 GND, 8 TXD, 10 RXD, 12 GPIO18, 15 SDA6, 16 SCL6 joined to a 6-pin GH-to-Dupont pigtail → J6 on the carrier → UART2 IO16 / IO17, and the carrier's I2C bus through Q901 / Q902 while GPIO18 is high",
+      "cable": "40-pin ribbon (~10 cm, IDC ~12.5 mm tall) + 20 cm GH-6 pigtail",
+      "protection": "UART: 1 k / 4.7 k series, the ESP32 keeps TX off while the Pi is unpowered, checksummed lines. I2C: two 2N7002 switches only the Pi's GPIO18 turns on (off while the Pi is off, halted or booting), Pi-side pull-ups powered by GPIO18; one master at a time"
     },
     {
       "id": "leds_mirror",
@@ -488,13 +488,22 @@
       "notes": "JLCPCB Economic PCBA: 41 basic + 4 preferred ($0 fee) + 6 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Ten large 2/3-pad SMD power parts (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211) moved to hand-solder to cut ~$31 in feeder fees. ~$53 for the assembly on top of the ~$2 boards: ~$55 before shipping (~$45–49 with a monthly SMT coupon). Files in 03-manufacturing/v2_carrier"
     },
     {
-      "item": "Carrier hand-solder parts + JST-GH leads",
+      "item": "Carrier hand-solder SMD power parts (one LCSC order)",
       "category": "Harness",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 18,
-      "notes": "For 2 boards. The 10 SMD power parts, one LCSC order (~$4 + shipping): 2 × C970679 47 µF/50 V electrolytic (or a leaded one from the lab bin), 2 × C27515 4 A NANO2 fuse, 4 × C70113 0.5 A 1812 PTC, 6 × C408485 6.8 µH 11×10 inductor, 2 × C7503186 SUD50P06-15, 4 × C192580 10 mΩ 2512 shunt. Then 2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, the piezo, Pi UART and GPS"
+      "cost_usd": 4,
+      "notes": "For 2 boards (~$4 + shipping): 2 × C970679 47 µF/50 V electrolytic (or a leaded one from the lab bin), 2 × C27515 4 A NANO2 fuse, 4 × C70113 0.5 A 1812 PTC, 6 × C408485 6.8 µH 11×10 inductor, 2 × C7503186 SUD50P06-15, 4 × C192580 10 mΩ 2512 shunt. The sockets, terminals, fan header and JST-GH leads come from the lab (next line)"
+    },
+    {
+      "item": "Connectors and leads from the lab: elechawk GH1.25 → Dupont pigtails, blue 2-pole screw terminals, header strips, the 40-pin GPIO ribbon, Preciva Dupont kit + PR-3254 crimper",
+      "category": "Harness",
+      "source": "INVENTORY",
+      "qty": 1,
+      "inv_stock": 1,
+      "cost_usd": 0,
+      "notes": "Per unit: 3 × 4-pin GH (doors, piezo) + 1 × 6-pin GH (Pi link; a second for the GPS if its own GH cable won't do), 5 × 2-pole blocks (J1: 2, J5: 3; 5.0 or 5.08 mm pitch both fit), 2 × 1×15 + 1 × 2×4 female sockets, a 1×2 right-angle pin strip (fan), the ribbon for the Pi. Count them and buy only the shortfall (a GH pigtail kit or 1×40 female strips, ~$5–8 each). The JST-XH kit isn't used"
     },
     {
       "item": "12 V active piezo (3–24 V, sharp tone, ~23 mm)",
@@ -542,12 +551,12 @@
       "notes": "Use the one whose cable leaves the TS-7's socket upward. Split it: 5 V + GND → J5 pair 2; D+ / D− + GND → a USB-A plug in the Pi, red wire cut on that leg."
     },
     {
-      "item": "90° USB-C pigtail, 3 × 90° USB-A adapters (two cameras + the display's touch leg), 90° Dupont housings",
+      "item": "90° USB-C pigtail, 3 × 90° USB-A adapters (two cameras + the display's touch leg)",
       "category": "Enclosure",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 14,
+      "cost_usd": 13,
       "notes": "Keep the Pi's plugs inside the enclosure's height budget and the pocket."
     },
     {
@@ -587,13 +596,13 @@
       "notes": "Read-only root on top."
     },
     {
-      "item": "Multimeter, trim tools, JST-GH crimper (or pre-crimped leads), step drill",
+      "item": "Multimeter, trim tools, step drill",
       "category": "Tools",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 55,
-      "notes": "No multimeter in the inventory."
+      "cost_usd": 50,
+      "notes": "No multimeter in the inventory. No JST-GH crimper: the lab's elechawk pigtails come pre-crimped, and the PR-3254 does the Dupont ends"
     },
     {
       "item": "RAM-B-202U AMPS base + arm (Option B only)",
@@ -675,6 +684,11 @@
       "where": "Fastener organizers"
     },
     {
+      "id": "col_conn",
+      "text": "Connectors: the elechawk GH1.25 → Dupont pigtails (count the 4-pin and 6-pin ones: 3 + 1 per unit, a second 6-pin for the GPS; note the Dupont end: male or female), blue 2-pole screw terminals (5 per board), female header strips (2 × 1×15 + 2×4 per board) and a 1×2 right-angle pin strip, the 40-pin GPIO ribbon, the Preciva Dupont kit and PR-3254 crimper",
+      "where": "Connector drawers"
+    },
+    {
       "id": "col_bench",
       "text": "12 V bench source: ATX PSU 12 V rail or 3S LiPo, with a 5 A inline fuse",
       "where": "Power shelf"
@@ -708,13 +722,13 @@
     },
     {
       "id": "buy_conn",
-      "text": "Carrier hand-solder parts: the 10 SMD power parts in one LCSC order (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211; LCSC numbers in the carrier README), 2 × 1×15 + 1 × 2×4 female headers, 5.08 mm screw terminals 4- and 6-pole, 1×2 right-angle header; JST-GH kit or pre-crimped leads, Add-A-Circuit (5 A)",
-      "cost": "~$26 + LCSC shipping"
+      "text": "Carrier hand-solder parts: the 10 SMD power parts in one LCSC order (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211; LCSC numbers in the carrier README), Add-A-Circuit (5 A). The sockets, terminals, fan header and JST-GH leads come from the lab (Collect): buy only a shortfall",
+      "cost": "~$12 + LCSC shipping"
     },
     {
       "id": "buy_encl",
-      "text": "ASA filament (or MJF PA12 parts), split grommet, VHB, 90° USB-C pigtail, 3 × 90° USB-A adapters, 90° Dupont housings, HDMI FPC kit (straight HDMI-A + straight micro-HDMI + 20 cm flat cable), 90° micro-USB leads (left + right angle)",
-      "cost": "~$65"
+      "text": "ASA filament (or MJF PA12 parts), split grommet, VHB, 90° USB-C pigtail, 3 × 90° USB-A adapters, HDMI FPC kit (straight HDMI-A + straight micro-HDMI + 20 cm flat cable), 90° micro-USB leads (left + right angle)",
+      "cost": "~$64"
     },
     {
       "id": "buy_inst",
@@ -723,8 +737,8 @@
     },
     {
       "id": "buy_tools",
-      "text": "Multimeter, trim tools, JST-GH crimper (or pre-crimped leads), step drill",
-      "cost": "~$55"
+      "text": "Multimeter, trim tools, step drill (no JST-GH crimper: the lab's elechawk pigtails come pre-crimped)",
+      "cost": "~$50"
     },
     {
       "id": "buy_pcb",
@@ -864,7 +878,7 @@
     },
     {
       "id": "tl_crimp",
-      "text": "A fine JST-GH crimper, or pre-crimped JST-GH leads (power goes to screw terminals: no crimper)",
+      "text": "Preciva PR-3254 (in the lab) for the Dupont crimps where the GH pigtail meets the Pi's ribbon. No JST-GH crimper: the elechawk pigtails come pre-crimped, and power goes to screw terminals",
       "where": "Harness"
     },
     {
@@ -932,7 +946,7 @@
     {
       "id": "st_08",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "When the boards arrive: hand-solder the 10 SMD power parts first (flux, 60–80 W chisel tip), then the DevKit and CC1101 sockets (DevKit row to match yours), the two screw terminals and the fan header; check the polarized parts."
+      "text": "When the boards arrive: hand-solder the 10 SMD power parts first (flux, 60–80 W chisel tip), then the DevKit and CC1101 sockets (DevKit row to match yours), the screw terminals (2 + 3 of your blue 2-pole blocks) and the fan header; check the polarized parts."
     },
     {
       "id": "st_09",
@@ -952,7 +966,7 @@
     {
       "id": "st_sw_pi",
       "phase": "Phase 5 · Software",
-      "text": "Pi app: two-camera capture and detector (V1 sets the model and frame rate), the 1024 × 600 touch UI (a camera only on the blinker or a danger; nothing needs touch while moving: D5, V8, S3, DSP-09), the UART link with the touch screen's mute counter (LNK-07), the first-month logging mode."
+      "text": "Pi app: two-camera capture and detector (V1 sets the model and frame rate), the 1024 × 600 touch UI (a camera only on the blinker or a danger; nothing needs touch while moving: D5, V8, S3, DSP-09), the UART link with the touch screen's mute counter (LNK-07) and the link's set-up lines (dtoverlay=i2c6, gpio=18=op,dl: the Pi stays off the I2C bus until the ESP32 hands it over), the first-month logging mode."
     },
     {
       "id": "st_11",
@@ -1417,6 +1431,19 @@
       ]
     },
     {
+      "id": "E6",
+      "category": "ESP32 and the Pi link",
+      "likelihood": "Medium once a Pi feature uses I2C",
+      "title": "The Pi and the ESP32 both drive the shared I2C bus (J6 now carries the Pi's I2C6, switched on by its GPIO18), or the Pi's I2C wakes it from halt",
+      "cause": "",
+      "fix": "<code>gpio=18=op,dl</code> keeps the Pi off the bus from power-on. I2C6 on GPIO22/23 instead of I2C1 means no fixed pull-ups and no GPIO3 wake. One master at a time: the Pi raises GPIO18 only with the DevKit out or after a <code>$I2C</code> hand-over (<a href=\"../../05-Audit-Subsystems/07-esp32-pi-link.md\" target=\"_blank\">LNK-09, LNK-10</a>). Remove Q901/Q902 to take it off for good",
+      "status": "Fixed (design); Plan: the <code>$I2C</code> hand-over in the firmware",
+      "status_keys": [
+        "fixed",
+        "plan"
+      ]
+    },
+    {
       "id": "V1",
       "category": "Vision and compute",
       "likelihood": "High",
@@ -1767,9 +1794,9 @@
       "id": "M10",
       "category": "Mechanical and installation",
       "likelihood": "Medium-High",
-      "title": "The enclosure is drawn from estimates: SunFounder publishes no drawing of the TS-7 and its listed height (121.0 mm) disagrees with its photos (~124.4 mm over the ears); the ear holes, sockets, back-part height and plug sizes come from photos too. Straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB",
+      "title": "The enclosure is drawn from estimates: SunFounder publishes no drawing of the TS-7 and its listed height (121.0 mm) disagrees with its photos (~124.4 mm over the ears); the ear holes, sockets, back-part height and plug sizes come from photos too. Straight Dupont plugs stand ~22 mm on the Pi's GPIO and would hit the PCB, so the Pi link uses your 40-pin ribbon's IDC (~12.5 mm)",
       "cause": "",
-      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 63 checks re-run. The bosses must match the ear holes within ~0.3 mm. Use 90° or low-profile GPIO housings. Print the bezel first (~2 h) as a fit test",
+      "fix": "All of them are parameters: measure them (<a href=\"../../01-hardware/enclosure/README.md\" target=\"_blank\">enclosure README, Measure first</a>), lay the display on the template's page 1, <code>--set</code>, regenerate, and the 63 checks re-run. The bosses must match the ear holes within ~0.3 mm. Print the bezel first (~2 h) as a fit test",
       "status": "You (G6)",
       "status_keys": [
         "you"
@@ -2207,7 +2234,7 @@
       "likelihood": "Medium",
       "title": "Tools missing for the car work",
       "cause": "",
-      "fix": "Multimeter, trim tools, fine crimper for JST-GH (or pre-crimped leads), solder-type USB-A plugs, step drill, heat gun: see the tools checklist in the viewer",
+      "fix": "Multimeter, trim tools, solder-type USB-A plugs, step drill, heat gun: see the tools checklist in the viewer. No JST-GH crimper: the lab's elechawk pigtails come pre-crimped, and the PR-3254 does the Dupont ends",
       "status": "Plan",
       "status_keys": [
         "plan"
@@ -2243,7 +2270,7 @@
       "id": "G3",
       "needed": "Every part physically on hand and identified",
       "status": "you",
-      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself: the sockets, two 5.08 mm screw terminals (4- and 6-pole), the fan header and the ten large SMD power parts (C104, F101, F601, F901, L101, L201, L301, Q101, R104, R211: one LCSC order, ~$4 for two boards) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>); everything else JLCPCB assembles"
+      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself, the ten large SMD power parts (C104, F101, F601, F901, L101, L201, L301, Q101, R104, R211: one LCSC order, ~$4 for two boards) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>). The connectors come from the lab: count them against <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">Connectors from your lab</a>. That is 5 blue 2-pole screw blocks a board, female strips for the sockets, a right-angle pin pair, and 3 × 4-pin + 1–2 × 6-pin elechawk GH-to-Dupont pigtails and the 40-pin ribbon a unit. Everything else JLCPCB assembles"
     },
     {
       "id": "G4",
@@ -2383,7 +2410,7 @@
         "name": "pi",
         "file": "../../01-hardware/enclosure/stl/asm_pi.stl",
         "color": "#15803d",
-        "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)"
+        "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 40-pin ribbon IDC (dummy)"
       },
       {
         "name": "pcb",

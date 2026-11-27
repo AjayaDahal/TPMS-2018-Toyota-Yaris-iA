@@ -33,7 +33,9 @@ constexpr int PIN_CC_GDO0 = 34;     // [in,v1]   OOK data, asynchronous serial m
 constexpr int PIN_CC_GDO2 = 35;     // [in,v1]   carrier sense
 
 // I2C (same pins as v1, 4.7 k pull-ups): TMP75 board temperature (LM75 compatible, 0x48), TCA9534 I/O expander
-// (0x20: P0 AUX input, P1 fan, P2 Pi spare line), INA226 monitors 0x40 (12 V in) and 0x41 (5V_PI), optional VL6180X
+// (0x20: P0 AUX input, P1 fan, P2 the Pi's I2C-enable line: input only), INA226 monitors 0x40 (12 V in) and 0x41
+// (5V_PI), optional VL6180X. The Pi joins this bus through J6 (its I2C6) while it drives GPIO18 high; the ESP32 owns
+// the bus and hands it over only on request (README, "The I2C bus is shared")
 constexpr int PIN_I2C_SDA = 21;     // [io,v1]
 constexpr int PIN_I2C_SCL = 22;     // [io,v1]
 

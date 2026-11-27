@@ -96,8 +96,9 @@ MPN = {
     "C8545": "2N7002", "C2480": "SS14", "C81598": "1N4148W", "C1002": "Sunlord GZ1608D601TF",
 }
 HAND = {   # hand-soldered parts: THT connectors + 6 large 2/3-pad SMD power parts trimmed from JLCPCB extended fees
-    "J1": "4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08 or KF301-4P)",
-    "J5": "6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08 or 2x KF301-3P)",
+    "J1": "4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P "
+          "side by side: 5.0 or 5.08 mm pitch both fit)",
+    "J5": "6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08, 2x KF301-3P or 3x KF301-2P)",
     "A1": "2x 1x15 2.54 mm female header, 8.5 mm (solder the row that matches your DevKit: 0.9 or 1.0 in)",
     "A2": "2x4 2.54 mm female header, 8.5 mm (CC1101 module socket)",
     "J8": "1x2 2.54 mm right-angle male header (fan lead)",
@@ -382,7 +383,8 @@ C("C801", "100n", "3V3", "GND")
 part("U802", "TPMS2:TCA9534", "TCA9534", TSSOP16,
      {"1": "GND", "2": "GND", "3": "GND", "4": "EXP_P0", "5": "EXP_P1", "6": "EXP_P2", "7": "EXP_P3", "8": "GND",
       "9": "EXP_P4", "10": "EXP_P5", "11": "EXP_P6", "12": "EXP_P7", "13": "EXP_INT", "14": "I2C_SCL",
-      "15": "I2C_SDA", "16": "3V3"}, desc="I/O expander 0x20: P0 AUX in, P1 fan, P2 Pi AUX, P3-P7 spare")
+      "15": "I2C_SDA", "16": "3V3"}, desc="I/O expander 0x20: P0 AUX in, P1 fan, P2 Pi I2C enable (input), "
+                                           "P3-P7 spare")
 C("C802", "100n", "3V3", "GND")
 R("R803", "10k", "3V3", "EXP_INT")
 part("J9", "Connector_Generic:Conn_02x05_Odd_Even", "EXPANSION", HDR2x5,
@@ -390,13 +392,25 @@ part("J9", "Connector_Generic:Conn_02x05_Odd_Even", "EXPANSION", HDR2x5,
       "8": "EXP_INT", "9": "I2C_SDA", "10": "I2C_SCL"}, dnp=True, desc="DNP: spare I/O and I2C")
 
 # ================================================================== 9xx: Pi link, GPS
-part("J6", "Connector_Generic_MountingPin:Conn_01x04_MountingPin", "GH-4", GH4,
-     {"1": "GND", "2": "PI_TXD", "3": "PI_RXD", "4": "PI_AUX_C", "MP": "GND"},
-     desc="PI: to the Pi's GPIO pins 6 (GND), 8 (TXD), 10 (RXD), 12 (GPIO18)")
+# J6 is the whole Pi <-> ESP32 link: UART (Pi UART0 <-> ESP32 UART2), and the Pi's I2C6 (GPIO22/23) switched onto
+# the carrier's I2C bus by the Pi's own GPIO18 (PI_AUX_C, also read by the ESP32 on expander P2). Q901 / Q902 are
+# the classic bidirectional level-shift switches: gate on GPIO18, source on the Pi side, and R911 / R912 are the
+# Pi-side pull-ups, powered by GPIO18 too. With GPIO18 low, or the Pi off, halted or booting, the gates are at 0 V
+# and the body diodes face the carrier bus: nothing on the Pi side can pull the ESP32's bus low. I2C6 rather than
+# I2C1 keeps the Pi's fixed 1.8 k pull-ups off the bus and leaves GPIO3 (the Pi 4's wake-from-halt pin) alone, so
+# the ESP32's polling can't wake a halted Pi. Remove Q901 / Q902 to take the Pi off the bus for good.
+part("J6", "Connector_Generic_MountingPin:Conn_01x06_MountingPin", "GH-6", GH6,
+     {"1": "GND", "2": "PI_TXD", "3": "PI_RXD", "4": "PI_AUX_C", "5": "PI_SDA", "6": "PI_SCL", "MP": "GND"},
+     desc="PI: to the Pi's GPIO pins 6 (GND), 8 (TXD), 10 (RXD), 12 (GPIO18, I2C enable), 15 (GPIO22, SDA6), "
+          "16 (GPIO23, SCL6)")
 R("R901", "1k", "PI_TXD", "ESP_IO16")
 R("R902", "4.7k", "ESP_IO17", "PI_RXD", desc="Limits back-powering the Pi's GPIO while it is off")
 R("R903", "1k", "PI_AUX_C", "EXP_P2")
-R("R904", "100k", "EXP_P2", "GND")
+R("R904", "100k", "EXP_P2", "GND", desc="Holds the I2C-enable line (and Q901 / Q902) off while the Pi is off")
+NFET("Q901", "2N7002", "PI_AUX_C", "PI_SDA", "I2C_SDA", desc="Pi SDA6 onto the I2C bus while the Pi drives GPIO18 high")
+NFET("Q902", "2N7002", "PI_AUX_C", "PI_SCL", "I2C_SCL", desc="Pi SCL6 onto the I2C bus while the Pi drives GPIO18 high")
+R("R911", "4.7k", "PI_AUX_C", "PI_SDA", desc="Pi-side SDA pull-up, powered only while GPIO18 is high")
+R("R912", "4.7k", "PI_AUX_C", "PI_SCL", desc="Pi-side SCL pull-up, powered only while GPIO18 is high")
 part("J7", "Connector_Generic_MountingPin:Conn_01x06_MountingPin", "GH-6", GH6,
      {"1": "GPS_5V", "2": "GPS_RXD_C", "3": "GPS_TXD_C", "4": "GPS_SCL", "5": "GPS_SDA", "6": "GND", "MP": "GND"},
      desc="GPS (Pixhawk port): 5V, TX (to GPS RX), RX (from GPS TX), SCL, SDA, GND")

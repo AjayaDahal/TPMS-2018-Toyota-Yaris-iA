@@ -5,8 +5,8 @@ C104,47u/50V,"47u/50V electrolytic, 6.3x7.7 SMD (LCSC C970679, Lelon RVT1H470M06
 F101,4A,"4A 2410 NANO2 fast SMD fuse (LCSC C27515, Littelfuse 0451004.MRL)",NANO2 4 A fast fuse
 F601,0.5A/60V,"0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)","Piezo feed PTC, after the 12 V shunt: the INA226 at 0x40 sees a shorted piezo lead"
 F901,0.5A/60V,"0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
-J1,12V_IN,"4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08 or KF301-4P)","12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)"
-J5,5V_OUT,"6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08 or 2x KF301-3P)","5V_PI out: 1-2 Pi USB-C pigtail, 3-4 display split lead, 5-6 spare"
+J1,12V_IN,"4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P side by side: 5.0 or 5.08 mm pitch both fit)","12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)"
+J5,5V_OUT,"6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08, 2x KF301-3P or 3x KF301-2P)","5V_PI out: 1-2 Pi USB-C pigtail, 3-4 display split lead, 5-6 spare"
 J8,FAN,1x2 2.54 mm right-angle male header (fan lead),"30 mm lid fan (1 = +5 V, 2 = switched -)"
 L101,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)",Input pi filter
 L201,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)",

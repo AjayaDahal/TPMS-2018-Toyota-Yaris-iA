@@ -91,9 +91,10 @@ def fixed():
     P["A2"] = (CC1101_XY[0], CC1101_XY[1], 0)
     P["J5"] = (83.4, 7.6, 180)          # 5 V out, wire entries toward the top edge
     P["J1"] = (14.0, 94.0, 0)           # 12 V in, wire entries toward the bottom edge (lid cable exit below)
-    for ref, x in (("J4", 38.3), ("J2", 48.5), ("J3", 58.7), ("J6", 68.9)):
+    for ref, x in (("J4", 38.3), ("J2", 48.5), ("J3", 58.7)):
         P[ref] = (x, 96.6, 0)           # GH-4, mouths on the bottom edge
-    P["J7"] = (81.4, 96.6, 0)           # GH-6 GPS
+    P["J6"] = (70.1, 96.6, 0)           # GH-6 Pi link (UART, spare line, I2C), under the Pi's GPIO pins 1-12
+    P["J7"] = (83.8, 96.6, 0)           # GH-6 GPS
     P["J8"] = (30.5, 12.6, 0)           # fan header (top of the fan zone), right-angle pins point +x
     P["J10"] = (89.4, 62.0, 0)          # DNP CC1101 breakout, 1x8 down +y
     P["J9"] = (93.4, 62.0, 0)           # DNP expansion 2x5
@@ -230,6 +231,10 @@ def soft():
     # Pi link, GPS
     S["R903"] = (90.6, 55.2, 90)
     S["R904"] = (92.4, 55.2, 90)
+    S["Q901"] = (67.2, 86.0, 0)                     # Pi I2C switches and their Pi-side pull-ups, above J6
+    S["Q902"] = (71.6, 86.0, 0)
+    S["R911"] = (67.2, 89.6, 0)
+    S["R912"] = (71.6, 89.6, 0)
     S["C901"] = (83.6, 88.6, 90)
     S["R909"] = (85.6, 91.0, 90)
     S["R910"] = (87.4, 91.0, 90)

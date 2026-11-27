@@ -116,7 +116,7 @@ Measure with calipers, front view (glass toward you), from the centre of the dis
 | `HDMI_PLUG` | 20, 22, 6 | Your straight HDMI-A FPC adapter: length past the socket face, width, thickness |
 | `USB_PLUG` | 11, 12, 7 | Your 90° micro-USB plug: the same three |
 | `LCD_FPC_X` | −16.5, 13.5 | Where the LCD's flex wraps round the bottom edge |
-| `PI_TOP_H` | 17.0 | Tallest part above the Pi's board. The UART plug on the GPIO must be **90° or low-profile** Dupont: straight ones stand ~22 mm |
+| `PI_TOP_H` | 17.0 | Tallest part above the Pi's board. The Pi link plugs onto the GPIO with your 40-pin ribbon's IDC (~12.5 mm, the ribbon folded flat toward the box bottom); straight Dupont plugs stand ~22 mm and don't fit |
 | `BUZ_D`, `BUZ_H` | 23.2, 12 | The 12 V active piezo you buy: diameter, height without its leads |
 | `PASS_THREAD_D`, `PASS_HOLE_D` | 25.16, 25.8 | Thread Ø (measured from your caliper photos); the v1 cut. Keep 0.3–0.7 mm between them |
 | `PASS_FLAT_D`, `PASS_FLAT_W` | 23.28, 23.8 | Across the two double-D flats (measured from your caliper photos); the double-D cut (`0` for plain round) |
@@ -151,14 +151,14 @@ Measure with calipers, front view (glass toward you), from the centre of the dis
 | AMPS mount | 4 × M4 nuts pressed into the bottom bosses + M4 × 10 (Fgruh kit). Fits a RAM-B-202U round base or a car bracket |
 | Twin USB wing → bezel | 3 × M3 × 10 socket cap from inside the bezel's right cavity, before the display goes in; 3M VHB on the wing's back edges to the trim |
 | Piezo | A dab of neutral-cure RTV on each of its three fingers |
-| Buy | **HDMI FPC kit:** a straight HDMI-A male adapter, a straight micro-HDMI male adapter and a 20 cm flat cable (the kit's 1 m HDMI to micro-HDMI cable is far too stiff for the box). **A 90° micro-USB lead** whose cable leaves along the plug's wide face ("left" or "right" angle, not up/down). Which of the two points upward depends on how the socket is mounted: check the display first, or buy both. Split it as described above. Also:<br>• a split rubber grommet for the cable exit;<br>• an SMA bulkhead to SMA pigtail (RG316, ~10 cm) plus a 30 cm RG316 extension;<br>• three 90° USB-A adapters or plugs (two cameras, touch);<br>• 90° Dupont housings;<br>• a 90° USB-C plug on the power pigtail. |
+| Buy | **HDMI FPC kit:** a straight HDMI-A male adapter, a straight micro-HDMI male adapter and a 20 cm flat cable (the kit's 1 m HDMI to micro-HDMI cable is far too stiff for the box). **A 90° micro-USB lead** whose cable leaves along the plug's wide face ("left" or "right" angle, not up/down). Which of the two points upward depends on how the socket is mounted: check the display first, or buy both. Split it as described above. Also:<br>• a split rubber grommet for the cable exit;<br>• an SMA bulkhead to SMA pigtail (RG316, ~10 cm) plus a 30 cm RG316 extension;<br>• three 90° USB-A adapters or plugs (two cameras, touch);<br>• a 90° USB-C plug on the power pigtail.<br>The Pi link needs nothing new: your 40-pin GPIO ribbon cable, the elechawk GH-to-Dupont pigtails and the Dupont kit (see [Connecting the Pi](../v2/carrier/README.md#connecting-the-pi)). |
 
 ## Assembly
 
 1. **Pi:** screw it onto its four posts in the housing (M2.5 × 6), ports into the window. Fit:
    - the micro-HDMI adapter in HDMI0 (the one next to USB-C);
    - the 90° USB-C pigtail;
-   - the UART lead (90° Dupont on GPIO 14/15 + GND).
+   - the 40-pin ribbon's IDC on the GPIO header, red stripe (conductor 1) on pin 1; fold the ribbon flat over the plug toward the box bottom.
 2. **Twin USB wing**, while the bezel is still empty:
    - On the bench, fit **both** USB passthroughs into the wing's double-D holes and tighten their hex nuts (leave two flats horizontal so they clear the trim; if your ALTW connectors are rear-mounted with a front nut, insert them from the open back and tighten the nuts from outside).
    - Lay the bezel face down on a soft cloth. Route the lower passthrough's cable up behind the wing's centre screw post, feed **both** USB plugs (one after the other) through the bezel's side opening into the right cavity, and screw the wing onto the bezel with 3 × M3 × 10 from inside the right cavity.
@@ -169,7 +169,7 @@ Measure with calipers, front view (glass toward you), from the centre of the dis
 7. **PCB:** fit it on its posts, parts facing you. Connect:
    - the USB-C pigtail to J5 pair 1;
    - the display power leg to J5 pair 2;
-   - the UART lead;
+   - the Pi link: the 6-pin GH pigtail into J6, joined in the space below the board to ribbon conductors 6, 8, 10, 12, 15, 16, with the ribbon's other cut ends sealed (pins 2 and 4 are 5 V) ([Connecting the Pi](../v2/carrier/README.md#connecting-the-pi));
    - the piezo's two wires to J4 ("BUZ": pin 3 +, pin 4 −; the button pins 1–2 stay free);
    - the RG316 pigtail from the CC1101 to the bulkhead;
    - the fan to the PCB's 5 V header.

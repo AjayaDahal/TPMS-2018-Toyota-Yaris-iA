@@ -470,7 +470,7 @@
       "file": "stl/asm_pi.stl",
       "triangles": 756,
       "color": "#15803d",
-      "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 90° UART (dummy)"
+      "label": "Raspberry Pi 4 with its plugs: micro-HDMI adapter, 90° USB-C, 40-pin ribbon IDC (dummy)"
     },
     "asm_pcb": {
       "file": "stl/asm_pcb.stl",

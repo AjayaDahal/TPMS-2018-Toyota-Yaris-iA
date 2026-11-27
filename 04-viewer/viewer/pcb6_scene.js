@@ -33,7 +33,7 @@ const ZONES = {
   protect: [1, 66, 32, 23],
   j1: [11, 89, 21.5, 10.5],
   j5: [55.5, 2.5, 30.5, 10],
-  jst: [33.5, 93.4, 54, 6.4],
+  jst: [33.5, 93.4, 56.3, 6.4],
   io: [33, 70, 36, 23],
   fan: [29, 30, 32, 32],
   sma: [86, 28.5, 14, 12],
@@ -251,7 +251,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   addPart({
     id: "p6_j1", zone: ZONES.j1, h: 10, color: 0x7f1d1d, subsystem: "power_io",
     title: "J1: 12 V in — 4-pole 5.08 mm screw terminal",
-    category: "Connectors", source: "BUY (hand-soldered)",
+    category: "Connectors", source: "INVENTORY (2 blue 2-pole screw blocks side by side, hand-soldered)",
     mount: "Wire entries toward the bottom edge, under the lid's cable exit.",
     wiring: "+12 V (ACC), GND, AUX sense in, AUX return; 18 AWG from one Add-A-Circuit (5 A) on a metered ACC fuse. No battery feed: zero draw when parked.",
   });
@@ -259,17 +259,17 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   addPart({
     id: "p6_j5", zone: ZONES.j5, h: 10, color: 0xea580c, subsystem: "power_io",
     title: "J5: 5V_PI out — 6-pole 5.08 mm screw terminal",
-    category: "Connectors", source: "BUY (hand-soldered)",
+    category: "Connectors", source: "INVENTORY (3 blue 2-pole screw blocks side by side, hand-soldered)",
     mount: "Wire entries toward the top edge (a clear strip in front of them for the wire bend).",
     wiring: "1–2 → 90° USB-C pigtail to the Pi (470 µF at the Pi end); 3–4 → the TS-7's 5 V on its split micro-USB lead (its touch data goes to a Pi USB port); 5–6 spare. Fed by 2 mm straps from the shunt.",
   });
 
   addPart({
     id: "p6_jst", zone: ZONES.jst, h: 4.3, color: 0x10b981, subsystem: "signals",
-    title: "J4, J2, J3, J6, J7: JST-GH — piezo (\"BUZ\"), doors L / R, Pi UART, GPS",
-    category: "Connectors", source: "JLCPCB assembly (SMD)",
+    title: "J4, J2, J3, J6, J7: JST-GH — piezo (\"BUZ\"), doors L / R, Pi link, GPS",
+    category: "Connectors", source: "JLCPCB assembly (SMD); the leads: the lab's elechawk GH-to-Dupont pigtails",
     mount: "Keyed, latching; mouths on the bottom edge next to the cable exit.",
-    wiring: "BUZ (4-pin): the 12 V piezo inside the dash unit on pins 3 (+) and 4 (−); the button pins 1–2 (IO4, GND) stay unused (the touch screen mutes). DOOR L / R (4-pin): blinker sense pair + amber LED. PI (4-pin): GND, TXD, RXD, GPIO18 (1 kΩ / 4.7 kΩ). GPS (6-pin Pixhawk): 5 V, TX, RX, SCL, SDA, GND; swap TX/RX with R907/R908.",
+    wiring: "BUZ (4-pin): the 12 V piezo inside the dash unit on pins 3 (+) and 4 (−); the button pins 1–2 (IO4, GND) stay unused (the touch screen mutes). DOOR L / R (4-pin): blinker sense pair + amber LED. PI (6-pin): GND, TXD, RXD, GPIO18, SDA6, SCL6 → the Pi's header pins 6, 8, 10, 12, 15, 16 through the 40-pin ribbon; UART through 1 kΩ / 4.7 kΩ, I2C through Q901 / Q902, which only the Pi's GPIO18 switches on. GPS (6-pin Pixhawk): 5 V, TX, RX, SCL, SDA, GND; swap TX/RX with R907/R908.",
   });
 
   addPart({
