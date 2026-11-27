@@ -156,7 +156,7 @@ Per [`CC1101_E07-M1101D_Socket.kicad_mod`](../../01-hardware/lib/TPMS.pretty/CC1
     | 1–2 ms | 9 % | 84 % | 98 / 65 % |
     | 0.5–1 ms, dithered (**now**) | 77 % | **98 %** | 98 / 99 % |
 
-    With dithered reads, a 10 ms hold already gives 98 % and 20 ms 98 %. The remaining 2 % are gates that open after the 20th preamble bit.
+    With dithered reads a 10 or 20 ms hold also gives ~98 %. The missing ~2 % are frames whose gate opens only after their 20th preamble bit.
   - If the CC1101's RSSI averages over a few chips instead, the gate never sees the "off" chips and every row passes. That is likely at −73 dBm, where a 50 % duty frame still reads ~13 dB over the floor. The A/B re-test below shows which case the hardware is.
   - **Fix:**
     - [`src/rf_capture.cpp`](src/rf_capture.cpp): `kGateHoldUs` from 5 ms to **40 ms**, longer than a ~30 ms frame. A frame that opens the gate in its preamble then passes whole, whatever its RSSI does.
