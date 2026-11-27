@@ -42,7 +42,7 @@ CC1101_SMA = (75.1, 42.6, 81.5, 53.6)             # its SMA jack (7.8-14.7 mm ab
 
 # approximate heights above the board (mm) of the tall parts, for the fan-zone and coax checks
 HEIGHTS = {"J1": 10.0, "J5": 10.0, "A1": 15.8, "A2": 15.5, "C104": 7.7, "J8": 5.0, "J9": 8.5, "J10": 8.5,
-           "J11": 8.5, "J12": 8.5}
+           "J11": 8.5, "J12": 8.5, "J13": 8.5, "J14": 8.5}
 
 
 def _rot(lx, ly, r):
@@ -104,6 +104,8 @@ def fixed():
     P["J9"] = (93.4, 62.0, 0)           # DNP expansion 2x5
     P["J11"] = (51.6, 64.8, 0)          # DNP 12 V for an external 5 V module (below the 12 V bus)
     P["J12"] = (44.6, 64.8, 0)          # DNP external 5 V module output into 5V_ESP_RAW
+    P["J13"] = (34.5, 7.4, 90)          # DNP safety power/enable header (top corridor, clear of all tracks/keepouts)
+    P["J14"] = (20.0, 7.4, 90)          # DNP safety Pi UART + I2C-enable 2.54 mm debug/bypass header
     P.update(_buck(PI_ROLES, PI_BUCK_AT))
     P.update(_buck(ESP_ROLES, ESP_BUCK_AT))
     # 12 V input chain, left of J1

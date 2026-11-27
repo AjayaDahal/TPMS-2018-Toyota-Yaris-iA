@@ -50,29 +50,36 @@ Every ESP32 signal passes a series resistor next to its DevKit pin. It limits fa
    - **Economic**, top side only, quantity **2**;
    - upload `tpms_v2_carrier_bom_jlcpcb.csv` and `tpms_v2_carrier_cpl_jlcpcb.csv`.
 
-   Every SMD line (all **57 BOM lines** and **177 placements**) should match its LCSC part. Only the 5 THT connectors and the DNP rework options remain in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
+   Every line (**51 BOM lines** and **167 placements**: 41 basic + 4 preferred + 6 extended) should match its LCSC part. The 10 chunky 2/3-pad SMD power parts (6 extended lines), the 5 THT connectors, and the DNP rework options are in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
 3. **Placement preview:** check every polarized part before you confirm:
    - the diodes: SS56C at D201/D301, SS14 at D304, the 1N4148Ws; the SMCJ24CA at D101 and SMBJ6.0CA at D203/D302 are bidirectional, so either way is fine;
-   - the electrolytic capacitor `C104` (47 µF / 50 V, `+` chamfered side on `12V_PROT`) and `Q101` (TO-252 DPAK);
    - the LEDs: D102, D204, D303, D305, D501, D503, D505;
    - pin 1 of every IC: U101, U201, U202, U301, U302, U501–U503, U801, U802.
 
-   The CPL rotations are fitted to JLCPCB's own footprints by the build, and it reports the worst fit (0.30 mm), but the preview is the last check.
-4. **Price:** expect the standard $2 2-layer board price plus Economic assembly. Four former extended lines were swapped to JLCPCB Preferred ($0 fee) and every SMD part (including the 10 SMD power parts) is assembled by JLCPCB, giving **12 extended parts** (~$3.07 each) on top of the parts and the setup fee — zero SMD hand-soldering or separate LCSC order: see [Cost](#cost).
+   The CPL rotations are fitted to JLCPCB's own footprints by the build, and it reports the worst fit (0.29 mm), but the preview is the last check.
+4. **Price & shipping threshold (why the hybrid split exists):** JLCPCB's **Global Standard Direct Line** shipping (cheap, ~$5–$10) requires the **merchandise total to stay under $59.00**. Putting all 177 SMD parts on PCBA pushed the merchandise total to **$76.10**, which disabled Global Standard Direct Line and forced **UPS Express Saver (DDP)** ($59.99 shipping + $26.64 duties + $4.44 disbursement = **$167.17 total**). Moving the 10 large 2/3-pad SMD power parts (6 extended lines) to hand-solder drops JLCPCB merchandise to **~$52–$55 (< $59.00)**, keeping all 167 fine-pitch, PowerPAD, and 0603 parts on machine assembly while unlocking Global Standard Direct Line and saving **~$80–$90** overall: see [Cost](#cost).
 
 ## Hand soldering
 
-Every SMD component is assembled by JLCPCB PCBA. You only hand-solder the **5 through-hole connectors** after the boards arrive (all from your lab inventory; full list with DNP rework pads in `tpms_v2_carrier_hand_solder_and_dnp.csv`):
+JLCPCB machine-reflows all 167 hard/tiny SMD parts (both PowerPAD bucks, both 0.5 mm INA226s, TCA9534, TMP75, all 5 JST-GH sockets, all 93 0603s, LEDs, diodes, and SOT-23s). After the boards arrive, you hand-solder **10 chunky 2/3-pad SMD power parts** (all ≥ 4.5 mm with huge exposed pads, ~10 min with a regular chisel-tip iron) and **5 through-hole connectors** (full list with LCSC/MPN numbers in `tpms_v2_carrier_hand_solder_and_dnp.csv`).
 
-| Ref | Part | Notes |
+Order the 10 SMD power parts from **DigiKey** (US domestic, ~$18–$20 + $6.99 USPS First Class, 2–3 days, zero customs) or **LCSC** (~$4–$5 + shipping). Fit the SMD power parts first while the board lies flat: smallest first (`F601`, `F901`, `R104`, `R211`, `F101`), then `Q101` and `C104`, then the three inductors (`L101`, `L201`, `L301`), then the 5 THT connectors. The board won't power up without `F101`, `Q101`, `L101`, `R104` (12 V in), `L201`, `R211` (Pi 5 V), and `L301` (ESP32 5 V).
+
+| Ref | Part | Notes / DigiKey & LCSC MPNs |
 |---|---|---|
-| A1 | 2 × 1×15 female headers, 2.54 mm, standard 8.5 mm tall | The footprint has both DevKit widths: rows 0.9" and 1.0" apart (silkscreen `0.9` / `1.0`). **Measure your DevKit first** and solder the right-hand socket in the matching row |
-| A2 | 2×4 female header, 2.54 mm (or two 1×4 strips side by side) | The CC1101 module plugs in with its SMA toward the board's top edge (silkscreen `CC1101: SMA END`). The 2×4 is symmetric: turned round, it swaps VCC and a signal |
-| J1 | 4-pole screw terminal, 5.08 mm: or 2 of your blue 2-pole blocks, slid together | Wire entries toward the board edge |
-| J5 | 6-pole screw terminal, 5.08 mm: or 3 blue 2-pole blocks | Same |
-| J8 | 1×2 right-angle pin header, 2.54 mm | Lid fan |
+| A1 | 2 × 1×15 female headers, 2.54 mm, standard 8.5 mm tall | Lab inventory. Footprint has both DevKit widths (`0.9` / `1.0`). **Measure your DevKit first** and solder the matching row |
+| A2 | 2×4 female header, 2.54 mm (or two 1×4 strips side by side) | Lab inventory. SMA end toward top edge (`CC1101: SMA END`) |
+| J1 | 4-pole screw terminal, 5.08 mm: or 2 blue 2-pole blocks, slid together | Lab inventory. Wire entries toward board edge |
+| J5 | 6-pole screw terminal, 5.08 mm: or 3 blue 2-pole blocks | Lab inventory. Wire entries toward board edge |
+| J8 | 1×2 right-angle pin header, 2.54 mm | Lab inventory. Lid fan |
+| C104 | 47 µF / 50 V electrolytic, 6.3×7.7 SMD (qty 2 for 2 boards) | LCSC `C970679` (`RVT1H470M0607`), DigiKey any 47 µF/50 V 6.3×7.7 SMD (e.g. Panasonic `EEE-FK1H470P`), or a leaded 47 µF/50 V from lab bin (`+` toward `12V_PROT`). Its `−` pad has GND thermal spokes for easy soldering |
+| F101 | 4 A 2410 NANO2 fast SMD fuse (qty 2 for 2 boards) | Littelfuse `0451004.MRL` (LCSC `C27515`, DigiKey `F2316CT-ND`) |
+| F601, F901 | 2 × 0.5 A / 60 V 1812 PTC polyfuse (qty 4 for 2 boards) | Littelfuse `mSMD050-60V` / `1812L050/60DR` (LCSC `C70113`) |
+| L101, L201, L301 | 3 × 6.8 µH 10×10×4 mm shielded inductor, ≥ 8.5 A (qty 6 for 2 boards) | Sunlord `MWSA1004S-6R8MT` (LCSC `C408485`) or Bourns `SRP1038A-6R8M` on DigiKey; pads extend 1.3 mm past each end of the body |
+| Q101 | −60 V P-MOSFET TO-252 DPAK, ≤ 25 mΩ (qty 2 for 2 boards) | `SUD50P06-15` (LCSC `C7503186`, Vishay `SUD50P06-15-GE3` or AEC-Q101 `SQD50P06-15L_GE3` on DigiKey; avoid high-Rds(on) parts like `FQD11P06`) |
+| R104, R211 | 2 × 10 mΩ 1 % 2 W 2512 current shunt (qty 4 for 2 boards) | Viking `RLM25FEER010` (LCSC `C192580`) or Stackpole `CSR2512FK10L0` / Bourns `CRA2512-FZ-R010ELF` on DigiKey |
 
-The ground pins connect to the top and bottom GND pours through thermal reliefs, making the 2-layer board easy to hand-solder with a standard 60–80 W iron, a chisel tip, and flux.
+All through-hole ground pins and `C104`'s `−` pad connect to the L1/L2 GND pours through thermal reliefs, and the other 9 hand-soldered SMD power parts sit on small local pours, so everything solders cleanly on this 2-layer HASL board with a standard 60–80 W chisel tip and flux.
 
 ## Connectors from your lab
 
@@ -88,7 +95,7 @@ Every connector on the board mates with something in the lab inventory; nothing 
 | J8 (fan) | 1×2 2.54 mm right-angle male header | A right-angle strip from the Dupont kit, or a straight one bent 90° | The fan's Dupont plug fits it |
 | A1 (DevKit) | 2 × 1×15 female 2.54 mm | Female header strips | Standard 8.5 mm tall: the enclosure allows 16 mm over the board for socket plus DevKit. Cutting a strip costs one position a cut, so plan ~1.5 × 1×40 strips a board |
 | A2 (CC1101) | 2×4 female 2.54 mm | A 2×4 socket or two 1×4 strips side by side | — |
-| J9–J12 (DNP) | 2.54 mm headers | Male strips, only if you ever need them | — |
+| J9–J14 (DNP) | 2.54 mm headers | Male strips, only if you ever need them (`J9` I2C + expander, `J10` alt CC1101, `J11` ext 12 V, `J12` ext 5 V ESP, `J13` `SAFE PWR`, `J14` `SAFE PI`) | — |
 
 The Preciva PR-3254 crimps Dupont (and JST-XH) contacts, not the 1.25 mm GH ones; the pre-crimped pigtails cover all of those. The JST-XH kit isn't used on this board. **Count before you order:** 3 × 4-pin and 1–2 × 6-pin GH pigtails a unit, 5 two-pole blocks a board, and the female strips. The pigtails' Dupont ends are usually female: check yours, it decides how the Pi's ribbon joins J6.
 
@@ -155,7 +162,9 @@ Rev A is built to be reworked, not reordered:
 | If… | …do this |
 |---|---|
 | The Pi buck misbehaves | Remove R201 and R202 (two 1206 0 Ω links). Wire a 5 V / 5 A module (for example the UCTRONICS buck) from J11 (12 V + GND, fit a 2×2 header) to J5's 5 V and GND terminals |
-| The ESP32 buck misbehaves | Remove R301 and feed a 5 V module into J12 (5V_ESP_RAW + GND) |
+| The ESP32 buck misbehaves | Remove R301 and feed a 5 V module into J12 (5V_ESP_RAW + GND) — **or** remove R301 and R309 and drop a 2.54 mm jumper cap across `J13` pins 2–3 (`5V_ESP` ↔ `5V_PI`) to run the ESP rail off the 5 A Pi buck |
+| You want to probe/override power rails or buck enables on the bench | Fit a 1×6 2.54 mm header on `J13` (`SAFE PWR`, top edge): `1 GND · 2 5V_ESP · 3 5V_PI · 4 3V3 · 5 EN_PI · 6 EN_ESP` (jumper pin 5 to pin 1 to hold the Pi buck off during testing) |
+| You want a 2.54 mm Pi UART / I2C-enable tap (bypassing 1.25 mm `J6`) | Fit a 1×4 2.54 mm header on `J14` (`SAFE PI`, top edge): `1 GND · 2 PI_TXD · 3 PI_RXD · 4 PI_AUX_C` (connect a USB-UART adapter, logic analyzer, or Dupont jumper wires directly) |
 | A rail needs trimming | Top feedback resistor R203 (Pi) or R303 (ESP), 0603: 82 kΩ → 5.17 V, 80.6 kΩ → 5.10 V, 78.7 kΩ → 5.00 V |
 | The AM radio buzzes | The 441/485 kHz harmonics land in the AM band. RT R206 (Pi) or R306 (ESP) → **43 kΩ** moves the switching above the band (~2.2 MHz), for ~0.5 W more heat at 3 A |
 | The Pi starts too early or too late | C213 (EN delay); remove Q201 to disable `PI_INHIBIT` |
@@ -182,10 +191,10 @@ An estimate for 5 boards with 2 assembled, from JLCPCB's live part prices with t
 |---|---|
 | 5 bare boards: 2 layers, 100 × 100 mm, 1.6 mm, 1 oz, lead-free HASL, tented vias | $2 (standard JLCPCB 2-layer price) |
 | Economic PCBA: setup fee and stencil | ~$9.70 ($8.18 + $1.53) |
-| Extended-part fees: **12 extended lines** × ~$3.07 (4 lines moved to Preferred at $0; all SMD parts assembled by JLCPCB) | ~$36.85 |
-| Parts for 2 boards: 12 extended + 4 preferred + 41 basic (57 BOM lines), with JLCPCB's attrition and minimum quantities | ~$28–29 |
-| Placement: 177 placements and ~450 solder joints a board at ~$0.0016 a joint | ~$1.45 |
-| **Total before shipping (before any $6–$10 monthly SMT coupon)** | **~$78** |
-| Shipping, depending on the carrier | ~$10–30 |
+| Extended-part fees: **6 extended lines** × ~$3.07 (4 lines moved to Preferred at $0; 10 chunky 2/3-pad SMD power parts on 6 lines moved to hand-solder to stay under $59) | ~$18.40 |
+| Parts for 2 boards: 6 extended + 4 preferred + 41 basic (51 BOM lines), with JLCPCB's attrition and minimum quantities | ~$22–23 |
+| Placement: 167 placements and ~430 solder joints a board at ~$0.0016 a joint | ~$1.40 |
+| **JLCPCB merchandise subtotal (stays < $59.00 for Global Standard Direct Line)** | **~$52–$55** (~$44–$49 w/ monthly SMT coupon) |
+| Shipping: Global Standard Direct Line (unlocked below $59.00) | ~$5–$10 (vs. $59.99 UPS Express + $26.64 duties + $4.44 fee above $59) |
 
-All SMD parts arrive soldered; you only hand-solder the 5 THT items in [Hand soldering](#hand-soldering) from your lab inventory (~$0 if on hand, ~$5 for any shortfall). The three spare bare boards cost nothing extra and can be hand-built if needed.
+**Why not have JLCPCB place the last 10 SMD power parts?** Adding those 6 extended lines adds ~$23.70 to the JLCPCB merchandise total (~$52.40 → **$76.10**), crossing JLCPCB's **$59.00 Global Standard Direct Line ceiling** and forcing UPS Express DDP ($167.17 checkout total). Buying those 10 chunky power parts from DigiKey (~$18–$20 + $6.99 USPS First Class) or LCSC (~$4–$5 + shipping) keeps the all-in cost around **~$75–$88** instead of **$167**, while JLCPCB still places all 167 tiny/fine-pitch/PowerPAD parts. The 5 THT connectors come from your lab inventory. The three spare bare boards cost nothing extra.

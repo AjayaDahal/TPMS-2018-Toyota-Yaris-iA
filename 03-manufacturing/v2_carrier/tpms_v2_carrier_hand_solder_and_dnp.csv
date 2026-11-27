@@ -1,9 +1,19 @@
 Designator,What,Buy / fit,Notes
 A1,ESP32_DevKit_30pin,"2x 1x15 2.54 mm female header, 8.5 mm (solder the row that matches your DevKit: 0.9 or 1.0 in)","ESP32 DevKit (30-pin) on two 1x15 sockets. Open: EN, TX0/RX0 (USB), IO2 (its LED), IO12 (strapping pin)"
 A2,CC1101_315MHz,"2x4 2.54 mm female header, 8.5 mm (CC1101 module socket)",CC1101 module (2x4 E07 / V2.0 pinout) on a socket
+C104,47u/50V,"47u/50V electrolytic, 6.3x7.7 SMD (LCSC C970679, Lelon RVT1H470M0607) or leaded 47u/50V from lab bin",Electrolytic: damps the pi filter and the input cable
+F101,4A,"4A 2410 NANO2 fast SMD fuse (LCSC C27515, Littelfuse 0451004.MRL)",NANO2 4 A fast fuse
+F601,0.5A/60V,"0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)","Piezo feed PTC, after the 12 V shunt: the INA226 at 0x40 sees a shorted piezo lead"
+F901,0.5A/60V,"0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
 J1,12V_IN,"4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P side by side: 5.0 or 5.08 mm pitch both fit)","12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)"
 J5,5V_OUT,"6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08, 2x KF301-3P or 3x KF301-2P)","5V_PI out: 1-2 Pi USB-C pigtail, 3-4 display split lead, 5-6 spare"
 J8,FAN,1x2 2.54 mm right-angle male header (fan lead),"30 mm lid fan (1 = +5 V, 2 = switched -)"
+L101,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",Input pi filter
+L201,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
+L301,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
+Q101,SUD50P06-15,"-60V P-MOSFET TO-252 DPAK, <=25 mOhm (LCSC C7503186, UMW SUD50P06-15 / Vishay SUD50P06-15-GE3 or SQD50P06-15L_GE3)","Reverse-battery P-MOSFET, -60 V, 12 mOhm"
+R104,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",12 V current shunt; remove to isolate both bucks
+R211,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",5V_PI current shunt; remove to isolate the Pi rail
 C204,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor
 C210,DNP 47u/10V,not fitted (rework option),DNP: spare output capacitor
 C304,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor
@@ -11,6 +21,8 @@ C310,DNP 47u/10V,not fitted (rework option),DNP: spare output capacitor
 J10,DNP CC1101_ALT,not fitted (rework option),DNP: breakout for a module with another pinout (wire it here)
 J11,DNP EXT_12V,not fitted (rework option),"DNP: 12 V (protected, after the shunt) for an external 5 V module. Pi rail fallback: module out to J5 5-6, remove R201/R202"
 J12,DNP EXT_5V_ESP,not fitted (rework option),"DNP: ESP rail fallback, an external 5 V module's output (its input from J11); remove R301"
+J13,DNP SAFETY_PWR,not fitted (rework option),"DNP safety header: GND, 5V_ESP, 5V_PI (jumper 2-3 to feed ESP from Pi buck if U301 fails), 3V3, EN_PI, EN_ESP"
+J14,DNP SAFETY_PI,not fitted (rework option),DNP safety header: 2.54 mm Pi UART + I2C-enable bypass/debug tap (bypasses 1.25 mm J6)
 J9,DNP EXPANSION,not fitted (rework option),DNP: spare I/O and I2C
 R312,DNP 0,not fitted (rework option),DNP: 3V3 from the DevKit's own regulator
 R505,DNP 0,not fitted (rework option),DNP: tie the lamp return to board GND

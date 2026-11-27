@@ -418,7 +418,7 @@ async function switchMode(mode, syncTab = true) {
     setCarCamera("iso");
     if (syncTab) activateTab("tab-car");
   } else if (mode === "pcb6") {
-    document.getElementById("eyebrow").textContent = "JLCPCB 2-LAYER · LEAD-FREE HASL · 100 × 100 mm · ALL SMD PCBA";
+    document.getElementById("eyebrow").textContent = "JLCPCB 2-LAYER · LEAD-FREE HASL · 100 × 100 mm · UNDER-$59 HYBRID PCBA";
     document.getElementById("stage-title").textContent = "100 × 100 mm ESP32 Carrier + Printed Display Enclosure";
     const eo = systemPlan?.enclosure?.overall_mm;
     document.getElementById("dimension").textContent = `PCB 100.0 × 100.0 × 1.6 mm, rev A routed (DRC 0/0/0) · enclosure ${eo ? `${eo.width} × ${eo.height} × ${eo.depth} mm` : "see the enclosure README"} · the real board and its parts: 3. Printed Parts`;

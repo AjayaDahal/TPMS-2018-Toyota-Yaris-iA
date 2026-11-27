@@ -534,7 +534,7 @@ def block_of(ref):
         return "1"
     if ref in ("J5", "J11"):
         return "2"
-    if ref == "J12":
+    if ref in ("J12", "J13"):
         return "3"
     if ref in ("J2", "J3", "J4", "J8"):
         return "6"
@@ -542,7 +542,7 @@ def block_of(ref):
         return "7"
     if ref == "J9":
         return "8"
-    if ref in ("J6", "J7"):
+    if ref in ("J6", "J7", "J14"):
         return "9"
     m = re.search(r"(\d)\d\d$", ref)
     return m.group(1) if m else "T"
@@ -1156,7 +1156,8 @@ def add_silkscreen(board, fps):
             add_text(board, names[n - 1], x, y + dy, size=1.0)
     # door ports are "L" / "R": a row of 0603 parts sits right above the connectors (see the README's table)
     for ref, name in (("J2", "L"), ("J3", "R"), ("J4", "BUZ"), ("J6", "PI"), ("J7", "GPS"),
-                      ("J8", "FAN"), ("J9", "EXP"), ("J10", "ALT"), ("J11", "EXT 12V"), ("J12", "EXT 5V")):
+                      ("J8", "FAN"), ("J9", "EXP"), ("J10", "ALT"), ("J11", "EXT 12V"), ("J12", "EXT 5V"),
+                      ("J13", "SAFE PWR"), ("J14", "SAFE PI")):
         x0, y0, x1, y1 = fp_courtyard_bbox(fps[ref])
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         w = 0.72 * len(name) + 0.2
