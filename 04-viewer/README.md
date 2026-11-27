@@ -9,8 +9,8 @@ Three.js r160 engineering viewer. It needs no internet, but it must be served by
    - the GPS on the dash top and the optional OBD-II Bluetooth dongle (dashed link to the enclosure), the two speed sources.
 
    The dash unit (with the piezo and the USB wing), the camera pods and the LED pods are the real printed parts from `01-hardware/enclosure/stl/`. A live simulator runs passing cars and motorcycles, the blinkers, the speed gate and the firmware's beep rules (a danger episode beeps at once and after 3 s, then the LED alone from 4 s; a new signal re-arms it), with a picture-in-picture of the touch-screen HUD.
-2. **6-Layer PCB (100 × 100 mm):**
-   - the carrier's JLCPCB 6-layer stackup (explodable L1–L6), each layer textured with the real copper of the generated board ([01-hardware/v2/carrier](../01-hardware/v2/carrier/README.md));
+2. **2-Layer PCB (100 × 100 mm):**
+   - the carrier's JLCPCB 2-layer stackup (explodable L1–L2), each layer textured with the real copper of the generated board ([01-hardware/v2/carrier](../01-hardware/v2/carrier/README.md));
    - its functional blocks (DevKit, CC1101, the two bucks, the 12 V protection, the connectors) and the enclosure keep-out boxes, at their positions in the layout;
    - the printed enclosure (bezel, housing, lid, display, Pi and PCB dummies) loaded from `01-hardware/enclosure/stl/`, with an explode slider. Hide it to click through to the board.
 3. **Printed Parts & Assembly:** every 3-D printed part, from the generated STL files ([01-hardware/enclosure](../01-hardware/enclosure/README.md)), to scale:
@@ -26,7 +26,7 @@ The inspector tabs:
 | Tab | Content |
 |---|---|
 | Car & Sim | Simulator controls (speed, auto drive, night, sound, HUD PiP) |
-| 6L PCB | Stackup layers, functional blocks, keep-outs and the enclosure fit report |
+| 2L PCB | Stackup layers, functional blocks, keep-outs and the enclosure fit report |
 | Printed Parts | Product, views, explode, section and see-through; the card with sizes, holes and STL links; the part list |
 | Wiring | The harness table and per-rail power totals |
 | Inv/Buy | The BOM: use-from-inventory vs. buy |
@@ -37,7 +37,7 @@ The inspector tabs:
 ```bash
 python3 04-viewer/make_viewer.py        # rebuild manifest + parts from the v1 KiCad STEP (only after a v1 change)
 python3 04-viewer/sync_plan.py          # refresh the premortem / order gate / enclosure data in system_plan.json
-python3 04-viewer/make_pcb_textures.py  # re-render the 6 copper layers after a carrier rebuild (KiCad 10, pymupdf)
+python3 04-viewer/make_pcb_textures.py  # re-render the 2 copper layers after a carrier rebuild (KiCad 10)
 python3 04-viewer/serve_viewer.py       # -> http://127.0.0.1:28776/viewer/
 ```
 
@@ -47,6 +47,6 @@ python3 04-viewer/serve_viewer.py       # -> http://127.0.0.1:28776/viewer/
 
 Run it after changing either source. `python3 04-viewer/sync_plan.py --check` exits non-zero if `system_plan.json` is out of date.
 
-- `viewer/`: `index.html`, `style.css`, `app.js`, `car_scene.js`, `pcb6_scene.js`, `products_scene.js` (Printed Parts), `system_plan.json`, `manifest.json`, `vendor/` (Three.js r160 + OrbitControls, STLLoader, GLTFLoader), `parts/`, `media/` (`media/pcb/L1–L6.png`: the carrier's copper, from `make_pcb_textures.py`)
+- `viewer/`: `index.html`, `style.css`, `app.js`, `car_scene.js`, `pcb6_scene.js`, `products_scene.js` (Printed Parts), `system_plan.json`, `manifest.json`, `vendor/` (Three.js r160 + OrbitControls, STLLoader, GLTFLoader), `parts/`, `media/` (`media/pcb/L1–L2.png`: the carrier's copper, from `make_pcb_textures.py`)
 - The Printed Parts and the car scene read `01-hardware/enclosure/{enclosure,mounts}_report.json` and `stl/`, the carrier's `docs/tpms_v2_carrier.glb` (written by `build_carrier.py`) and its BOM / hand-solder lists in `03-manufacturing/v2_carrier/`; regenerate those and reload.
 - `renders/`: KiCad front, back and isometric ray-traced renders of the v1 PCB

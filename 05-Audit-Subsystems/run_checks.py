@@ -197,7 +197,13 @@ def kicad_cli():
     cands = [shutil.which("kicad-cli"),
              os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "KiCad10", "bin", "kicad-cli.exe"),
              r"C:\Program Files\KiCad\10.0\bin\kicad-cli.exe"]
-    return next((c for c in cands if c and os.path.exists(c)), None)
+    found = next((c for c in cands if c and os.path.exists(c)), None)
+    if found:
+        return [found]
+    if shutil.which("flatpak") and run(["flatpak", "info", "org.kicad.KiCad"], timeout=30)[0] == 0:
+        return ["flatpak", "run", "--filesystem=home", "--filesystem=/tmp",
+                "--command=kicad-cli", "org.kicad.KiCad"]
+    return None
 
 
 def check_kicad(tmp):
@@ -206,12 +212,12 @@ def check_kicad(tmp):
         return record("v1 KiCad ERC/DRC", None, "kicad-cli not found")
     hw = pathlib.Path(tmp) / "hw"
     shutil.copytree(ROOT / "01-hardware", hw, ignore=shutil.ignore_patterns("build", "*.kicad_prl", "enclosure"))
-    code, out = run([cli, "sch", "erc", "--format", "json", "--severity-error", "--severity-warning",
-                     "--output", str(hw / "erc.json"), "tpms_panel.kicad_sch"], cwd=hw)
+    code, out = run(cli + ["sch", "erc", "--format", "json", "--severity-error", "--severity-warning",
+                           "--output", str(hw / "erc.json"), "tpms_panel.kicad_sch"], cwd=hw)
     erc = json.loads((hw / "erc.json").read_text(encoding="utf-8")) if (hw / "erc.json").exists() else None
     n_erc = sum(len(s.get("violations", [])) for s in erc.get("sheets", [])) if erc else None
-    code2, out2 = run([cli, "pcb", "drc", "--format", "json", "--schematic-parity", "--severity-error",
-                       "--severity-warning", "--output", str(hw / "drc.json"), "tpms_panel.kicad_pcb"], cwd=hw)
+    code2, out2 = run(cli + ["pcb", "drc", "--format", "json", "--schematic-parity", "--severity-error",
+                             "--severity-warning", "--output", str(hw / "drc.json"), "tpms_panel.kicad_pcb"], cwd=hw)
     drc = json.loads((hw / "drc.json").read_text(encoding="utf-8")) if (hw / "drc.json").exists() else None
     n_drc = (len(drc.get("violations", [])) + len(drc.get("unconnected_items", []))
              + len(drc.get("schematic_parity", []))) if drc else None
@@ -231,10 +237,10 @@ def check_carrier(tmp):
         return record("v2 carrier KiCad ERC/DRC", None, "kicad-cli not found")
     dst = pathlib.Path(tmp) / "carrier"
     shutil.copytree(CARRIER, dst, ignore=shutil.ignore_patterns("build", "docs", "*.kicad_prl", "__pycache__"))
-    run([cli, "sch", "erc", "--format", "json", "--severity-error", "--severity-warning",
-         "--output", str(dst / "erc.json"), "tpms_v2_carrier.kicad_sch"], cwd=dst)
-    run([cli, "pcb", "drc", "--format", "json", "--schematic-parity", "--severity-error", "--severity-warning",
-         "--output", str(dst / "drc.json"), "tpms_v2_carrier.kicad_pcb"], cwd=dst, timeout=1200)
+    run(cli + ["sch", "erc", "--format", "json", "--severity-error", "--severity-warning",
+               "--output", str(dst / "erc.json"), "tpms_v2_carrier.kicad_sch"], cwd=dst)
+    run(cli + ["pcb", "drc", "--format", "json", "--schematic-parity", "--severity-error", "--severity-warning",
+               "--output", str(dst / "drc.json"), "tpms_v2_carrier.kicad_pcb"], cwd=dst, timeout=1200)
     erc = json.loads((dst / "erc.json").read_text(encoding="utf-8")) if (dst / "erc.json").exists() else None
     drc = json.loads((dst / "drc.json").read_text(encoding="utf-8")) if (dst / "drc.json").exists() else None
     n_erc = sum(len(s.get("violations", [])) for s in erc.get("sheets", [])) if erc else None
@@ -247,7 +253,8 @@ def check_carrier(tmp):
 
 def check_carrier_outputs():
     """The JLCPCB files match the design: every assembled part in both BOM and CPL with an LCSC number, nothing
-    hand-soldered or DNP in them, and the Gerber zip has all 6 copper layers, masks, silk, paste, outline, drill."""
+    hand-soldered or DNP in them, and the Gerber zip has both 2-layer copper layers (no inner layers), masks,
+    silk, paste, outline, drill."""
     import csv
     import importlib.util
     import zipfile
@@ -275,9 +282,12 @@ def check_carrier_outputs():
         problems.append(f"LCSC numbers differ: {wrong[:6]}")
     with zipfile.ZipFile(files["gerbers_jlcpcb.zip"]) as z:
         names = z.namelist()
-    for ext in (".gtl", ".g1", ".g2", ".g3", ".g4", ".gbl", ".gts", ".gbs", ".gto", ".gtp", ".gm1", "PTH.drl"):
+    for ext in (".gtl", ".gbl", ".gts", ".gbs", ".gto", ".gtp", ".gm1", "PTH.drl"):
         if not any(n.endswith(ext) for n in names):
             problems.append(f"zip lacks *{ext}")
+    inner = [n for n in names if n.endswith((".g1", ".g2", ".g3", ".g4"))]
+    if inner:
+        problems.append(f"zip has unexpected inner copper layers: {inner}")
     record("v2 carrier JLCPCB files", not problems,
            "; ".join(problems) if problems else f"{len(want)} placements, {len(bom)} BOM lines, {len(names)} files in the zip")
 

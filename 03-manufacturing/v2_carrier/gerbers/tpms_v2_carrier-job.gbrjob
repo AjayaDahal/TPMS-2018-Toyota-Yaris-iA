@@ -3,9 +3,9 @@
     "GenerationSoftware": {
       "Vendor": "KiCad",
       "Application": "Pcbnew",
-      "Version": "10.0.7"
+      "Version": "10.0.8"
     },
-    "CreationDate": "2026-11-26T22:13:38-06:00"
+    "CreationDate": "2026-11-27T14:28:04-06:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
@@ -17,9 +17,9 @@
       "X": 100.0,
       "Y": 100.0
     },
-    "LayerNumber": 6,
+    "LayerNumber": 2,
     "BoardThickness": 1.6,
-    "Finish": "ENIG"
+    "Finish": "HAL lead-free"
   },
   "DesignRules": [
     {
@@ -30,15 +30,6 @@
       "MinLineWidth": 0.2,
       "TrackToRegion": 0.3,
       "RegionToRegion": 0.3
-    },
-    {
-      "Layers": "Inner",
-      "PadToPad": 0.0,
-      "PadToTrack": 0.0,
-      "TrackToTrack": 0.15,
-      "MinLineWidth": 0.2,
-      "TrackToRegion": 0.25,
-      "RegionToRegion": 0.25
     }
   ],
   "FilesAttributes": [
@@ -48,28 +39,8 @@
       "FilePolarity": "Positive"
     },
     {
-      "Path": "tpms_v2_carrier-In1_Cu.g1",
-      "FileFunction": "Copper,L2,Inr",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "tpms_v2_carrier-In2_Cu.g2",
-      "FileFunction": "Copper,L3,Inr",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "tpms_v2_carrier-In3_Cu.g3",
-      "FileFunction": "Copper,L4,Inr",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "tpms_v2_carrier-In4_Cu.g4",
-      "FileFunction": "Copper,L5,Inr",
-      "FilePolarity": "Positive"
-    },
-    {
       "Path": "tpms_v2_carrier-B_Cu.gbl",
-      "FileFunction": "Copper,L6,Bot",
+      "FileFunction": "Copper,L2,Bot",
       "FilePolarity": "Positive"
     },
     {
@@ -131,58 +102,10 @@
     },
     {
       "Type": "Dielectric",
-      "Thickness": 0.0994,
+      "Thickness": 1.51,
       "Material": "FR4",
-      "Name": "F.Cu/In1.Cu",
-      "Notes": "Type: dielectric layer 1 (from F.Cu to In1.Cu)"
-    },
-    {
-      "Type": "Copper",
-      "Thickness": 0.0152,
-      "Name": "In1.Cu"
-    },
-    {
-      "Type": "Dielectric",
-      "Thickness": 0.55,
-      "Material": "FR4",
-      "Name": "In1.Cu/In2.Cu",
-      "Notes": "Type: dielectric layer 2 (from In1.Cu to In2.Cu)"
-    },
-    {
-      "Type": "Copper",
-      "Thickness": 0.0152,
-      "Name": "In2.Cu"
-    },
-    {
-      "Type": "Dielectric",
-      "Thickness": 0.1088,
-      "Material": "FR4",
-      "Name": "In2.Cu/In3.Cu",
-      "Notes": "Type: dielectric layer 3 (from In2.Cu to In3.Cu)"
-    },
-    {
-      "Type": "Copper",
-      "Thickness": 0.0152,
-      "Name": "In3.Cu"
-    },
-    {
-      "Type": "Dielectric",
-      "Thickness": 0.55,
-      "Material": "FR4",
-      "Name": "In3.Cu/In4.Cu",
-      "Notes": "Type: dielectric layer 4 (from In3.Cu to In4.Cu)"
-    },
-    {
-      "Type": "Copper",
-      "Thickness": 0.0152,
-      "Name": "In4.Cu"
-    },
-    {
-      "Type": "Dielectric",
-      "Thickness": 0.0994,
-      "Material": "FR4",
-      "Name": "In4.Cu/B.Cu",
-      "Notes": "Type: dielectric layer 5 (from In4.Cu to B.Cu)"
+      "Name": "F.Cu/B.Cu",
+      "Notes": "Type: dielectric layer 1 (from F.Cu to B.Cu)"
     },
     {
       "Type": "Copper",

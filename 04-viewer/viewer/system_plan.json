@@ -1,6 +1,6 @@
 {
   "project": "2018 Toyota Yaris iA · TPMS + dual-camera blind-spot assist + 7\" touch display",
-  "subtitle": "Mazda2 DJ sedan blueprint · 100 × 100 mm 6-layer ESP32 carrier · SunFounder TS-7 7\" HDMI display + Raspberry Pi 4 in one printed enclosure",
+  "subtitle": "Mazda2 DJ sedan blueprint · 100 × 100 mm 2-layer ESP32 carrier · SunFounder TS-7 7\" HDMI display + Raspberry Pi 4 in one printed enclosure",
   "vehicle_blueprint": {
     "model": "2018 Toyota Yaris iA (Mazda2 DJ sedan)",
     "length_mm": 4360,
@@ -17,7 +17,7 @@
     "console_pocket_mm": "191 top × 123 bottom × 129 high (v1 paper fit); depth not measured: the enclosure needs ≥ 56 mm",
     "display_7in_mm": "SunFounder TS-7: board 165.3 × ~124.4 over its ears (SunFounder lists 121.0: measure) × 7.75; glass 164.9 × 100; active 154.21 × 85.92, 1024 × 600 IPS, 250 cd/m², 170°",
     "display_mount_holes_mm": "4× M3 ear holes ~157.3 × 114.4 (from photos: measure) · Pi 4 on its own posts in the box (M2.5, 58 × 49)",
-    "carrier_pcb_mm": "100 × 100 × 1.6, 6 layers (JLCPCB: ENIG only, 0.5 oz inner copper) · 4× M3 on 92 × 92 (enclosure posts)",
+    "carrier_pcb_mm": "100 × 100 × 1.6, 2 layers (JLCPCB: 1 oz copper both sides, lead-free HASL, tented vias) · 4× M3 on 92 × 92 (enclosure posts)",
     "enclosure_mm": "205.6 × 129 × 70.2 (bezel to lid) · rear box 112 × 124, 50.5 behind the plate · stands 21.8 proud of the trim"
   },
   "mount_options": {
@@ -131,39 +131,11 @@
       "role": "Parts; the high-current straps (12 V input chain, both bucks, 5 V to J5) laid before routing; signals; power pours and a GND pour in the gaps. Thermal reliefs on every through-hole pad"
     },
     {
-      "layer": "L2 (inner 1)",
-      "thickness_mm": 0.0152,
-      "z_mm": 0.56,
-      "color": "#10b981",
-      "role": "Solid GND plane, pulled back 0.5 mm from the edge: every GND pad has its own via into it, nothing is routed on it"
-    },
-    {
-      "layer": "L3 (inner 2)",
-      "thickness_mm": 0.0152,
-      "z_mm": 0.16,
-      "color": "#ef4444",
-      "role": "Autorouted signals and the small power branches, GND pour in the gaps, stitched to L2"
-    },
-    {
-      "layer": "L4 (inner 3)",
-      "thickness_mm": 0.0152,
-      "z_mm": -0.16,
-      "color": "#059669",
-      "role": "Autorouted signals (the router uses L3, L4 and L5 as needed), GND pour in the gaps, stitched to L2"
-    },
-    {
-      "layer": "L5 (inner 4)",
-      "thickness_mm": 0.0152,
-      "z_mm": -0.56,
-      "color": "#3b82f6",
-      "role": "Autorouted signals (I2C, UARTs, SPI to the CC1101, the blinker inputs: wherever the router put them), GND pour in the gaps, stitched to L2"
-    },
-    {
-      "layer": "L6 (bottom)",
+      "layer": "L2 (bottom)",
       "thickness_mm": 0.035,
       "z_mm": -0.8,
       "color": "#b45309",
-      "role": "Signals, power pours under the bucks and the 12 V chain (stitched to L1), GND pour; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm); its silkscreen carries the signature: the AjayaDesign logo over “Designed by Ajaya Dahal for his Basanti 2018, Toyota Yaris iA”"
+      "role": "Signals, power pours under the bucks and the 12 V chain (stitched to L1), and GND pour stitched to L1; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm); its silkscreen carries the signature: the AjayaDesign logo over “Designed by Ajaya Dahal for his Basanti 2018, Toyota Yaris iA”"
     }
   ],
   "wiring_harness": [
@@ -452,13 +424,13 @@
       "notes": "Phase 2 fusion for rain and night, on the Pi."
     },
     {
-      "item": "6-layer 100 × 100 mm carrier PCB (5 pcs)",
+      "item": "2-layer 100 × 100 mm carrier PCB (5 pcs)",
       "category": "PCB",
       "source": "BUY",
       "qty": 5,
       "inv_stock": 0,
       "cost_usd": 2,
-      "notes": "JLCPCB promo price: confirm at checkout (gate G8). 6 layers, 1.6 mm, ENIG (the only option), epoxy-filled capped vias (the default), standard stack-up. Gerbers, BOM and CPL in 03-manufacturing/v2_carrier. Plus shipping."
+      "notes": "JLCPCB standard 2-layer 100 × 100 mm price ($2): 1.6 mm FR-4, 1 oz copper both sides, lead-free HASL, tented vias (all drills ≥ 0.30 mm / pad ≥ 0.60 mm, zero small-hole or POFV fee). Gerbers, BOM and CPL in 03-manufacturing/v2_carrier. Plus shipping."
     },
     {
       "item": "2 × USB UVC mirror cameras",
@@ -484,17 +456,8 @@
       "source": "BUY",
       "qty": 2,
       "inv_stock": 0,
-      "cost_usd": 53,
-      "notes": "JLCPCB Economic PCBA: 41 basic + 4 preferred ($0 fee) + 6 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Ten large 2/3-pad SMD power parts (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211; 6 lines) moved to hand-solder to cut ~$18 in feeder fees; JLCPCB would charge ~$24 to fit them, parts included. ~$53 for the assembly on top of the ~$2 boards: ~$55 before shipping (~$45–49 with a monthly SMT coupon). Files in 03-manufacturing/v2_carrier"
-    },
-    {
-      "item": "Carrier hand-solder SMD power parts (one LCSC order)",
-      "category": "Harness",
-      "source": "BUY",
-      "qty": 1,
-      "inv_stock": 0,
-      "cost_usd": 4,
-      "notes": "For 2 boards (~$4 + shipping): 2 × C970679 47 µF/50 V electrolytic (or a leaded one from the lab bin), 2 × C27515 4 A NANO2 fuse, 4 × C70113 0.5 A 1812 PTC, 6 × C408485 6.8 µH 11×10 inductor, 2 × C7503186 SUD50P06-15, 4 × C192580 10 mΩ 2512 shunt. The sockets, terminals, fan header and JST-GH leads come from the lab (next line)"
+      "cost_usd": 76,
+      "notes": "JLCPCB Economic PCBA (all 177 SMD placements, 57 BOM lines): 41 basic + 4 preferred ($0 fee) + 12 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH, plus all 10 SMD power parts C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211). ~$76 for the assembly on top of the ~$2 bare boards: ~$78 before shipping (~$68–72 with a monthly SMT coupon). Only 5 THT connectors left to hand-solder from the lab. Files in 03-manufacturing/v2_carrier"
     },
     {
       "item": "Connectors and leads from the lab: elechawk GH1.25 → Dupont pigtails, blue 2-pole screw terminals, header strips, the 40-pin GPIO ribbon, Preciva Dupont kit + PR-3254 crimper",
@@ -712,8 +675,8 @@
     },
     {
       "id": "buy_pwr",
-      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): both bucks' controllers, the protection, INA226s, optos, drivers: every SMD part except the 10 large power parts you solder yourself",
-      "cost": "~$53 (setup, stencil, 6 extended fees, parts; ~$43–47 w/ coupon; the boards are their own line)"
+      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): every SMD part assembled (177 placements, 57 BOM lines: 12 extended + 4 preferred + 41 basic); only the 5 THT connectors stay for hand-soldering",
+      "cost": "~$76 (setup, stencil, 12 extended fees, parts; ~$66–70 w/ coupon; the $2 boards are their own line)"
     },
     {
       "id": "buy_sig",
@@ -722,8 +685,8 @@
     },
     {
       "id": "buy_conn",
-      "text": "Carrier hand-solder parts: the 10 SMD power parts in one LCSC order (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211; LCSC numbers in the carrier README), Add-A-Circuit (5 A). The sockets, terminals, fan header and JST-GH leads come from the lab (Collect): buy only a shortfall",
-      "cost": "~$12 + LCSC shipping"
+      "text": "Add-A-Circuit (5 A) + ring terminal. All carrier THT sockets, screw terminals, fan header and JST-GH leads come from the lab (Collect): buy only a shortfall",
+      "cost": "~$8"
     },
     {
       "id": "buy_encl",
@@ -742,7 +705,7 @@
     },
     {
       "id": "buy_pcb",
-      "text": "5 × 6-layer 100 × 100 mm carrier PCBs, 2 of them assembled: Gerbers, BOM and CPL in 03-manufacturing/v2_carrier (order steps in the carrier README)",
+      "text": "5 × 2-layer 100 × 100 mm carrier PCBs, 2 of them assembled: Gerbers, BOM and CPL in 03-manufacturing/v2_carrier (order steps in the carrier README)",
       "cost": "$2 + shipping"
     },
     {
@@ -883,7 +846,7 @@
     },
     {
       "id": "tl_solder",
-      "text": "Soldering iron, 60–80 W, with a fine tip and a chisel tip (ground pins tie into the inner plane and pours), flux, heat-shrink, heat gun",
+      "text": "Soldering iron, 60–80 W, with a fine tip and a chisel tip (ground pins tie into the top/bottom pours through thermal reliefs), flux, heat-shrink, heat gun",
       "where": "Bench"
     },
     {
@@ -941,12 +904,12 @@
     {
       "id": "st_07",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 6 layers, 1.6 mm, ENIG, Economic PCBA on 2 of 5; the quote must read 100 × 100 mm (G7, G8; carrier README)."
+      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 2 layers, 1.6 mm, 1 oz, lead-free HASL, tented vias, Economic PCBA on 2 of 5 (all 177 SMD placements); the quote must read 100 × 100 mm (G7, G8; carrier README)."
     },
     {
       "id": "st_08",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "When the boards arrive: hand-solder the 10 SMD power parts first (flux, 60–80 W chisel tip), then the DevKit and CC1101 sockets (DevKit row to match yours), the screw terminals (2 + 3 of your blue 2-pole blocks) and the fan header; check the polarized parts."
+      "text": "When the boards arrive: hand-solder only the 5 THT connectors — the DevKit and CC1101 sockets (DevKit row to match yours), the screw terminals (2 + 3 of your blue 2-pole blocks) and the fan header (all SMD parts come assembled by JLCPCB); check the polarized parts."
     },
     {
       "id": "st_09",
@@ -1325,10 +1288,10 @@
     {
       "id": "P8",
       "category": "Power and wiring",
-      "likelihood": "High if solid",
-      "title": "Hand-soldering a 6-layer board: through-hole pins on inner planes won't wet",
+      "likelihood": "Medium if solid",
+      "title": "Hand-soldering through-hole pins connected to copper pours won't wet",
       "cause": "",
-      "fix": "Thermal reliefs on all through-hole plane connections; ENIG. The ten hand-soldered SMD power parts join only small local power pours (≤ 4.4 cm² a side; solid, for the current); the one pad on the GND planes, C104's −, has spokes. A 60–80 W chisel tip and flux",
+      "fix": "Thermal reliefs on all through-hole pour connections; lead-free HASL; all SMD parts (including the 10 power parts) are reflowed by JLCPCB PCBA so you only hand-solder the 5 THT connectors with a 60–80 W chisel tip and flux",
       "status": "Fixed (layout rule)",
       "status_keys": [
         "fixed"
@@ -1338,9 +1301,9 @@
       "id": "P9",
       "category": "Power and wiring",
       "likelihood": "Medium",
-      "title": "5 A on 0.5 oz inner copper overheats",
+      "title": "5 A power traces overheat on 1 oz copper",
       "cause": "",
-      "fix": "High-current paths as ≥ 3 mm outer-layer pours with stitching vias",
+      "fix": "High-current paths laid as checked 2 mm outer-layer straps plus stitched top/bottom 1 oz copper pours",
       "status": "Fixed (layout rule)",
       "status_keys": [
         "fixed"
@@ -2270,7 +2233,7 @@
       "id": "G3",
       "needed": "Every part physically on hand and identified",
       "status": "you",
-      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself, the ten large SMD power parts (C104, F101, F601, F901, L101, L201, L301, Q101, R104, R211: one LCSC order, ~$4 for two boards) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>). The connectors come from the lab: count them against <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">Connectors from your lab</a>. That is 5 blue 2-pole screw blocks a board, female strips for the sockets, a right-angle pin pair, and 3 × 4-pin + 1–2 × 6-pin elechawk GH-to-Dupont pigtails and the 40-pin ribbon a unit. Everything else JLCPCB assembles"
+      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. Every SMD part on the carrier is assembled by JLCPCB PCBA; only the 5 THT connectors (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>) are hand-soldered, and they come from the lab: count them against <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">Connectors from your lab</a>. That is 5 blue 2-pole screw blocks a board, female strips for the sockets, a right-angle pin pair, and 3 × 4-pin + 1–2 × 6-pin elechawk GH-to-Dupont pigtails and the 40-pin ribbon a unit"
     },
     {
       "id": "G4",
@@ -2298,9 +2261,9 @@
     },
     {
       "id": "G8",
-      "needed": "JLCPCB quote confirms the 6-layer 100 × 100 mm promo price and options",
+      "needed": "JLCPCB quote confirms the 2-layer 100 × 100 mm price and options",
       "status": "you",
-      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages: 6+ layer FR-4 is ENIG only (no HASL), inner copper 0.5 oz, Economic PCBA takes 6 layers at 1.6 mm with the standard stack-up, and epoxy-filled, capped vias are the default. The outline's outer edge is exactly 100.0 × 100.0 mm (its centre line is inset by half the 0.1 mm line, which a size check counts), so the quote must read 100 × 100"
+      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages: 2-layer FR-4 at 1.6 mm, 1 oz copper both sides, lead-free HASL, tented vias (all drills ≥ 0.30 mm / pad ≥ 0.60 mm, zero small-hole or POFV fee), and Economic PCBA single-sided top assembly for all 177 SMD placements. The outline's outer edge is exactly 100.0 × 100.0 mm (its centre line is inset by half the 0.1 mm line, which a size check counts), so the quote must read 100 × 100"
     }
   ],
   "enclosure": {

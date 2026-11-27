@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>2018 Toyota Yaris iA · TPMS + Dual-Camera BSM + 6-Layer PCB 3-D Viewer</title>
+    <title>2018 Toyota Yaris iA · TPMS + Dual-Camera BSM + 2-Layer PCB 3-D Viewer</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="style.css" />
     <script type="importmap">
@@ -15,7 +15,7 @@
       <div class="wordmark"><i></i>YARIS iA<span>·</span>BSM+TPMS <b>v2</b></div>
       <div class="mode-switch" role="tablist" aria-label="3-D Scene Mode">
         <button class="hdr-btn active" id="mode-car" data-mode="car">1. Car Blueprint &amp; Wiring</button>
-        <button class="hdr-btn" id="mode-pcb6" data-mode="pcb6">2. 6-Layer PCB (100×100 · $2)</button>
+        <button class="hdr-btn" id="mode-pcb6" data-mode="pcb6">2. 2-Layer PCB (100×100 · $2)</button>
         <button class="hdr-btn" id="mode-parts" data-mode="parts">3. Printed Parts &amp; Assembly</button>
         <button class="hdr-btn" id="mode-v1" data-mode="v1">4. v1 TPMS Panel (189×128)</button>
         <button class="hdr-btn" id="mode-rf" data-mode="rf">5. RF Bench (TX/RX)</button>
@@ -184,9 +184,9 @@
             </div>
           </section>
 
-          <!-- TAB 2: 6-LAYER 100x100 CARRIER + PRINTED ENCLOSURE -->
+          <!-- TAB 2: 2-LAYER 100x100 CARRIER + PRINTED ENCLOSURE -->
           <section id="tab-pcb6" hidden>
-            <h3>6-Layer Carrier PCB + Printed Enclosure</h3>
+            <h3>2-Layer Carrier PCB + Printed Enclosure</h3>
             <div class="buttons" id="pcb6-views"></div>
             <label class="range">
               Explode Layers + Enclosure <output id="pcb6-explode-out">0%</output>
@@ -250,7 +250,7 @@
               <button data-src="BUY">Buy List</button>
               <button data-src="OPTIONAL">Optional</button>
             </div>
-            <input type="search" id="sys-bom-search" placeholder="Search RPi4, Starvis, CC1101, 6-layer, piezo..." />
+            <input type="search" id="sys-bom-search" placeholder="Search RPi4, Starvis, CC1101, 2-layer, piezo..." />
             <div id="sys-bom-summary" class="card" style="margin-top:0;margin-bottom:8px;"></div>
             <div id="sys-bom-list" class="scroll-list tall"></div>
           </section>

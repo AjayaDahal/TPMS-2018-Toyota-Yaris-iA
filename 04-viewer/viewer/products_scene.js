@@ -332,12 +332,12 @@ export function createProductsScene(parentGroup) {
         addPick(node, `pp_pcb_${ref}`, {
           title: `${ref}${r ? `: ${r.value}` : ""}`, category: "Carrier PCB component (KiCad 3-D model)",
           source: r?.source || "Carrier PCB",
-          location: "100 × 100 mm 6-layer carrier, rev A (DRC clean), on 4 posts behind the Pi, parts toward the lid",
+          location: "100 × 100 mm 2-layer carrier, rev A (DRC clean), on 4 posts behind the Pi, parts toward the lid",
           mount: r?.mount || "Placed by JLCPCB (Economic PCBA)", wiring: r?.note || "See the carrier README and the schematic PDF.",
         });
       }
       addPick(holder, "pp_dash_pcb", {
-        title: "Carrier PCB, rev A (real KiCad model)", category: "Custom PCB", source: "JLCPCB 6-layer + Economic PCBA",
+        title: "Carrier PCB, rev A (real KiCad model)", category: "Custom PCB", source: "JLCPCB 2-layer + Economic PCBA",
         location: info, mount: "4 × M3 × 6 on 92 × 92 mm into the housing's posts, parts toward the lid; 3 mm air gap above the Pi's tallest part.",
         wiring: "Two TPS54560B bucks (5.17 V / 5 A for the Pi and the display, 1 A for the ESP32 side), 12 V protection, INA226 monitors, blinker optos, LED / piezo / fan drivers, ESP32 DevKit and CC1101 on sockets.",
       });

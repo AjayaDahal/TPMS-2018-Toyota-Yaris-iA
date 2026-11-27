@@ -1,6 +1,6 @@
 """TPMS v2 carrier PCB, rev A: circuit, parts and JLCPCB part numbers.
 
-100 x 100 mm, 6 layers. JLCPCB Economic PCBA places every SMD part; you hand-solder the sockets, the screw
+100 x 100 mm, 2 layers. JLCPCB Economic PCBA places every SMD part; you hand-solder the sockets, the screw
 terminals and the fan header (`hand=True`). Every pin is listed explicitly: a net name, or None for an
 intentional no-connect. Reference designators are numbered by block:
 
@@ -86,7 +86,10 @@ LCSC = {
     (GH4, "GH-4"): "C189895", (GH6, "GH-6"): "C133065",
 }
 PREFERRED = {"C41411747", "C18199187", "C2925451", "C42432283"}          # $0 feeder fee on Economic PCBA
-EXTENDED = {"C1850354", "C49851", "C30389", "C783615", "C189895", "C133065"}  # only the 6 fine-pitch / PowerPAD / GH lines
+EXTENDED = {                                                               # all extended lines assembled on PCBA
+    "C1850354", "C49851", "C30389", "C783615", "C189895", "C133065",
+    "C970679", "C27515", "C70113", "C408485", "C7503186", "C192580",
+}
 MPN = {
     "C1850354": "TI TPS54560BDDAR", "C49851": "TI INA226AIDGSR", "C30389": "TI TMP75AIDR",
     "C783615": "TI TCA9534PWR", "C5446": "Torex XC6206P332MR-G", "C42432283": "ICPL-356-50CEAXW",
@@ -96,23 +99,13 @@ MPN = {
     "C189895": "JST SM04B-GHS-TB(LF)(SN)", "C133065": "JST SM06B-GHS-TB(LF)(SN)", "C20917": "AOS AO3400A",
     "C8545": "2N7002", "C2480": "SS14", "C81598": "1N4148W", "C1002": "Sunlord GZ1608D601TF",
 }
-HAND = {   # hand-soldered parts: THT connectors + 6 large 2/3-pad SMD power parts trimmed from JLCPCB extended fees
+HAND = {   # hand-soldered parts: THT connectors only (every SMD part is assembled by JLCPCB PCBA)
     "J1": "4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P "
           "side by side: 5.0 or 5.08 mm pitch both fit)",
     "J5": "6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08, 2x KF301-3P or 3x KF301-2P)",
     "A1": "2x 1x15 2.54 mm female header, 8.5 mm (solder the row that matches your DevKit: 0.9 or 1.0 in)",
     "A2": "2x4 2.54 mm female header, 8.5 mm (CC1101 module socket)",
     "J8": "1x2 2.54 mm right-angle male header (fan lead)",
-    "C104": "47u/50V electrolytic, 6.3x7.7 SMD (LCSC C970679, Lelon RVT1H470M0607) or leaded 47u/50V from lab bin",
-    "F101": "4A 2410 NANO2 fast SMD fuse (LCSC C27515, Littelfuse 0451004.MRL)",
-    "F601": "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
-    "F901": "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
-    "L101": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)",
-    "L201": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)",
-    "L301": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT)",
-    "Q101": "-60V P-MOSFET TO-252 DPAK (LCSC C7503186, UMW SUD50P06-15)",
-    "R104": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",
-    "R211": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",
 }
 
 PARTS = []
@@ -158,21 +151,21 @@ def TP(ref, net, fp=TP_SIG):
 part("J1", "Connector_Generic:Conn_01x04", "12V_IN", MKDS4,
      {"1": "VIN_RAW", "2": "GND", "3": "AUX_IN", "4": "AUX_RET"}, hand=True,
      desc="12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)")
-part("F101", "Device:Fuse", "4A", NANO2, two("VIN_RAW", "VIN_FUSED"), hand=True, desc="NANO2 4 A fast fuse")
+part("F101", "Device:Fuse", "4A", NANO2, two("VIN_RAW", "VIN_FUSED"), desc="NANO2 4 A fast fuse")
 part("D101", "Device:D_TVS", "SMCJ24CA", SMC, two("VIN_FUSED", "GND"),
      desc="Bidirectional TVS: 26.7 V min breakdown (24 V jump start), 38.9 V clamp, reverse battery safe")
 part("Q101", "Transistor_FET:Q_PMOS_GDS", "SUD50P06-15", TO252, {"1": "Q101_G", "2": "VIN_FUSED", "3": "12V_RP"},
-     hand=True, desc="Reverse-battery P-MOSFET, -60 V, 12 mOhm")
+     desc="Reverse-battery P-MOSFET, -60 V, 12 mOhm")
 R("R101", "33k", "12V_RP", "Q101_G", desc="Q101 gate: Vgs = -5 V at 12 V, -16 V at 39 V")
 R("R102", "47k", "Q101_G", "GND")
 C("C101", "10u/50V", "12V_RP", "GND", fp=C1206)
-part("L101", "Device:L", "6.8uH", MWSA, two("12V_RP", "12V_PROT"), hand=True, desc="Input pi filter")
+part("L101", "Device:L", "6.8uH", MWSA, two("12V_RP", "12V_PROT"), desc="Input pi filter")
 C("C102", "10u/50V", "12V_PROT", "GND", fp=C1206)
 C("C103", "10u/50V", "12V_PROT", "GND", fp=C1206)
-part("C104", "Device:C_Polarized", "47u/50V", CPE63, two("12V_PROT", "GND"), hand=True,
+part("C104", "Device:C_Polarized", "47u/50V", CPE63, two("12V_PROT", "GND"),
      desc="Electrolytic: damps the pi filter and the input cable")
 C("C105", "100n", "12V_PROT", "GND")
-R("R104", "10m", "12V_PROT", "12V_BUS", fp=R2512, hand=True, desc="12 V current shunt; remove to isolate both bucks")
+R("R104", "10m", "12V_PROT", "12V_BUS", fp=R2512, desc="12 V current shunt; remove to isolate both bucks")
 R("R105", "10", "12V_PROT", "INA1_P")
 R("R106", "10", "12V_BUS", "INA1_N")
 C("C106", "100n", "INA1_P", "INA1_N")
@@ -195,7 +188,7 @@ part("U201", "TPMS2:TPS54560B", "TPS54560B", PPAD8,
       "8": "SW_PI", "9": "GND"}, desc="60 V 5 A buck, 441 kHz, 5.17 V out")
 C("C205", "100n", "BOOT_PI", "SW_PI")
 D("D201", "SS56C", "SW_PI", "GND", fp=SMC, sym="Device:D_Schottky", desc="Catch diode 60 V 5 A (Preferred)")
-part("L201", "Device:L", "6.8uH", MWSA, two("SW_PI", "5V_PI_RAW"), hand=True)
+part("L201", "Device:L", "6.8uH", MWSA, two("SW_PI", "5V_PI_RAW"))
 for i in range(4):
     C(f"C{206 + i}", "47u/10V", "5V_PI_RAW", "GND", fp=C1206)
 C("C210", "47u/10V", "5V_PI_RAW", "GND", fp=C1206, dnp=True, desc="DNP: spare output capacitor")
@@ -212,7 +205,7 @@ D("D202", "1N4148W", "12V_PIB", "EN_PI", desc="Empties C213 when 12 V drops")
 NFET("Q201", "2N7002", "INH_G", "GND", "EN_PI", desc="PI_INHIBIT: high holds the Pi buck off")
 R("R209", "100", "ESP_IO26", "INH_G")
 R("R210", "100k", "INH_G", "GND", desc="Pi rail on while the ESP32 is in reset")
-R("R211", "10m", "5V_PI_RAW", "5V_PI", fp=R2512, hand=True, desc="5V_PI current shunt; remove to isolate the Pi rail")
+R("R211", "10m", "5V_PI_RAW", "5V_PI", fp=R2512, desc="5V_PI current shunt; remove to isolate the Pi rail")
 R("R212", "10", "5V_PI_RAW", "INA2_P")
 R("R213", "10", "5V_PI", "INA2_N")
 C("C214", "100n", "INA2_P", "INA2_N")
@@ -245,7 +238,7 @@ part("U301", "TPMS2:TPS54560B", "TPS54560B", PPAD8,
       "8": "SW_ESP", "9": "GND"}, desc="60 V 5 A buck, 485 kHz, 5.17 V out")
 C("C305", "100n", "BOOT_ESP", "SW_ESP")
 D("D301", "SS56C", "SW_ESP", "GND", fp=SMC, sym="Device:D_Schottky")
-part("L301", "Device:L", "6.8uH", MWSA, two("SW_ESP", "5V_ESP_RAW"), hand=True)
+part("L301", "Device:L", "6.8uH", MWSA, two("SW_ESP", "5V_ESP_RAW"))
 for i in range(4):
     C(f"C{306 + i}", "47u/10V", "5V_ESP_RAW", "GND", fp=C1206)
 C("C310", "47u/10V", "5V_ESP_RAW", "GND", fp=C1206, dnp=True, desc="DNP: spare output capacitor")
@@ -350,7 +343,7 @@ for side, n, gpio in (("L", 0, "ESP_IO25"), ("R", 1, "ESP_IO14")):
 NFET("Q603", "2N7002", "BUZ_G", "GND", "POD_BUZN", desc="Piezo, low side (60 V for load dump)")
 R("R609", "100", "ESP_IO13", "BUZ_G")
 R("R610", "100k", "BUZ_G", "GND")
-part("F601", "Device:Polyfuse", "0.5A/60V", F1812, two("12V_BUS", "POD_BUZP"), hand=True,
+part("F601", "Device:Polyfuse", "0.5A/60V", F1812, two("12V_BUS", "POD_BUZP"),
      desc="Piezo feed PTC, after the 12 V shunt: the INA226 at 0x40 sees a shorted piezo lead")
 D("D601", "1N4148W", "POD_BUZP", "POD_BUZN")
 NFET("Q604", "AO3400A", "FAN_G", "GND", "FAN_N", desc="Lid fan, on by default")
@@ -415,7 +408,7 @@ R("R912", "4.7k", "PI_AUX_C", "PI_SCL", desc="Pi-side SCL pull-up, powered only 
 part("J7", "Connector_Generic_MountingPin:Conn_01x06_MountingPin", "GH-6", GH6,
      {"1": "GPS_5V", "2": "GPS_RXD_C", "3": "GPS_TXD_C", "4": "GPS_SCL", "5": "GPS_SDA", "6": "GND", "MP": "GND"},
      desc="GPS (Pixhawk port): 5V, TX (to GPS RX), RX (from GPS TX), SCL, SDA, GND")
-part("F901", "Device:Polyfuse", "0.5A/60V", F1812, two("5V_ESP", "GPS_5V"), hand=True)
+part("F901", "Device:Polyfuse", "0.5A/60V", F1812, two("5V_ESP", "GPS_5V"))
 C("C901", "10u", "GPS_5V", "GND", fp=C0805)
 R("R905", "1k", "ESP_IO27", "GPS_RXD_C", desc="GPS TX/RX normal (move R905/R906 to R907/R908 to swap); "
                                               "1 k also limits back-feed into an unpowered GPS")

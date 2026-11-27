@@ -202,7 +202,7 @@ function buildWheelsAndTpms(parent, pickables) {
       source: "INSTALLED IN TIRES",
       location: `Tire valve stem (${w.id.slice(-2).toUpperCase()}) · 185/60R16`,
       mount: "Clamp-in / snap-in valve sensor already installed in your 4 Yaris iA tires; woken with your EL-50448 OEC-T5 tool.",
-      wiring: "Wireless 315.000 MHz OOK Manchester (123 µs half-bit, 120-bit frame) → CC1101 E07-M1101D on 6-layer PCB.",
+      wiring: "Wireless 315.000 MHz OOK Manchester (123 µs half-bit, 120-bit frame) → CC1101 E07-M1101D on 2-layer PCB.",
     });
 
     parent.add(g);
@@ -496,9 +496,9 @@ function buildDisplayAndElectronics(parent, pickables) {
     {
       id: "pcb6_carrier",
       mesh: pcb6,
-      title: "100 × 100 mm 6-layer carrier PCB (ESP32 + CC1101 + power)",
+      title: "100 × 100 mm 2-layer carrier PCB (ESP32 + CC1101 + power)",
       category: "Custom PCB, rev A (routed, DRC clean)",
-      source: "JLCPCB 6-layer + Economic PCBA (promo price to confirm)",
+      source: "JLCPCB 2-layer + Economic PCBA",
       location: "Inside the rear box, on 4 posts behind the Pi; parts face the lid",
       mount: "4 × M3 on 92 × 92 into the housing's posts. Its underside is 3 mm above the Pi's tallest part. The real board with every part: 3. Printed Parts → Dash unit (see-through shell).",
       wiring: "12 V ACC in (J1): 4 A fuse, SMCJ24CA, SUD50P06 P-FET (reverse battery), π filter → two TPS54560B bucks: 5V_PI 5.17 V / 5 A for the Pi and the display (J5), 5V_ESP 1 A for the DevKit; XC6206 → 3V3. INA226 monitors, blinker optos, LED / piezo / fan drivers. ESP32 pins from pins_v2.h (audited).",

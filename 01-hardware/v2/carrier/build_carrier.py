@@ -60,31 +60,43 @@ SIGNATURE_ART = os.path.join(HERE, "signature_art.json")
 
 KICAD_BIN = os.path.dirname(sys.executable)
 KICAD_SHARE = os.path.normpath(os.path.join(KICAD_BIN, "..", "share", "kicad"))
-KICAD_CLI = os.path.join(KICAD_BIN, "kicad-cli.exe" if os.name == "nt" else "kicad-cli")
-SYM_DIR = os.environ.get("KICAD_SYMBOL_DIR", os.path.join(KICAD_SHARE, "symbols"))
-FP_DIR = os.environ.get("KICAD_FOOTPRINT_DIR", os.path.join(KICAD_SHARE, "footprints"))
-FREEROUTING_JAR = os.environ.get("FREEROUTING_JAR", os.path.join(
-    os.environ.get("LOCALAPPDATA", ""), "Programs", "freerouting", "freerouting-2.5.0.jar"))
-JAVA = os.environ.get("JAVA", "java")
+KICAD_CLI = os.environ.get("KICAD_CLI") or shutil.which("kicad-cli") or os.path.join(
+    KICAD_BIN, "kicad-cli.exe" if os.name == "nt" else "kicad-cli")
+_FLATPAK_LIB = "/app/extensions/Library"
+SYM_DIR = os.environ.get("KICAD_SYMBOL_DIR") or (
+    os.path.join(_FLATPAK_LIB, "symbols") if os.path.isdir(os.path.join(_FLATPAK_LIB, "symbols"))
+    else os.path.join(KICAD_SHARE, "symbols"))
+FP_DIR = os.environ.get("KICAD_FOOTPRINT_DIR") or (
+    os.path.join(_FLATPAK_LIB, "footprints") if os.path.isdir(os.path.join(_FLATPAK_LIB, "footprints"))
+    else os.path.join(KICAD_SHARE, "footprints"))
+_TOOLS_CACHE = os.path.expanduser("~/.cache/tpms-tools")
+_DEFAULT_FR = (os.path.join(_TOOLS_CACHE, "freerouting-2.5.0.jar")
+               if os.path.exists(os.path.join(_TOOLS_CACHE, "freerouting-2.5.0.jar"))
+               else os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "freerouting", "freerouting-2.5.0.jar"))
+FREEROUTING_JAR = os.environ.get("FREEROUTING_JAR", _DEFAULT_FR)
+_DEFAULT_JAVA = (os.path.join(_TOOLS_CACHE, "jre25", "bin", "java")
+                 if os.path.exists(os.path.join(_TOOLS_CACHE, "jre25", "bin", "java"))
+                 else "java")
+JAVA = os.environ.get("JAVA", _DEFAULT_JAVA)
 
 TODAY = datetime.date.today().isoformat()
 NS = uuid.UUID("2b8f6f0e-5c1d-4d7e-9b3a-7e0c4a51c2d9")
 SCH_ROOT_UUID = str(uuid.uuid5(NS, "root-sheet"))
 X0, Y0 = 50.0, 50.0                     # board top-left on the KiCad page (mm)
 MM = pcbnew.FromMM
-LAYERS6 = ("F.Cu", "In1.Cu", "In2.Cu", "In3.Cu", "In4.Cu", "B.Cu")
-SIGNAL_LAYERS = ("F.Cu", "In2.Cu", "In3.Cu", "In4.Cu", "B.Cu")    # In1, right under the parts, is the GND plane
+LAYERS2 = ("F.Cu", "B.Cu")
+SIGNAL_LAYERS = ("F.Cu", "B.Cu")
 
 # net classes: (name, track, clearance, via dia, via drill, nets, routing layers or None = all signal layers).
 # The high-current paths are laid as wide straps before routing (carrier_layout.STRAPS); the autorouter only
-# adds the branches that carry little current, so every class fits between 0.5 mm-pitch pins without neckdown
-# (3V3, ~0.1 A in all, stays in the default 0.2 mm class).
+# adds the branches that carry little current, so every class fits between 0.5 mm-pitch pins without neckdown.
+# All vias >= 0.60 / 0.30 mm to stay in JLCPCB's zero-fee 2-layer drill tier.
 PWR_HI = ("VIN_RAW", "VIN_FUSED", "12V_RP", "12V_PROT", "12V_BUS", "12V_PIB", "SW_PI", "SW_ESP", "5V_PI_RAW", "5V_PI")
 PWR = ("12V_ESPB", "5V_ESP_RAW", "5V_ESP", "DEVKIT_VIN", "POD_BUZP", "POD_BUZN", "LEDL_A", "LEDR_A", "LEDL_K",
        "LEDR_K", "FAN_N", "GPS_5V", "BLKL_IN", "BLKR_IN", "AUX_IN")
-NETCLASSES = [("PWR_HI", 0.3, 0.15, 0.5, 0.25, PWR_HI, None),
-              ("PWR", 0.35, 0.15, 0.5, 0.25, PWR, None),
-              ("GND", 0.3, 0.15, 0.5, 0.25, ("GND",), None)]
+NETCLASSES = [("PWR_HI", 0.3, 0.15, 0.6, 0.3, PWR_HI, None),
+              ("PWR", 0.25, 0.15, 0.6, 0.3, PWR, None),
+              ("GND", 0.3, 0.15, 0.6, 0.3, ("GND",), None)]
 
 
 def uid(*parts):
@@ -428,14 +440,14 @@ def write_lib_tables():
                  '(options "")(descr "TPMS v2 carrier symbols"))\n)\n')
 
 
-# ====================================================================== project file (JLCPCB 6-layer rules)
+# ====================================================================== project file (JLCPCB 2-layer rules)
 def write_project():
     def nc(name, track, clr, vd, vdr, prio):
         return {"name": name, "clearance": clr, "track_width": track, "via_diameter": vd, "via_drill": vdr,
                 "microvia_diameter": 0.3, "microvia_drill": 0.1, "diff_pair_gap": 0.25, "diff_pair_via_gap": 0.25,
                 "diff_pair_width": 0.2, "bus_width": 12, "wire_width": 6, "line_style": 0,
                 "pcb_color": "rgba(0, 0, 0, 0.000)", "schematic_color": "rgba(0, 0, 0, 0.000)", "priority": prio}
-    classes = [nc("Default", 0.2, 0.15, 0.45, 0.2, 2147483647)]
+    classes = [nc("Default", 0.2, 0.15, 0.6, 0.3, 2147483647)]
     patterns = []
     for i, (name, track, clr, vd, vdr, nets, _layers) in enumerate(NETCLASSES):
         classes.append(nc(name, track, clr, vd, vdr, i))
@@ -459,20 +471,19 @@ def write_project():
                     "footprint_symbol_mismatch": "warning", "isolated_copper": "warning", "starved_thermal": "warning",
                     "via_dangling": "warning", "track_dangling": "warning", "padstack": "ignore",
                     "solder_mask_bridge": "warning"},
-                # JLCPCB 6-layer: 0.09 mm track/space and 0.15 mm vias are possible; these keep margin, and every via
-                # here (>= 0.2 mm hole, >= 0.45 mm pad) is standard price. Hole to hole: JLCPCB asks 0.2 mm between
-                # via holes and 0.45 mm between pad holes; the floor here is 0.25 mm and the .kicad_dru adds 0.45 mm
-                # wherever a pad hole is involved
+                # JLCPCB 2-layer: >= 0.3 mm via drill / >= 0.55 mm pad keeps zero small-hole fee (0.6/0.3 mm used
+                # everywhere). Track/space floor 0.15 mm (JLCPCB 2L min 0.127 mm). Hole to hole >= 0.25 mm between
+                # vias and >= 0.45 mm wherever a pad hole is involved (.kicad_dru).
                 "rules": {"max_error": 0.005, "min_clearance": 0.15, "min_connection": 0.0,
                           "min_copper_edge_clearance": 0.35, "min_hole_clearance": 0.25, "min_hole_to_hole": 0.25,
                           "min_microvia_diameter": 0.2, "min_microvia_drill": 0.1, "min_resolved_spokes": 1,
                           "min_silk_clearance": 0.0, "min_text_height": 1.0, "min_text_thickness": 0.15,
-                          "min_through_hole_diameter": 0.2, "min_track_width": 0.15, "min_via_annular_width": 0.12,
-                          "min_via_diameter": 0.45, "solder_mask_to_copper_clearance": 0.0,
+                          "min_through_hole_diameter": 0.3, "min_track_width": 0.15, "min_via_annular_width": 0.13,
+                          "min_via_diameter": 0.55, "solder_mask_to_copper_clearance": 0.0,
                           "use_height_for_length_calcs": True},
-                "track_widths": [0.0, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0],
-                "via_dimensions": [{"diameter": 0.0, "drill": 0.0}, {"diameter": 0.45, "drill": 0.2},
-                                   {"diameter": 0.5, "drill": 0.25}, {"diameter": 0.6, "drill": 0.3}],
+                "track_widths": [0.0, 0.18, 0.2, 0.25, 0.3, 0.5, 0.8, 1.0, 1.5, 2.0],
+                "via_dimensions": [{"diameter": 0.0, "drill": 0.0}, {"diameter": 0.6, "drill": 0.3},
+                                   {"diameter": 0.8, "drill": 0.4}],
                 "drc_exclusions": [],
                 "zones_allow_external_fillets": False,
             },
@@ -863,7 +874,7 @@ def lset(*layers):
 
 
 def copper_layers():
-    return (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu)
+    return (pcbnew.F_Cu, pcbnew.B_Cu)
 
 
 def add_rule_area(board, rect, layers, name, tracks=True, vias=True, fills=True, footprints=False):
@@ -948,7 +959,7 @@ def build_board(comps):
     if os.path.exists(PCB):
         os.remove(PCB)
     board = pcbnew.NewBoard(PCB)
-    board.SetCopperLayerCount(6)
+    board.SetCopperLayerCount(2)
     ds = board.GetDesignSettings()
     ds.SetBoardThickness(MM(1.6))
     add_outline(board)
@@ -1367,7 +1378,11 @@ def autoroute(board, passes, attempts=4, route_from=None, reroute=False):
                                           f"{result[0]} unrouted, {result[1]} violations (Freerouting's count)"))
         if result is None or not pcbnew.ImportSpecctraSES(board, out):
             continue
-        kept, left = _repair_route(board, out, passes)
+        raw_left = _unconnected(board)
+        if best is not None and raw_left > max(25, best[0] + 20):
+            log(f"    attempt {attempt}: {raw_left} unconnected (skipping repair, best so far is {best[0]})")
+            continue
+        kept, left = _repair_route(board, out, passes, rounds=3)
         shutil.copyfile(kept, finals[attempt - 1])
         log(f"    attempt {attempt}: {left} unconnected by KiCad's count")
         if best is None or left < best[0]:
@@ -1428,11 +1443,18 @@ def _repair_route(board, ses, passes, rounds=2):
     return best_ses, best_n
 
 
-def normalize_vias(board, min_ring=0.12):
+def normalize_vias(board, min_ring=0.13):
     fixed = 0
     for t in board.GetTracks():
         if t.Type() == pcbnew.PCB_VIA_T:
             dia = pcbnew.ToMM(t.GetWidth(pcbnew.F_Cu))
+            if dia < 0.6:
+                t.SetWidth(MM(0.6))
+                dia = 0.6
+                fixed += 1
+            if pcbnew.ToMM(t.GetDrillValue()) < 0.3:
+                t.SetDrill(MM(0.3))
+                fixed += 1
             if (dia - pcbnew.ToMM(t.GetDrillValue())) / 2 < min_ring - 1e-6:
                 t.SetDrill(MM(round(dia - 2 * min_ring, 2)))
                 fixed += 1
@@ -1466,9 +1488,8 @@ def rect_pts(x0, y0, x1, y1):
 
 
 def add_gnd_planes(board):
-    """Solid GND on L2 (In1, right under the parts) before routing: every GND pad drops a via into it, and the
-    autorouter keeps off it. The other layers get their GND pour after routing."""
-    return [new_zone(board, pcbnew.In1_Cu, "GND", outline_points(inset=0.5), "GND_L2", prio=0)]
+    """2-layer board has no internal GND plane; Freerouting routes GND and outer GND pours fill after routing."""
+    return []
 
 
 # Power pours (outer layers, after routing). Polygons are generous: the fill keeps clear of other nets.
@@ -1497,8 +1518,7 @@ def add_power_pours(board):
 def add_gnd_pours(board):
     return [new_zone(board, layer, "GND", outline_points(inset=0.5), f"GND_{name}", prio=1, clearance=0.3,
                      min_w=0.25)
-            for layer, name in ((pcbnew.F_Cu, "L1"), (pcbnew.In2_Cu, "L3"), (pcbnew.In3_Cu, "L4"),
-                                (pcbnew.In4_Cu, "L5"), (pcbnew.B_Cu, "L6"))]
+            for layer, name in ((pcbnew.F_Cu, "L1"), (pcbnew.B_Cu, "L2"))]
 
 
 def relieve_hand_soldered_gnd(board):
@@ -1587,13 +1607,13 @@ def add_via(board, x, y, net, d=0.6, drill=0.3):
 
 
 def add_exposed_pad_vias(board, fps):
-    """Thermal vias in the TPS54560B PowerPADs (true vias: JLCPCB fills and caps vias on 6-layer boards)."""
+    """Thermal vias in the TPS54560B PowerPADs (4 x 0.60/0.30 mm tented vias, zero small-hole/POFV fee)."""
     n = 0
     for ref in ("U201", "U301"):
         fp = fps[ref]
         rot = fp.GetOrientationDegrees() % 180
         cx, cy = T(fp.GetPosition())
-        offs = [(dx, dy) for dx in (-0.6, 0.6) for dy in (-1.0, 0.0, 1.0)]
+        offs = [(dx, dy) for dx in (-0.55, 0.55) for dy in (-0.85, 0.85)]
         for dx, dy in offs:
             if rot:
                 dx, dy = dy, dx
@@ -1723,7 +1743,7 @@ def lay_straps(board, fps):
 # ---------------------------------------------------------------------- GND fan-out (before routing)
 FAN_CLR = 0.2           # copper clearance to other nets (a little over the 0.15 class rule)
 FAN_HOLE_GAP = 0.5      # drill edge to drill edge
-FAN_VIA, FAN_DRILL = 0.5, 0.25
+FAN_VIA, FAN_DRILL = 0.6, 0.3
 EP_PADS = {("U201", "9"), ("U301", "9")}
 
 
@@ -1733,6 +1753,8 @@ def _rect_dist(box, x, y):
 
 
 def fanout_gnd(board):
+    """On 2 layers, skip pre-locked GND fan-out vias so Freerouting can route F.Cu/B.Cu channels freely."""
+    return 0, []
     """Give every SMD GND pad its own short stub + via into the In1 plane (locked, kept by the SES import).
 
     Freerouting then sees GND as complete and only routes signals and power; each return current gets a
@@ -1916,7 +1938,7 @@ def run_drc():
 
 
 def set_stackup(path):
-    """JLCPCB 6-layer 1.6 mm (JLC06161H-3313 class), ENIG, green mask, white silk: render colours and records."""
+    """JLCPCB 2-layer 1.6 mm FR-4, 1 oz copper, lead-free HASL, green mask, white silk."""
     with open(path, encoding="utf-8") as fh:
         txt = fh.read()
     if "(stackup" in txt:
@@ -1924,20 +1946,12 @@ def set_stackup(path):
     lay = [('"F.SilkS"', '(type "Top Silk Screen") (color "White")'), ('"F.Paste"', '(type "Top Solder Paste")'),
            ('"F.Mask"', '(type "Top Solder Mask") (color "Green") (thickness 0.01)'),
            ('"F.Cu"', '(type "copper") (thickness 0.035)'),
-           ('"dielectric 1"', '(type "prepreg") (thickness 0.0994) (material "FR4") (epsilon_r 4.1) (loss_tangent 0.02)'),
-           ('"In1.Cu"', '(type "copper") (thickness 0.0152)'),
-           ('"dielectric 2"', '(type "core") (thickness 0.55) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02)'),
-           ('"In2.Cu"', '(type "copper") (thickness 0.0152)'),
-           ('"dielectric 3"', '(type "prepreg") (thickness 0.1088) (material "FR4") (epsilon_r 4.1) (loss_tangent 0.02)'),
-           ('"In3.Cu"', '(type "copper") (thickness 0.0152)'),
-           ('"dielectric 4"', '(type "core") (thickness 0.55) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02)'),
-           ('"In4.Cu"', '(type "copper") (thickness 0.0152)'),
-           ('"dielectric 5"', '(type "prepreg") (thickness 0.0994) (material "FR4") (epsilon_r 4.1) (loss_tangent 0.02)'),
+           ('"dielectric 1"', '(type "core") (thickness 1.51) (material "FR4") (epsilon_r 4.5) (loss_tangent 0.02)'),
            ('"B.Cu"', '(type "copper") (thickness 0.035)'),
            ('"B.Mask"', '(type "Bottom Solder Mask") (color "Green") (thickness 0.01)'),
            ('"B.Paste"', '(type "Bottom Solder Paste")'), ('"B.SilkS"', '(type "Bottom Silk Screen") (color "White")')]
     stack = "\t\t(stackup\n" + "".join(f"\t\t\t(layer {n} {body})\n" for n, body in lay) + \
-        '\t\t\t(copper_finish "ENIG")\n\t\t\t(dielectric_constraints no)\n\t\t)\n'
+        '\t\t\t(copper_finish "HAL lead-free")\n\t\t\t(dielectric_constraints no)\n\t\t)\n'
     txt = re.sub(r"(\(setup\s*\n)", lambda m: m.group(1) + stack, txt, count=1)
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(txt)
@@ -1962,7 +1976,7 @@ def export_fab(render=True):
     for fn in os.listdir(gdir):
         os.remove(os.path.join(gdir, fn))
     kicad_cli("pcb", "export", "gerbers", "-o", gdir + os.sep, "--layers",
-              ",".join(LAYERS6) + ",F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts",
+              ",".join(LAYERS2) + ",F.Paste,B.Paste,F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts",
               "--subtract-soldermask", "--check-zones", PCB)
     kicad_cli("pcb", "export", "drill", "-o", gdir + os.sep, "--format", "excellon", "--excellon-units", "mm",
               "--excellon-zeros-format", "decimal", "--excellon-oval-format", "alternate", "--excellon-separate-th",
@@ -1978,7 +1992,7 @@ def export_fab(render=True):
               "F.Fab,F.SilkS,F.CrtYd,Edge.Cuts", "--mode-single", "--include-border-title", "--sketch-pads-on-fab-layers",
               "--crossout-DNP-footprints-on-fab-layers", "--scale", "1", PCB, check=False)
     kicad_cli("pcb", "export", "pdf", "-o", os.path.join(DOCS, NAME + "_copper_layers.pdf"), "--layers",
-              ",".join(LAYERS6), "--common-layers", "Edge.Cuts", "--mode-multipage", "--scale", "0", PCB,
+              ",".join(LAYERS2), "--common-layers", "Edge.Cuts", "--mode-multipage", "--scale", "0", PCB,
               check=False)
     export_glb()
     if render:
@@ -2062,7 +2076,7 @@ def fit_rotation(kicad_pads, jlc, sym):
     else:
         common = sorted(set(kp) & set(jp))
         pairs = [[(n, n) for n in common]]
-        if len(kp) == 2 and len(jp) == 2 and set(kp) == {"1", "2"} and set(jp) == {"1", "2"}:
+        if sym != "Device:C_Polarized" and len(kp) == 2 and len(jp) == 2 and set(kp) == {"1", "2"} and set(jp) == {"1", "2"}:
             pairs.append([("1", "2"), ("2", "1")])     # unpolarised: either way round
     best = None
     for pr in pairs:

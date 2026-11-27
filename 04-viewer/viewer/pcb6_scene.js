@@ -2,12 +2,12 @@ import * as THREE from "three";
 import { STLLoader } from "three/addons/STLLoader.js";
 
 /**
- * v2 carrier PCB (100 x 100 x 1.6 mm, 6 layers) and the 3-D printed enclosure around it.
+ * v2 carrier PCB (100 x 100 x 1.6 mm, 2 layers) and the 3-D printed enclosure around it.
  *
  * Units: metres. Z up = the PCB's parts side, which faces the enclosure lid. Origin at the PCB centre.
  * Zones follow the generated layout (01-hardware/v2/carrier/carrier_layout.py): template (x, y) in mm from the
  * top-left, parts side up -> viewer (x - 50, 50 - y). Each layer shows the real copper when the textures from
- * 04-viewer/make_pcb_textures.py are present (media/pcb/L1.png ... L6.png), else a drawn sketch. The keep-outs
+ * 04-viewer/make_pcb_textures.py are present (media/pcb/L1.png, L2.png), else a drawn sketch. The keep-outs
  * (fan zone, SMA strip, pin-free corners) come from 01-hardware/enclosure/make_enclosure.py, which also writes
  * the assembly STLs loaded here.
  */
@@ -51,7 +51,7 @@ function makeLayerTexture(layerIndex) {
   c.width = 512;
   c.height = 512;
   const ctx = c.getContext("2d");
-  const bg = ["#11161f", "#065f46", "#1e1b2e", "#047857", "#0f172a", "#11161f"][layerIndex];
+  const bg = ["#11161f", "#11161f"][layerIndex] || "#11161f";
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, 512, 512);
   if (layerIndex === 0) {
@@ -85,8 +85,7 @@ function makeLayerTexture(layerIndex) {
   } else {
     ctx.fillStyle = "#94a3b8";
     ctx.font = "bold 16px monospace";
-    const text = ["", "L2: SOLID GND PLANE", "L3: SIGNALS + GND POUR", "L4: SIGNALS + GND POUR",
-      "L5: SIGNALS + GND POUR", "L6: SIGNALS, POWER POURS"][layerIndex];
+    const text = ["", "L2: BOTTOM SIGNALS, POWER & GND POUR"][layerIndex] || "";
     ctx.fillText(text, 60, 260);
     ctx.fillStyle = "#0f172a";
     rectPx(ctx, ZONES.antenna, false);
@@ -127,27 +126,23 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
   const partEntries = [];
 
   const defaultLayers = [
-    { id: "layer_L1", label: "L1 parts side (faces the lid)", z: 0.78, explodeZ: 18, role: "Parts, the high-current straps, signals, power and GND pours." },
-    { id: "layer_L2", label: "L2 solid GND plane", z: 0.48, explodeZ: 11, role: "Every GND pad has its own via into it; nothing routed on it; no copper under the ESP32 antenna." },
-    { id: "layer_L3", label: "L3 signals + GND pour", z: 0.16, explodeZ: 4, role: "Autorouted signals and small power branches. Inner copper is 0.5 oz: the high current stays on L1/L6." },
-    { id: "layer_L4", label: "L4 signals + GND pour", z: -0.16, explodeZ: -4, role: "Autorouted signals; GND pour in the gaps." },
-    { id: "layer_L5", label: "L5 signals + GND pour", z: -0.48, explodeZ: -11, role: "Autorouted signals; GND pour in the gaps." },
-    { id: "layer_L6", label: "L6 underside (faces the Pi)", z: -0.78, explodeZ: -18, role: "Signals, power pours under the bucks and the 12 V chain stitched to L1; pins ≤ 2.5 mm, 3 mm air gap to the Pi." },
+    { id: "layer_L1", label: "L1 parts side (faces the lid)", z: 0.78, explodeZ: 12, role: "Parts, the high-current straps, signals, power and GND pours (1 oz copper)." },
+    { id: "layer_L2", label: "L2 underside (faces the Pi)", z: -0.78, explodeZ: -12, role: "Signals, power pours under the bucks and the 12 V chain stitched to L1, and GND pour (1 oz copper); pins ≤ 2.5 mm, 3 mm air gap to the Pi." },
   ];
 
   defaultLayers.forEach((ld, idx) => {
     const mat = new THREE.MeshStandardMaterial({
       map: makeLayerTexture(idx),
-      roughness: idx === 0 || idx === 5 ? 0.42 : 0.3,
-      metalness: idx === 0 || idx === 5 ? 0.18 : 0.55,
+      roughness: 0.42,
+      metalness: 0.18,
     });
     loadLayerImage(idx, mat);
-    const thickness = idx === 0 || idx === 5 ? 0.28 : 0.16;
+    const thickness = 0.28;
     const geo = new THREE.BoxGeometry(100 * MM, 100 * MM, thickness * MM);
-    if (idx === 5) {
-      // The textures are drawn from the parts side, so the layers line up in the exploded stack. Seen from below, the
+    if (idx === 1) {
+      // The textures are drawn from the parts side, so both layers line up in the exploded stack. Seen from below, the
       // real underside is the mirror image of that drawing, so u is flipped on the box's bottom face (vertices 20-23):
-      // the Bottom (L6) view then matches KiCad's bottom view, its silkscreen reading the right way round.
+      // the Bottom (L2) view then matches KiCad's bottom view, its silkscreen reading the right way round.
       const uv = geo.attributes.uv;
       for (let i = 20; i < 24; i++) uv.setX(i, 1 - uv.getX(i));
       uv.needsUpdate = true;
@@ -161,10 +156,10 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
       id: ld.id,
       mesh,
       title: ld.label,
-      category: "6-layer stackup",
-      source: "JLCPCB 6-layer (ENIG)",
-      location: `Layer ${idx + 1} of 6 · 100.0 × 100.0 × 1.6 mm FR-4`,
-      mount: "JLCPCB 6+ layer FR-4 is ENIG only; inner copper 0.5 oz; epoxy-filled, capped vias (the default). Thermal reliefs on every through-hole pad (hand soldering).",
+      category: "2-layer stackup",
+      source: "JLCPCB 2-layer (HASL)",
+      location: `Layer ${idx + 1} of 2 · 100.0 × 100.0 × 1.6 mm FR-4`,
+      mount: "JLCPCB 2-layer FR-4, 1.6 mm, 1 oz copper both sides, lead-free HASL, tented vias (0.60/0.30 mm, zero small-hole fee). Thermal reliefs on every through-hole pad (hand soldering).",
       wiring: (stackupMeta[idx] && stackupMeta[idx].role) || ld.role,
     });
   });
@@ -237,7 +232,7 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
     id: "p6_buck_pi", zone: ZONES.buck_pi, h: 4.5, color: 0x0f766e, subsystem: "power_io",
     title: "U201: 5V_PI buck — TPS54560B, 5.17 V / 5 A, 441 kHz",
     category: "Power (P1, ACC only)", source: "JLCPCB assembly",
-    mount: "6.8 µH MWSA1004S, SS56C catch diode, 2 × 10 µF in, 4 × 47 µF out, all on 2 mm straps; PowerPAD with 6 filled vias into the planes. 10 mΩ shunt + INA226 (0x41) on Kelvin taps; SMBJ6.0CA clamp.",
+    mount: "6.8 µH MWSA1004S, SS56C catch diode, 2 × 10 µF in, 4 × 47 µF out, all on 2 mm straps; PowerPAD with 4 tented 0.60/0.30 mm thermal vias into the L2 GND pour. 10 mΩ shunt + INA226 (0x41) on Kelvin taps; SMBJ6.0CA clamp.",
     wiring: "Starts at 8.0 V, 1.2–1.4 s after ACC (EN 1 MΩ / 150 kΩ + 10 µF), so the ESP32 boots first; Q201 (IO26, PI_INHIBIT) can only hold it off; a 22 k / 33 k rail-up divider → IO15. Remove R201/R202 to isolate it and feed J5 from a module via J11. RT → 43 kΩ moves it above the AM band if B5 hears it.",
   });
 

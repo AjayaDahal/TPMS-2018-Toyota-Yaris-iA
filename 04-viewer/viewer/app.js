@@ -269,10 +269,10 @@ function setCarCamera(key) {
 function setPcb6Camera(key) {
   hideMedia();
   const presets = {
-    iso: [[0.165, -0.185, 0.16], [0, 0, 0], "6-Layer 100×100 PCB Isometric"],
+    iso: [[0.165, -0.185, 0.16], [0, 0, 0], "2-Layer 100×100 PCB Isometric"],
     top: [[0, -0.004, 0.23], [0, 0, 0], "Parts Side (faces the enclosure lid)"],
     bottom: [[0, 0.004, -0.23], [0, 0, 0], "Underside (faces the Pi, 3 mm air gap), turned over like KiCad's bottom view"],
-    stack: [[0.21, -0.02, 0.04], [0, 0, 0], "6-Layer Stackup Edge View"],
+    stack: [[0.21, -0.02, 0.04], [0, 0, 0], "2-Layer Stackup Edge View"],
   };
   const p = presets[key] || presets.iso;
   camera.near = 0.002;
@@ -358,7 +358,7 @@ function setPartsProduct(id) {
 // ---------------- Tab & Mode switching ----------------
 const TABS = [
   ["tab-car", "Car & Sim"],
-  ["tab-pcb6", "6L PCB"],
+  ["tab-pcb6", "2L PCB"],
   ["tab-parts", "Printed Parts"],
   ["tab-wiring", "Wiring"],
   ["tab-bom", "Inv/Buy"],
@@ -418,7 +418,7 @@ async function switchMode(mode, syncTab = true) {
     setCarCamera("iso");
     if (syncTab) activateTab("tab-car");
   } else if (mode === "pcb6") {
-    document.getElementById("eyebrow").textContent = "JLCPCB 6-LAYER · ENIG · 100 × 100 mm · PROMO PRICE TO CONFIRM AT CHECKOUT";
+    document.getElementById("eyebrow").textContent = "JLCPCB 2-LAYER · LEAD-FREE HASL · 100 × 100 mm · ALL SMD PCBA";
     document.getElementById("stage-title").textContent = "100 × 100 mm ESP32 Carrier + Printed Display Enclosure";
     const eo = systemPlan?.enclosure?.overall_mm;
     document.getElementById("dimension").textContent = `PCB 100.0 × 100.0 × 1.6 mm, rev A routed (DRC 0/0/0) · enclosure ${eo ? `${eo.width} × ${eo.height} × ${eo.depth} mm` : "see the enclosure README"} · the real board and its parts: 3. Printed Parts`;
@@ -566,9 +566,9 @@ function buildUI() {
     document.getElementById(`h-${k}`).onchange = (e) => carCtx.setHarnessVisible(k, e.target.checked);
   });
 
-  // ---- TAB 2: 6-LAYER PCB ----
+  // ---- TAB 2: 2-LAYER PCB ----
   const p6ViewsEl = document.getElementById("pcb6-views");
-  [["iso", "Isometric"], ["top", "Top (L1)"], ["bottom", "Bottom (L6)"], ["stack", "Stackup Edge"]].forEach(([k, lbl]) => {
+  [["iso", "Isometric"], ["top", "Top (L1)"], ["bottom", "Bottom (L2)"], ["stack", "Stackup Edge"]].forEach(([k, lbl]) => {
     const b = document.createElement("button");
     b.textContent = lbl;
     b.onclick = () => { if (activeMode !== "pcb6") switchMode("pcb6", false); setPcb6Camera(k); };
@@ -675,7 +675,7 @@ function buildUI() {
     ["7\" Display", bp.display_7in_mm],
     ["Display Mount", bp.display_mount_holes_mm],
     ["Enclosure", bp.enclosure_mm],
-    ["6-Layer PCB", bp.carrier_pcb_mm],
+    ["2-Layer PCB", bp.carrier_pcb_mm],
   ].map(([k, v]) => `<dt>${k}</dt><dd style="text-align:right">${v || "—"}</dd>`).join("");
 
   const wiringListEl = document.getElementById("wiring-list");

@@ -1,5 +1,5 @@
 #pragma once
-// ESP32 pin map of the v2 carrier board (100 x 100 mm, 6-layer), rev A.
+// ESP32 pin map of the v2 carrier board (100 x 100 mm, 2-layer), rev A.
 //
 // This file is the single source of truth: the firmware includes it and 01-hardware/v2/check_pinmap.py audits it
 // (strapping pins, input-only pins, boot-time glitches, ADC1 use, duplicates, and the pins shared with the v1 panel).
