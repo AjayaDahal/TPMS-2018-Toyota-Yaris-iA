@@ -6,7 +6,8 @@ Run with the Python bundled with KiCad (it provides pcbnew):
     "%LOCALAPPDATA%\\Programs\\KiCad10\\bin\\python.exe" build_carrier.py [--no-route] [--no-render] [--passes N]
         [--attempts N] [--reroute] [--route-from FILE.ses]
 
-Inputs: carrier_design.py (circuit, parts, JLCPCB numbers) and carrier_layout.py (placement, keep-outs).
+Inputs: carrier_design.py (circuit, parts, JLCPCB numbers), carrier_layout.py (placement, keep-outs) and
+signature_art.json (the back's silkscreen art, from make_signature_art.py).
 Steps: libraries -> schematic -> ERC -> netlist -> board + placement (soft parts resolved) -> placement checks ->
 GND plane (L2), high-current straps and GND fan-out vias -> Freerouting, then a repair pass on the routed board for
 any connection it left behind (cached: a rebuild with the same placement and nets reuses the route) -> power / GND
@@ -55,6 +56,7 @@ BUILD = os.path.join(HERE, "build")
 DOCS = os.path.join(HERE, "docs")
 PROD = os.path.normpath(os.path.join(HW, "..", "03-manufacturing", "v2_carrier"))
 JLC_CACHE = os.path.join(HERE, "jlc_footprints.json")
+SIGNATURE_ART = os.path.join(HERE, "signature_art.json")
 
 KICAD_BIN = os.path.dirname(sys.executable)
 KICAD_SHARE = os.path.normpath(os.path.join(KICAD_BIN, "..", "share", "kicad"))
@@ -1160,6 +1162,50 @@ def add_silkscreen(board, fps):
                                          for dx in (0, -2, 2)], obstacles)
 
 
+def add_signature(board, fps):
+    """The back's signature (make_signature_art.py: the AjayaDesign logo over the dedication), mirrored onto B.SilkS
+    round LAY.SIGNATURE so it reads the right way round from the back. Board graphics, not a footprint: no BOM or CPL
+    line, and the route's fingerprint ignores them, so the copper stays the route of record. Returns the placement
+    problems: the art must pass its print check and keep 1 mm from the edge and from every pad open on the back."""
+    with open(SIGNATURE_ART, encoding="utf-8") as fh:
+        art = json.load(fh)
+    w, h = art["size_mm"]
+    cx, cy = LAY.SIGNATURE
+    x0, y0, x1, y1 = cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2
+    probs = [f"signature art: {p} (fix make_signature_art.py and rerun it)" for p in art["checks"]["problems"]]
+    if x0 < 1.0 or y0 < 1.0 or x1 > LAY.BOARD_W - 1.0 or y1 > LAY.BOARD_H - 1.0:
+        probs.append("signature closer than 1 mm to the board edge")
+    for fp in fps.values():
+        for pad in fp.Pads():
+            if pad.IsOnLayer(pcbnew.B_Mask):
+                bb = pad.GetBoundingBox()
+                (px0, py0), (px1, py1) = T(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop())), T(
+                    pcbnew.VECTOR2I(bb.GetRight(), bb.GetBottom()))
+                if _overlap((x0, y0, x1, y1), (px0, py0, px1, py1), 1.0):
+                    probs.append(f"signature within 1 mm of {fp.GetReference()} pad {pad.GetNumber()}")
+    n = 0
+    for poly in art["polygons"]:
+        sps = pcbnew.SHAPE_POLY_SET()
+        sps.NewOutline()
+        for x, y in poly["outline"]:
+            sps.Append(MM(X0 + x1 - x), MM(Y0 + y0 + y))           # mirrored: read from the back
+        for ring in poly["holes"]:
+            hole = sps.NewHole()
+            for x, y in ring:
+                sps.Append(MM(X0 + x1 - x), MM(Y0 + y0 + y), -1, hole)
+        sps.Fracture()      # a board polygon keeps one outline: each counter becomes a zero-width slit
+        for i in range(sps.OutlineCount()):
+            shape = pcbnew.PCB_SHAPE(board, pcbnew.SHAPE_T_POLY)
+            shape.SetLayer(pcbnew.B_SilkS)
+            shape.SetFilled(True)
+            shape.SetWidth(0)
+            shape.SetPolyShape(pcbnew.SHAPE_POLY_SET(sps.Outline(i)))
+            board.Add(shape)
+            n += 1
+    log(f"  signature on the back: {w:.1f} x {h:.1f} mm round ({cx}, {cy}), {n} filled polygons")
+    return probs
+
+
 # ====================================================================== routing
 def _child_spans(txt, start):
     depth, spans, child, quoted = 0, [], None, False
@@ -2136,6 +2182,10 @@ def main():
         log("  !! " + s)
     add_keepouts(board)
     add_silkscreen(board, fps)
+    sig_probs = add_signature(board, fps)
+    for s in sig_probs:
+        log("  !! " + s)
+    probs += sig_probs
     add_gnd_planes(board)
     n_strap, strap_failed = lay_straps(board, fps)
     log(f"  power straps: {len(LAY.STRAPS) - len(strap_failed)}/{len(LAY.STRAPS)} laid ({n_strap} segments)")

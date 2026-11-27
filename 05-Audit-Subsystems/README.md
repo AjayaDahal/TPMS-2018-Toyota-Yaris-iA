@@ -47,10 +47,10 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 | 12 | [Vehicle integration](12-vehicle-integration.md) | Watch | 0 / 0 / 7 / 2 / 1 | — | ACC during cranking (VEH-01); the repeater wire (VEH-07) |
 | 13 | [TPMS radio](13-tpms-radio.md) | Watch | 0 / 1 / 9 / 5 / 1 | 9 | No carrier-sense gating: noise can swamp the decoder in the car (RF-01) |
 | 14 | [v1 panel](14-v1-panel.md) | Watch | 0 / 0 / 4 / 10 / 1 | 7 | The regulator's heatsink pour is split (V1-01): fix before ordering |
-| 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 10 / 9 / 0 | 15 | Hand-copied keep-outs in the viewer (VW-14) |
+| 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 10 / 10 / 0 | 16 | Hand-copied keep-outs in the viewer (VW-14) |
 | 16 | [Safety and legal](16-safety-and-legal.md) | Watch | 0 / 1 / 5 / 6 / 0 | 1 | Trusting an untested aid (SAF-01) |
 | 17 | [Project and repository](17-project-and-repo.md) | Sound | 0 / 0 / 4 / 3 / 1 | 2 | The plan was matched against an old inventory (PRJ-03) |
-| | **Total** | | **1 / 18 / 105 / 67 / 15** (206) | **80** | |
+| | **Total** | | **1 / 18 / 105 / 68 / 15** (207) | **81** | |
 
 **Since the audit:**
 - The TS-7 redesign closed 7 more findings (DSP-01, DSP-02, DSP-03, DSP-05, DSP-08, ENC-02, PI-03) and added 3 (DSP-10, DSP-11, RF-16).
@@ -58,6 +58,7 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 - The alert redesign (2026-11-26: no alert pod and no button; the piezo inside the dash unit; beeps that mute themselves; the car's USB in a printed wing) added 6 (ALR-12, ALR-13, LNK-07, ENC-12, ENC-13, ENC-14), fixed 5 of them, and closed ALR-10 and ESP-05 (no button lead any more).
 - The final pre-order audit (2026-11-27) added 5 carrier findings and fixed them all: the board read as 100.1 × 100.1 mm (PCB-20), C104's hand-soldered GND pad sat solid on the planes (PCB-21), an off-board pin-1 mark (PCB-22), J4 still labelled "POD" (PCB-23), a low cost estimate and buy lists without the hand-soldered power parts (PCB-24). It also corrected 11 stale counts and the "not ready to order" status in three READMEs, and added the doc-count check to `run_checks.py` (PRJ-04, partly fixed).
 - The Pi ↔ ESP32 expansion (2026-11-27, your request) added 4. Three are fixed: the expansion itself, with the Pi's I2C6 switched onto the carrier bus by its GPIO18 (LNK-08); a trap caught in its design, where the usual I2C1 would have let the ESP32's polling wake a halted Pi (LNK-09); and the board change, with J6 to GH-6 and four parts (PCB-25). The fourth, one-master-at-a-time on the I2C bus (LNK-10), is open until the firmware's hand-over exists.
+- The back's signature (2026-11-27: the AjayaDesign logo and the dedication on the bottom silkscreen) turned up one viewer bug and fixed it: the Bottom (L6) view showed a mirror image of the underside (VW-21). The board's copper, mask, paste and drill files are unchanged, checked geometrically.
 
 The counts above include all of them.
 

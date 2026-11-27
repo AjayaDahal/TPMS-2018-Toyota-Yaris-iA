@@ -1,14 +1,15 @@
 # v2 carrier PCB, rev A
 
-100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the piezo (J4 "BUZ": the piezo sits inside the dash unit, and J4's button pins 1–2 stay free), the lid fan, the Pi link (UART, plus I2C the Pi switches on) and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid.
+100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the piezo (J4 "BUZ": the piezo sits inside the dash unit, and J4's button pins 1–2 stay free), the lid fan, the Pi link (UART, plus I2C the Pi switches on) and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid. Its back, the side facing the Pi, carries the signature: the [AjayaDesign](https://ajayadesign.com/) logo over "Designed by Ajaya Dahal for his Basanti 2018, Toyota Yaris iA".
 
 Everything here is generated. Don't edit the KiCad files by hand: change the Python and rebuild.
 
 | File | What |
 |---|---|
 | [carrier_design.py](carrier_design.py) | The circuit: every part, net, value, LCSC number, DNP and hand-solder flag |
-| [carrier_layout.py](carrier_layout.py) | Placement, enclosure keep-outs, and the high-current straps |
+| [carrier_layout.py](carrier_layout.py) | Placement, enclosure keep-outs, the high-current straps, and where the signature sits |
 | [build_carrier.py](build_carrier.py) | Generator: schematic → ERC → board → placement checks → straps and GND fan-out → Freerouting (plus a repair pass) → pours → DRC with schematic parity → Gerbers, BOM, CPL, PDFs |
+| [make_signature_art.py](make_signature_art.py) → `signature_art.json` | The signature's artwork, as filled polygons: the mark from the website's favicon, and the words in JetBrains Mono Bold, the website's typeface (SIL Open Font License; downloaded once). It checks every stroke and gap is at least 0.18 mm, for JLCPCB's 0.153 mm silkscreen minimum. To change the words, edit them there, run it with plain Python (fontTools, shapely), then rebuild: the copper doesn't change |
 | `tpms_v2_carrier_route.ses` / `.json` | The route of record and the board fingerprint it belongs to |
 | [docs/](docs/) | Schematic PDF, 1:1 assembly drawing, copper plots, renders |
 | [03-manufacturing/v2_carrier/](../../../03-manufacturing/v2_carrier/) | **What you upload:** Gerber zip, JLCPCB BOM and CPL, and the hand-solder and DNP list |
@@ -43,7 +44,7 @@ Every ESP32 signal passes a series resistor next to its DevKit pin. It limits fa
    - ENIG (the only finish on 6 layers), outer copper 1 oz, inner 0.5 oz;
    - via covering: "Epoxy Filled & Capped". It is the default on 6 layers, and the PowerPAD vias need it;
    - the standard stack-up: Economic assembly only takes standard stack-ups, and nothing on this board needs controlled impedance;
-   - everything else at JLCPCB's defaults: green mask, white silk, no gold fingers, castellated holes or impedance control. An option that adds a fee means something was mis-detected: this board needs none.
+   - everything else at JLCPCB's defaults: green mask, white silk, no gold fingers, castellated holes or impedance control. An option that adds a fee means something was mis-detected: this board needs none. The silkscreen prints on both sides at no extra cost; the back's is the signature.
 
    The order number prints where the silkscreen says `JLCJLCJLCJLC` (top left), so choose "Specify a location".
 2. **Assembly:** PCB Assembly on:

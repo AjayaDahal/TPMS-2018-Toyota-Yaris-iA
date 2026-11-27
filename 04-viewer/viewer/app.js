@@ -271,7 +271,7 @@ function setPcb6Camera(key) {
   const presets = {
     iso: [[0.165, -0.185, 0.16], [0, 0, 0], "6-Layer 100×100 PCB Isometric"],
     top: [[0, -0.004, 0.23], [0, 0, 0], "Parts Side (faces the enclosure lid)"],
-    bottom: [[0, -0.004, -0.23], [0, 0, 0], "Underside (faces the Pi, 3 mm air gap)"],
+    bottom: [[0, 0.004, -0.23], [0, 0, 0], "Underside (faces the Pi, 3 mm air gap), turned over like KiCad's bottom view"],
     stack: [[0.21, -0.02, 0.04], [0, 0, 0], "6-Layer Stackup Edge View"],
   };
   const p = presets[key] || presets.iso;

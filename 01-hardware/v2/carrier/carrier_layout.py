@@ -25,6 +25,10 @@ MAX_H, FAN_MAX_H, COAX_MAX_H = 16.0, 6.0, 5.0
 COAX_ZONE = (72.0, 14.0, 95.0, 41.0)              # the antenna pigtail loops here (to the bulkhead at y 34.5)
 J5_BEND_STRIP = (54.0, 0.0, 88.0, 2.4)            # in front of J5's wire entries: no parts
 LID_CABLE_EXIT = (19.0, 41.0)                     # x range of the lid's cable slot, below the bottom edge
+# The back's signature (make_signature_art.py: the AjayaDesign logo over the dedication, ~51 x 28 mm): centre of the
+# block, midway between the DevKit's sockets and J9/J10 and between J5/J8 and J11/J12, the back's largest area with
+# no through-hole pins. It is mirrored onto B.SilkS, so it reads the right way round from the back.
+SIGNATURE = (58.2, 40.0)
 
 # DevKit: pin 1 (EN) at DEVKIT_XY, left row down +y, right rows at +0.9 in and +1.0 in
 DEVKIT_XY = (1.6, 22.0)

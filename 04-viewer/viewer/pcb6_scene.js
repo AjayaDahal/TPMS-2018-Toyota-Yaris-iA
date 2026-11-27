@@ -143,7 +143,16 @@ export function createPcb6Scene(parentGroup, stackupMeta = [], enclosureMeta = n
     });
     loadLayerImage(idx, mat);
     const thickness = idx === 0 || idx === 5 ? 0.28 : 0.16;
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(100 * MM, 100 * MM, thickness * MM), mat);
+    const geo = new THREE.BoxGeometry(100 * MM, 100 * MM, thickness * MM);
+    if (idx === 5) {
+      // The textures are drawn from the parts side, so the layers line up in the exploded stack. Seen from below, the
+      // real underside is the mirror image of that drawing, so u is flipped on the box's bottom face (vertices 20-23):
+      // the Bottom (L6) view then matches KiCad's bottom view, its silkscreen reading the right way round.
+      const uv = geo.attributes.uv;
+      for (let i = 20; i < 24; i++) uv.setX(i, 1 - uv.getX(i));
+      uv.needsUpdate = true;
+    }
+    const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(0, 0, ld.z * MM);
     mesh.userData.pickId = ld.id;
     group.add(mesh);

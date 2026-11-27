@@ -163,7 +163,7 @@
       "thickness_mm": 0.035,
       "z_mm": -0.8,
       "color": "#b45309",
-      "role": "Signals, power pours under the bucks and the 12 V chain (stitched to L1), GND pour; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm)"
+      "role": "Signals, power pours under the bucks and the 12 V chain (stitched to L1), GND pour; faces the Pi with a 3 mm air gap (pins ≤ 2.5 mm); its silkscreen carries the signature: the AjayaDesign logo over “Designed by Ajaya Dahal for his Basanti 2018, Toyota Yaris iA”"
     }
   ],
   "wiring_harness": [
