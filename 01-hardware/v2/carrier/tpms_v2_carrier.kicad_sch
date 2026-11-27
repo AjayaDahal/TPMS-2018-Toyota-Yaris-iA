@@ -32957,7 +32957,7 @@
 				)
 			)
 		)
-		(property "Notes" "Mute button: v1 RC"
+		(property "Notes" "J4 spare button input (IO4): v1 RC filter"
 			(at 120.65 431.8 0)
 			(hide yes)
 			(effects
@@ -34901,7 +34901,7 @@
 				)
 			)
 		)
-		(property "Notes" "POD: mute button (1-2), 12 V piezo (3 +, 4 -)"
+		(property "Notes" "BUZ: 12 V piezo (3 +, 4 -); 1-2 spare button input (IO4)"
 			(at 250.19 38.1 0)
 			(hide yes)
 			(effects

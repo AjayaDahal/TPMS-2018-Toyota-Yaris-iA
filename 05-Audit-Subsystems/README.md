@@ -43,19 +43,20 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 | 08 | [Cameras and vision](08-cameras-and-vision.md) | **Act** | 0 / 3 / 4 / 1 / 1 | 2 (in the spec) | Two USB cameras on the Pi 4's single USB 2.0 hub (CAM-03); no camera chosen |
 | 09 | [Display and UI](09-display-and-ui.md) | Watch | 0 / 2 / 7 / 2 / 0 | — | Its size comes from photos: measure it before printing (DSP-10) |
 | 10 | [Enclosure and thermal](10-enclosure-and-thermal.md) | Watch | 0 / 2 / 8 / 3 / 1 | 1 | Heat (ENC-01); the TS-7's real size (ENC-03); the USB passthrough and the trim beside the opening are unmeasured (ENC-13) |
-| 11 | [Carrier PCB](11-carrier-pcb.md) | Watch | 0 / 1 / 12 / 5 / 1 | 13 (carrier design) | Ready to order; check the polarized parts in JLCPCB's placement preview (PCB-P2) |
+| 11 | [Carrier PCB](11-carrier-pcb.md) | Watch | 0 / 1 / 14 / 8 / 1 | 18 (carrier design) | Ready to order; the quote must read 100 × 100 mm, and check the polarized parts in JLCPCB's placement preview (PCB-P2) |
 | 12 | [Vehicle integration](12-vehicle-integration.md) | Watch | 0 / 0 / 7 / 2 / 1 | — | ACC during cranking (VEH-01); the repeater wire (VEH-07) |
 | 13 | [TPMS radio](13-tpms-radio.md) | Watch | 0 / 1 / 9 / 5 / 1 | 9 | No carrier-sense gating: noise can swamp the decoder in the car (RF-01) |
 | 14 | [v1 panel](14-v1-panel.md) | Watch | 0 / 0 / 4 / 10 / 1 | 7 | The regulator's heatsink pour is split (V1-01): fix before ordering |
 | 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 10 / 9 / 0 | 15 | Hand-copied keep-outs in the viewer (VW-14) |
 | 16 | [Safety and legal](16-safety-and-legal.md) | Watch | 0 / 1 / 5 / 6 / 0 | 1 | Trusting an untested aid (SAF-01) |
 | 17 | [Project and repository](17-project-and-repo.md) | Sound | 0 / 0 / 4 / 3 / 1 | 2 | The plan was matched against an old inventory (PRJ-03) |
-| | **Total** | | **1 / 17 / 101 / 64 / 14** (197) | **72** | |
+| | **Total** | | **1 / 17 / 103 / 67 / 14** (202) | **77** | |
 
 **Since the audit:**
 - The TS-7 redesign closed 7 more findings (DSP-01, DSP-02, DSP-03, DSP-05, DSP-08, ENC-02, PI-03) and added 3 (DSP-10, DSP-11, RF-16).
 - The carrier PCB (rev A, generated and checked) closed 18 (PWR-01, PWR-02, PWR-03, PWR-05, PWR-06, PCB-01, PCB-03, PCB-05, PCB-06, PCB-09–PCB-12, PCB-14, PCB-16–PCB-19) and added 13 (PWR-09, PWR-10, PCB-09–PCB-19).
 - The alert redesign (2026-11-26: no alert pod and no button; the piezo inside the dash unit; beeps that mute themselves; the car's USB in a printed wing) added 6 (ALR-12, ALR-13, LNK-07, ENC-12, ENC-13, ENC-14), fixed 5 of them, and closed ALR-10 and ESP-05 (no button lead any more).
+- The final pre-order audit (2026-11-27) added 5 carrier findings and fixed them all: the board read as 100.1 × 100.1 mm (PCB-20), C104's hand-soldered GND pad sat solid on the planes (PCB-21), an off-board pin-1 mark (PCB-22), J4 still labelled "POD" (PCB-23), a low cost estimate and buy lists without the hand-soldered power parts (PCB-24). It also corrected 11 stale counts and the "not ready to order" status in three READMEs, and added the doc-count check to `run_checks.py` (PRJ-04, partly fixed).
 
 The counts above include all of them.
 
@@ -95,7 +96,7 @@ Code (each fix has a test that failed before it):
 - **Repo:** build output with local paths wasn't git-ignored (PRJ-01); stale paths (PRJ-02).
 
 Results:
-- **v2 logic:** 154 checks (was 120) pass, plus a 13,622-case blinker stress sweep, clean under strict warnings and UBSan. 16 of 17 deliberate mutations were caught (the survivor is equivalent).
+- **v2 logic:** 166 host checks pass now (154 at the audit, was 120), plus a 13,622-case blinker stress sweep, clean under strict warnings and UBSan. 16 of 17 deliberate mutations were caught (the survivor is equivalent).
 - **v1 board:** ERC/DRC 0/0 re-confirmed with KiCad 10.
 
 Plan and text:
@@ -124,16 +125,18 @@ Plan and text:
 
 ```
 python 05-Audit-Subsystems/run_checks.py               # everything that is installed
-python 05-Audit-Subsystems/run_checks.py --skip kicad  # skip by name: kicad, enclosure, js, links
+python 05-Audit-Subsystems/run_checks.py --skip kicad  # skip by name: kicad, enclosure, js, links, docs
 ```
 
-Read-only (builds go to a temporary folder). It runs:
+Read-only (builds go to a temporary folder). It runs 14 checks:
 - the v2 logic tests and the v1 decoder tests;
 - the pin-map audit and its self-test;
-- the enclosure regeneration, compared byte for byte with the committed STLs, and their watertightness;
+- the enclosure and the mirror/door mounts regenerated, compared byte for byte with the committed STLs and reports, and every STL's watertightness;
 - the viewer data sync and JavaScript syntax;
 - every markdown link and anchor in the repo;
 - repo hygiene (no local paths, build output ignored);
-- the v1 KiCad ERC/DRC.
+- the v2 carrier's JLCPCB files against the design (BOM, CPL, Gerber zip);
+- the v1 and v2 carrier KiCad ERC/DRC;
+- every count the docs quote (tests, fit checks, placements, BOM lines) against the live results.
 
 Run it before every commit.

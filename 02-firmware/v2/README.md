@@ -6,7 +6,7 @@ The Pi 4 runs the cameras, the vehicle detector and the 7" touch screen, and rep
 
 **Status:**
 - **Done:** the safety logic and the pin map. The logic is written and unit-tested on a PC: 166 checks, no ESP32 needed. The pin map passes the audit (gate G1). This is gate G2 of the [v2 order gate](../../00-project-management/PREMORTEM_v2.md#order-gate-for-the-v2-pcb). The [subsystem audit](../../05-Audit-Subsystems/README.md) (2026-11-25) found and fixed one critical and three high bugs in it: see [blinker](../../05-Audit-Subsystems/03-blinker-sensing.md) and [alerts](../../05-Audit-Subsystems/05-alerts-and-alert-pod.md).
-- **Next, phase 1 of the [build steps](../../00-project-management/PREMORTEM_v2.md#what-to-do-next-in-order):**
+- **Next, step 5 of the [build steps](../../00-project-management/PREMORTEM_v2.md#what-to-do-next-in-order), while the boards are made:**
   - the ESP32 application around the logic: the CC1101 driver and EG53MA4 decoder from [bringup/](../bringup/README.md), unchanged because the pins are the same, plus GPS NMEA, LEDC PWM, UART2 and `BluetoothSerial` for the OBD-II dongle;
   - the Pi vision app.
 

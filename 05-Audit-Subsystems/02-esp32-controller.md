@@ -2,7 +2,7 @@
 
 **Scope:** the ESP32-WROOM-32 DevKit (30-pin) on the carrier: pin map, boot and strapping, ACC sensing, its three UARTs (USB, GPS, Pi), Bluetooth Classic to the OBD-II dongle, watchdog and settings storage, and how its firmware gets updated. The decision logic it runs is audited by subsystem: [blinker](03-blinker-sensing.md), [speed](04-speed-sources.md), [alerts](05-alerts-and-alert-pod.md), [Pi power](06-raspberry-pi.md), [link](07-esp32-pi-link.md).
 
-**Maturity:** pin map final and audited; decision logic written and unit-tested (154 host checks after the audit's fixes); the application around it (drivers, tasks, Bluetooth, OTA) not written yet.
+**Maturity:** pin map final and audited; decision logic written and unit-tested (166 host checks: 154 after the audit's fixes, 12 more with the alert redesign); the application around it (drivers, tasks, Bluetooth, OTA) not written yet.
 
 **Verdict: Watch.** The pin map is clean. Three things the paper design never settled: how to reflash the ESP32 after install, the boot race with the Pi regulator, and the task layout once Bluetooth is running.
 

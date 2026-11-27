@@ -282,9 +282,79 @@ def check_carrier_outputs():
            "; ".join(problems) if problems else f"{len(want)} placements, {len(bom)} BOM lines, {len(names)} files in the zip")
 
 
+DOC_FACTS = [   # counts quoted in prose, each group tied to a live result (audit PRJ-04: stale copies kept recurring)
+    (r"\b(\d+) (?:host unit |host |v2 logic )checks\b", ("logic",)),
+    (r"test_logic \((\d+) checks\)", ("logic",)),
+    (r"\b(\d+) (?:automated )?fit checks\b", ("enclosure",)),
+    (r"make_enclosure\.py\)?,? \(?(\d+) checks\b", ("enclosure",)),
+    (r"\benclosure \((\d+) checks\)", ("enclosure",)),
+    (r"make_mounts\.py\)?,? \(?(\d+) checks\b", ("mounts",)),
+    (r"\bmounts \((\d+)(?: checks)?\)", ("mounts",)),
+    (r"\b(\d+) placements\b", ("placements",)),
+    (r"\b(\d+) BOM lines\b", ("bom_lines",)),
+    (r"\b(\d+) extended (?:parts|lines)\b", ("extended",)),
+    (r"\b(\d+) extended \+ (\d+) preferred \+ (\d+) basic\b", ("extended", "preferred", "basic")),
+    (r"\b(\d+) basic \+ (\d+) preferred\b", ("basic", "preferred")),
+]
+
+
+def live_counts():
+    """The numbers the docs quote, from this run's results (a check that failed or was skipped gives none)."""
+    found = {}
+    for name, status, detail in RESULTS:
+        if status != "PASS":
+            continue
+        for key, check, pattern in (("logic", "v2 logic host tests", r"all (\d+) v2 logic checks"),
+                                    ("enclosure", "enclosure: fit checks", r"(\d+)/\d+ checks passed"),
+                                    ("mounts", "mirror + LED mounts", r"(\d+)/\d+ checks passed"),
+                                    ("placements", "v2 carrier JLCPCB files", r"(\d+) placements"),
+                                    ("bom_lines", "v2 carrier JLCPCB files", r"(\d+) BOM lines")):
+            m = re.search(pattern, detail)
+            if name.startswith(check) and m:
+                found[key] = int(m.group(1))
+    bom = CARRIER_PROD / "tpms_v2_carrier_bom_jlcpcb.csv"
+    if bom.exists():
+        import csv
+        with open(bom, newline="", encoding="utf-8") as fh:
+            libs = [r["Library"] for r in csv.DictReader(fh)]
+        found.update({k: libs.count(k) for k in ("basic", "preferred", "extended")})
+    return found
+
+
+def check_doc_counts():
+    """Every count the docs, the viewer data and the premortem quote (tests, fit checks, BOM lines...) matches the
+    live result. Quoted history is skipped: a count in quotes, or after "was"."""
+    live = live_counts()
+    if not live:
+        return record("counts quoted in the docs are current", None, "no live counts (their checks were skipped)")
+    stale, seen, files = [], 0, set()
+    for p in sorted(ROOT.rglob("*")):
+        if p.suffix not in (".md", ".json", ".js", ".html") or not p.is_file():
+            continue
+        rel = p.relative_to(ROOT)
+        if set(rel.parts) & {".git", "node_modules", "git_ignoreme", "vendor", "build", "__pycache__"}:
+            continue
+        for n, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            for pattern, keys in DOC_FACTS:
+                for m in re.finditer(pattern, line):
+                    before = line[max(0, m.start() - 40):m.start()]
+                    if before.endswith(('"', "“", "'")) or re.search(r"\bwas\s*$", before):
+                        continue
+                    for i, key in enumerate(keys, 1):
+                        if key not in live:
+                            continue
+                        seen += 1
+                        files.add(rel)
+                        if int(m.group(i)) != live[key]:
+                            stale.append(f"{rel.as_posix()}:{n} says {m.group(i)} ({key}), live {live[key]}")
+    record("counts quoted in the docs are current", not stale,
+           "; ".join(stale[:6]) + (f" (+{len(stale) - 6} more)" if len(stale) > 6 else "") if stale else
+           f"{seen} quoted counts in {len(files)} files match: " + ", ".join(f"{k} {v}" for k, v in live.items()))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--skip", nargs="*", default=[], help="kicad, enclosure, js, links")
+    ap.add_argument("--skip", nargs="*", default=[], help="kicad, enclosure, js, links, docs")
     a = ap.parse_args()
     compiler = cxx()
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
@@ -307,6 +377,8 @@ def main():
         if "kicad" not in a.skip:
             check_kicad(tmp)
             check_carrier(tmp)
+        if "docs" not in a.skip:
+            check_doc_counts()
     width = max(len(n) for n, _, _ in RESULTS)
     for name, status, detail in RESULTS:
         print(f"{status:4s}  {name:{width}s}  {detail}".encode("ascii", "replace").decode())

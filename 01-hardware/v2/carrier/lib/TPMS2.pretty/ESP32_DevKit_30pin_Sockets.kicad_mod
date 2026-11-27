@@ -467,7 +467,7 @@
 		(uuid "e93e2efd-6820-5c57-b90d-85f29f2f9145")
 	)
 	(fp_text user "1"
-		(at -1.9 -1.4 0)
+		(at 0 -2.4 0)
 		(layer "F.SilkS")
 		(uuid "70310664-36b6-52bf-8cdc-6ac65b24bc4d")
 		(effects
@@ -475,7 +475,6 @@
 				(size 1 1)
 				(thickness 0.15)
 			)
-			(justify right)
 		)
 	)
 	(fp_text user "ANTENNA: no copper"

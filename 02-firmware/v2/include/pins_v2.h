@@ -47,8 +47,8 @@ constexpr int PIN_STATUS_LED = 2;   // [out,bootlow]      DevKit blue LED; its r
 // Inputs
 constexpr int PIN_BTN = 4;          // [in,v1,pullup]     optional mute / acknowledge button, active low (v1 RC). v2 fits
                                     //                    none: the beeps mute themselves, the touch screen mutes
-constexpr int PIN_BLINK_L = 36;     // [in,poll,pullup]   LTV-357T opto output, active low (left lamp lit = low)
-constexpr int PIN_BLINK_R = 39;     // [in,poll,pullup]   LTV-357T opto output, active low (right lamp lit = low)
+constexpr int PIN_BLINK_L = 36;     // [in,poll,pullup]   ICPL-356 opto output (U501), active low (left lamp lit = low)
+constexpr int PIN_BLINK_R = 39;     // [in,poll,pullup]   ICPL-356 opto output (U502), active low (right lamp lit = low)
 constexpr int PIN_ACC_SENSE = 32;   // [analog]           ADC1_CH4: 100 k / 10 k divider from 12V_PROT, clamped
 
 // u-blox NEO-M8N GPS, UART1 remapped: the speed gate's fallback (the OBD-II dongle's speed comes over Bluetooth,

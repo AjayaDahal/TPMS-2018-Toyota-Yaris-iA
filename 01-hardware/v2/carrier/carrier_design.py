@@ -319,7 +319,7 @@ R("R513", "10k", "3V3", "AUX_OPTO")
 C("C503", "10n", "AUX_OPTO", "GND")
 R("R514", "1k", "AUX_OPTO", "EXP_P0")
 R("R515", "0", "AUX_RET", "GND", desc="AUX return tied to GND at J1; remove for an isolated input")
-R("R516", "10k", "3V3", "POD_BTN", desc="Mute button: v1 RC")
+R("R516", "10k", "3V3", "POD_BTN", desc="J4 spare button input (IO4): v1 RC filter")
 C("C504", "100n", "POD_BTN", "GND")
 R("R517", "1k", "POD_BTN", "ESP_IO4")
 R("R518", "100k", "12V_PROT", "ACC_DIV", desc="ACC sense: 12V_PROT / 11 to ADC1")
@@ -337,7 +337,7 @@ part("J3", "Connector_Generic_MountingPin:Conn_01x04_MountingPin", "GH-4", GH4,
      desc="DOOR_R: blinker sense pair (1-2), amber LED (3 +, 4 -)")
 part("J4", "Connector_Generic_MountingPin:Conn_01x04_MountingPin", "GH-4", GH4,
      {"1": "POD_BTN", "2": "GND", "3": "POD_BUZP", "4": "POD_BUZN", "MP": "GND"},
-     desc="POD: mute button (1-2), 12 V piezo (3 +, 4 -)")
+     desc="BUZ: 12 V piezo (3 +, 4 -); 1-2 spare button input (IO4)")
 for side, n, gpio in (("L", 0, "ESP_IO25"), ("R", 1, "ESP_IO14")):
     b = 601 + 4 * n
     NFET(f"Q{601 + n}", "AO3400A", f"LED{side}_G", "GND", f"LED{side}_K", desc=f"{side} door LED, low side, PWM")

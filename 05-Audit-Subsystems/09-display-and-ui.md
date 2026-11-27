@@ -24,7 +24,7 @@
 
 | Check | Evidence | Result |
 |---|---|---|
-| Which display the design uses | [make_enclosure.py](../01-hardware/enclosure/make_enclosure.py) (43 checks), the [v2 fit template](../01-hardware/docs/v2_fit_template_1to1.pdf) (page 1 drawn from the enclosure report), [PREMORTEM_v2](../00-project-management/PREMORTEM_v2.md) C12/C13/C17/C18 and D1–D9, the power budget, the BOM and the viewer | TS-7 (since the redesign) |
+| Which display the design uses | [make_enclosure.py](../01-hardware/enclosure/make_enclosure.py) (63 checks), the [v2 fit template](../01-hardware/docs/v2_fit_template_1to1.pdf) (page 1 drawn from the enclosure report), [PREMORTEM_v2](../00-project-management/PREMORTEM_v2.md) C12/C13/C17/C18 and D1–D9, the power budget, the BOM and the viewer | TS-7 (since the redesign) |
 | Which display is on hand | Live inventory: `disp-sunfounder-7in`; the official display appears only as its adapter board (`disp-rpiadapter`); you confirmed the TS-7 | TS-7 |
 | Official display facts | Earlier pass (C17, C18): M3 positions dimensioned from the frame flange, 250 cd/m², viewing angles, temperature ratings | No longer used |
 | TS-7 facts | SunFounder's parameter tables (size, active area, 480 mA, temperatures), its store page (250 cd/m², 170°), its docs ("connect the USB first, then the HDMI"), and four product photos (width / height 1.324–1.332 for the 165.3 mm board, ear holes, sockets, the LCD flex) | As in the table; the listed height disagrees with the photos (DSP-10) |

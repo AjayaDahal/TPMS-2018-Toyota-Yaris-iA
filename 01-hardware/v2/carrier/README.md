@@ -1,6 +1,6 @@
 # v2 carrier PCB, rev A
 
-100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the piezo (J4 "POD": the piezo now sits inside the dash unit, and J4's button pins stay free), the lid fan, the Pi UART link and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid.
+100 × 100 mm, 6 layers, 1.6 mm, ENIG. It carries the ESP32 DevKit and the CC1101 module on sockets, and powers the Raspberry Pi 4, the TS-7 display and itself from the car's 12 V ACC. It also senses both blinkers and drives the door LEDs, the piezo (J4 "BUZ": the piezo sits inside the dash unit, and J4's button pins 1–2 stay free), the lid fan, the Pi UART link and the GPS port. It sits behind the Pi in the [printed enclosure](../../enclosure/README.md), parts facing the lid.
 
 Everything here is generated. Don't edit the KiCad files by hand: change the Python and rebuild.
 
@@ -31,35 +31,36 @@ The route of record is committed: `tpms_v2_carrier_route.ses` (the Freerouting s
 | Inputs | 3 × ICPL-356-50C SOP-4 optos (CTR 200–400 %, 80 V): left and right blinker, AUX (J1 pin 3) | 2 × 1.2 kΩ + indicator LED per input; each lamp return has its own pin |
 | Outputs | 2 × AO3400A door LEDs (PWM), 2N7002 piezo (12 V from after the shunt, through a PTC), AO3400A fan (on by default) | — |
 | Monitors | TMP75 (0x48) board temperature, beside the Pi buck; TCA9534 (0x20) expander: AUX in, fan, Pi AUX, 5 spare pins | — |
-| Ports | J2/J3 doors, J4 pod, J6 Pi UART, J7 GPS (JST-GH); J8 fan | GPS is optional: a fallback speed source after the OBD-II dongle, on the standard 6-pin Pixhawk pinout |
+| Ports | J2/J3 doors, J4 piezo (`BUZ`), J6 Pi UART, J7 GPS (JST-GH); J8 fan | GPS is optional: a fallback speed source after the OBD-II dongle, on the standard 6-pin Pixhawk pinout |
 
 Every ESP32 signal passes a series resistor next to its DevKit pin. It limits fault current, and it's a cut point for rework.
 
 ## Order it at JLCPCB
 
 1. **PCB:** upload `tpms_v2_carrier_gerbers_jlcpcb.zip`. Choose:
-   - layers 6, 100 × 100 mm, 1.6 mm, quantity 5;
+   - layers 6, 100 × 100 mm, 1.6 mm, quantity 5. The outline's outer edge is exactly 100.0 × 100.0 mm: its centre line is inset by half the 0.1 mm line, because a size check that counts the line would read 100.1 and leave the 100 × 100 price tier. If the quote shows anything over 100 × 100, stop: the zip is an old one;
    - ENIG (the only finish on 6 layers), outer copper 1 oz, inner 0.5 oz;
    - via covering: "Epoxy Filled & Capped". It is the default on 6 layers, and the PowerPAD vias need it;
-   - the standard stack-up: Economic assembly only takes standard stack-ups, and nothing on this board needs controlled impedance.
+   - the standard stack-up: Economic assembly only takes standard stack-ups, and nothing on this board needs controlled impedance;
+   - everything else at JLCPCB's defaults: green mask, white silk, no gold fingers, castellated holes or impedance control. An option that adds a fee means something was mis-detected: this board needs none.
 
    The order number prints where the silkscreen says `JLCJLCJLCJLC` (top left), so choose "Specify a location".
 2. **Assembly:** PCB Assembly on:
    - **Economic**, top side only, quantity **2**;
    - upload `tpms_v2_carrier_bom_jlcpcb.csv` and `tpms_v2_carrier_cpl_jlcpcb.csv`.
 
-   Every line should match its LCSC part. Parts that aren't in the files (sockets, terminals, DNP options) are in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
+   Every line should match its LCSC part. Parts that aren't in the files (the ten SMD power parts, the sockets, the terminals and the DNP options) are in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
 3. **Placement preview:** check every polarized part before you confirm:
    - the diodes: SS56C at D201/D301, SS14 at D304, the 1N4148Ws; the SMCJ24CA at D101 and SMBJ6.0CA at D203/D302 are bidirectional, so either way is fine;
    - the LEDs: D102, D204, D303, D305, D501, D503, D505;
    - pin 1 of every IC: U101, U201, U202, U301, U302, U501–U503, U801, U802.
 
    The CPL rotations are fitted to JLCPCB's own footprints by the build, and it reports the worst fit (0.29 mm), but the preview is the last check.
-4. **Price:** expect the board promo plus Economic assembly. Four former extended lines were swapped to JLCPCB Preferred ($0 fee) and six large 2/3-pad SMD power parts moved to hand-solder, leaving only **6 extended parts** (~$3.07 each) on top of the parts and the setup fee: see [Cost](#cost).
+4. **Price:** expect the board promo plus Economic assembly. Four former extended lines were swapped to JLCPCB Preferred ($0 fee) and the ten large 2/3-pad SMD power parts (6 lines) moved to hand-solder, leaving only **6 extended parts** (~$3.07 each) on top of the parts and the setup fee: see [Cost](#cost).
 
 ## Hand soldering
 
-Fit these after the boards arrive (the list with LCSC/MPN numbers is `tpms_v2_carrier_hand_solder_and_dnp.csv`):
+Fit these after the boards arrive (the list with LCSC/MPN numbers is `tpms_v2_carrier_hand_solder_and_dnp.csv`). Buy the ten SMD power parts in one LCSC order (~$4 for two boards, plus shipping): JLCPCB leaves their pads empty. Fit them first, before the sockets and terminals, while the board lies flat: smallest first (F601, F901, R104, R211, F101), then Q101 and C104, then the three inductors. The board won't power up without F101, Q101, L101 and R104 (12 V in), L201 and R211 (the Pi's 5 V) and L301 (the ESP32's 5 V).
 
 | Ref | Part | Notes |
 |---|---|---|
@@ -68,14 +69,14 @@ Fit these after the boards arrive (the list with LCSC/MPN numbers is `tpms_v2_ca
 | J1 | 4-pole screw terminal, 5.08 mm | Wire entries toward the board edge |
 | J5 | 6-pole screw terminal, 5.08 mm | Same |
 | J8 | 1×2 right-angle pin header, 2.54 mm | Lid fan |
-| C104 | 47 µF / 50 V electrolytic, 6.3×7.7 SMD (`C970679`) | Or a leaded 47 µF / 50 V electrolytic from your lab bin, bent onto the two pads (check polarity: `+` toward `12V_PROT`) |
+| C104 | 47 µF / 50 V electrolytic, 6.3×7.7 SMD (`C970679`) | Or a leaded 47 µF / 50 V electrolytic from your lab bin, bent onto the two pads (check polarity: `+` toward `12V_PROT`). Its − pad is the only hand-soldered pad on the GND planes, so it has thermal spokes |
 | F101 | 4 A 2410 NANO2 fast SMD fuse (`C27515`, Littelfuse `0451004.MRL`) | Large 6 mm 2-pad SMD; easy to replace if it ever blows |
 | F601, F901 | 2 × 0.5 A / 60 V 1812 PTC polyfuse (`C70113`, `mSMD050-60V`) | Large 4.5 mm 2-pad SMD |
 | L101, L201, L301 | 3 × 6.8 µH 11×10 mm shielded inductor (`C408485`, `MWSA1004S-6R8MT`) | Large 2-pad SMD; pads extend 1.3 mm past each end of the body |
 | Q101 | −60 V P-MOSFET TO-252 DPAK (`C7503186`, `SUD50P06-15`) | Large drain tab + 2 gull-wing leads |
 | R104, R211 | 2 × 10 mΩ 1 % 2 W 2512 current shunt (`C192580`, `RLM25FEER010`) | Large 6.3 mm 2-pad SMD |
 
-The ground pins connect to the solid GND plane on L2 and the GND pours on the other layers, through thermal reliefs. Use a 60–80 W iron with a chisel tip and keep it on a little longer than for a 2-layer board.
+The ground pins connect to the solid GND plane on L2 and the GND pours on the other layers, through thermal reliefs. The SMD power parts join small copper pours solid, for the current (the largest, under R211, is ~4.4 cm² a side). Use flux, a 60–80 W iron with a big chisel tip, and keep it on a little longer than for a 2-layer board; a hot-air station or a preheated board makes the inductors and Q101's tab easier.
 
 ## First power-up (bench, before the car)
 
@@ -117,16 +118,16 @@ There are 23 signal and rail test pads plus 2 GND pads, all on the parts side.
 
 ## Cost
 
-An estimate for 5 boards with 2 assembled. JLCPCB's quote at checkout is the real number.
+An estimate for 5 boards with 2 assembled, from JLCPCB's live part prices with their attrition and minimum quantities (2026-11-27). JLCPCB's quote at checkout is the real number.
 
 | Item | Estimate |
 |---|---|
 | 5 bare boards: 6 layers, 100 × 100 mm, 1.6 mm, ENIG, epoxy-filled and capped vias | ~$2 at the current 6-layer promo |
 | Economic PCBA: setup fee and stencil | ~$9.70 ($8.18 + $1.53) |
-| Extended-part fees: **6 lines** × ~$3.07 (4 lines moved to Preferred at $0, 6 large 2/3-pad SMD parts moved to hand-solder) | ~$18.40 |
-| Parts for 2 boards: 6 extended + 4 preferred + 41 basic (live LCSC pricing, incl. min-order surplus) | ~$18–21 |
+| Extended-part fees: **6 lines** × ~$3.07 (4 lines moved to Preferred at $0, 10 large 2/3-pad SMD parts on 6 lines moved to hand-solder) | ~$18.40 |
+| Parts for 2 boards: 6 extended + 4 preferred + 41 basic, with JLCPCB's attrition and minimum quantities | ~$23–24 |
 | Placement: 163 parts and ~420 solder joints a board at ~$0.0016 a joint | ~$1.40 |
-| **Total before shipping (before any $6–$10 monthly SMT coupon)** | **~$50–53** |
+| **Total before shipping (before any $6–$10 monthly SMT coupon)** | **~$55** |
 | Shipping, depending on the carrier | ~$10–30 |
 
-Then the parts you solder yourself: the 5 THT items + 6 large SMD power parts in [Hand soldering](#hand-soldering) (~$8–9 total for 2 boards when bundled on one LCSC/DigiKey order; `C104` is in your lab bin). The three spare bare boards cost nothing extra and can be hand-built if needed.
+Then the parts you solder yourself: the 10 SMD power parts (~$4 for 2 boards on one LCSC order, plus its shipping; `C104` can come from your lab bin) and the 5 THT items in [Hand soldering](#hand-soldering) (~$5). The three spare bare boards cost nothing extra and can be hand-built if needed.

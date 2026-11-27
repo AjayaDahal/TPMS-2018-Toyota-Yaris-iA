@@ -224,7 +224,7 @@ def soft():
     S["R607"] = (60.8, 84.6, 90)
     S["R608"] = (62.8, 84.6, 90)
     S["R610"] = (42.0, 88.6, 0)
-    S["D601"] = (40.0, 90.5, 0)                     # leaves room for the POD label above J4
+    S["D601"] = (40.0, 90.5, 0)                     # leaves room for the BUZ label above J4
     S["R516"] = (34.0, 91.2, 90)
     S["C504"] = (35.8, 91.2, 90)
     # Pi link, GPS

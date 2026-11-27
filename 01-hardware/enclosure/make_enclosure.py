@@ -956,7 +956,7 @@ def main():
             fires_through=f"{geo['buzzer']['slots']} right intake slots "
                           f"({geo['buzzer']['open_mm2']:.0f} mm² open), "
                           f"{geo['buzzer']['skin_z'] - geo['buzzer']['face_z']:.1f} mm behind the bezel's skin",
-            wiring="the old alert-pod JST-GH on the carrier: + and - only; the button pins stay unused",
+            wiring="J4 (BUZ) on the carrier: pin 3 + and pin 4 - only; the button pins 1-2 stay unused",
             behaviour="blind-spot beeps auto-mute after 4 s (the side LED keeps flashing); a TPMS warning beeps "
                       "twice, then only the screen shows it"),
         usb_passthrough=dict(

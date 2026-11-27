@@ -223,7 +223,7 @@
     "part": "12 V active piezo Ø23.2 × 12 mm (MEASURE yours)",
     "where": "in the bezel's right cavity below the display's plugs and the wing's bottom screw, centre [87.38, -32.0] mm (right of / above the bezel's centre), held by 3 fingers on the skin",
     "fires_through": "5 right intake slots (151 mm² open), 2.0 mm behind the bezel's skin",
-    "wiring": "the old alert-pod JST-GH on the carrier: + and - only; the button pins stay unused",
+    "wiring": "J4 (BUZ) on the carrier: pin 3 + and pin 4 - only; the button pins 1-2 stay unused",
     "behaviour": "blind-spot beeps auto-mute after 4 s (the side LED keeps flashing); a TPMS warning beeps twice, then only the screen shows it"
   },
   "usb_passthrough": {

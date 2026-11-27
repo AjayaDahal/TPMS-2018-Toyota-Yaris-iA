@@ -170,7 +170,7 @@ Measure with calipers, front view (glass toward you), from the centre of the dis
    - the USB-C pigtail to J5 pair 1;
    - the display power leg to J5 pair 2;
    - the UART lead;
-   - the piezo's two wires to J4 ("POD": + and −; the button pins stay free);
+   - the piezo's two wires to J4 ("BUZ": pin 3 +, pin 4 −; the button pins 1–2 stay free);
    - the RG316 pigtail from the CC1101 to the bulkhead;
    - the fan to the PCB's 5 V header.
 8. **Lid:** feed the harness (12 V, blinkers, LEDs, GPS) through the lid's cable exit with a grommet and plug it in. Close the lid (4 × M3 × 12).

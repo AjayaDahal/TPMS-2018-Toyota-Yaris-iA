@@ -25,7 +25,7 @@
       "id": "console_float",
       "name": "Option A: console pocket (recommended)",
       "summary": "The printed enclosure sits in front of the console opening. Its 205.6 × 129 mm bezel spans the opening's full height (its top edge stays under the HVAC panel) and overhangs the 191 / 123 mm sides. The 112 × 124 × 50.5 mm rear box with the Pi 4 and the carrier PCB drops into the pocket: it needs ≥ 56 mm of clear depth, and the car's USB / 12 V strip is behind it (measure with the foam mock-up). The screen sits 8 mm toward the driver and the frame stands ~22 mm proud of the trim: check the shifter in P. Air: slots beside the screen → behind the display → lid fan → 2 mm gap round the plate.",
-      "ergonomics": "Low and shaded (cooler); you glance down. The amber LEDs at the mirrors and the pod's beep do the alerting.",
+      "ergonomics": "Low and shaded (cooler); you glance down. The amber LEDs at the mirrors and the unit's beep do the alerting.",
       "display_cable": "HDMI flat cable from the TS-7's right edge through the plate to the Pi's HDMI0; touch and 5 V on one split micro-USB lead (5 V from J5, data to a Pi USB port)"
     },
     "dash_top": {
@@ -484,8 +484,8 @@
       "source": "BUY",
       "qty": 2,
       "inv_stock": 0,
-      "cost_usd": 90,
-      "notes": "JLCPCB Economic PCBA: 41 basic + 4 preferred ($0 fee) + 6 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Six large 2/3-pad SMD power parts (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211) moved to hand-solder to cut ~$31 in feeder fees. ~$50–53 before shipping (~$40–45 with monthly SMT coupon). Files in 03-manufacturing/v2_carrier"
+      "cost_usd": 53,
+      "notes": "JLCPCB Economic PCBA: 41 basic + 4 preferred ($0 fee) + 6 extended lines (TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Ten large 2/3-pad SMD power parts (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211) moved to hand-solder to cut ~$31 in feeder fees. ~$53 for the assembly on top of the ~$2 boards: ~$55 before shipping (~$45–49 with a monthly SMT coupon). Files in 03-manufacturing/v2_carrier"
     },
     {
       "item": "Carrier hand-solder parts + JST-GH leads",
@@ -493,8 +493,8 @@
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 14,
-      "notes": "2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, the piezo, Pi UART and GPS"
+      "cost_usd": 18,
+      "notes": "For 2 boards. The 10 SMD power parts, one LCSC order (~$4 + shipping): 2 × C970679 47 µF/50 V electrolytic (or a leaded one from the lab bin), 2 × C27515 4 A NANO2 fuse, 4 × C70113 0.5 A 1812 PTC, 6 × C408485 6.8 µH 11×10 inductor, 2 × C7503186 SUD50P06-15, 4 × C192580 10 mΩ 2512 shunt. Then 2 × 1×15 and 1 × 2×4 female headers (2.54 mm), 5.08 mm screw terminals (4- and 6-pole), a 1×2 right-angle header; JST-GH kit or pre-crimped leads for the doors, the piezo, Pi UART and GPS"
     },
     {
       "item": "12 V active piezo (3–24 V, sharp tone, ~23 mm)",
@@ -575,7 +575,7 @@
       "qty": 1,
       "inv_stock": 0,
       "cost_usd": 18,
-      "notes": "Cable exit, pod, EMI, door vapour barrier, camera seal."
+      "notes": "Cable exit, camera and LED pods (VHB), EMI, door vapour barrier, camera seal."
     },
     {
       "item": "High-endurance microSD 32 GB",
@@ -698,8 +698,8 @@
     },
     {
       "id": "buy_pwr",
-      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): both bucks, the protection, INA226s, optos, drivers — every SMD part",
-      "cost": "~$52 (setup, 6 extended fees, parts; ~$42–46 w/ coupon)"
+      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): both bucks' controllers, the protection, INA226s, optos, drivers: every SMD part except the 10 large power parts you solder yourself",
+      "cost": "~$53 (setup, stencil, 6 extended fees, parts; ~$43–47 w/ coupon; the boards are their own line)"
     },
     {
       "id": "buy_sig",
@@ -708,8 +708,8 @@
     },
     {
       "id": "buy_conn",
-      "text": "Carrier hand-solder parts (2 × 1×15 + 1 × 2×4 female headers, 5.08 mm screw terminals 4- and 6-pole, 1×2 right-angle header), JST-GH kit or pre-crimped leads, Add-A-Circuit (5 A)",
-      "cost": "~$22"
+      "text": "Carrier hand-solder parts: the 10 SMD power parts in one LCSC order (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211; LCSC numbers in the carrier README), 2 × 1×15 + 1 × 2×4 female headers, 5.08 mm screw terminals 4- and 6-pole, 1×2 right-angle header; JST-GH kit or pre-crimped leads, Add-A-Circuit (5 A)",
+      "cost": "~$26 + LCSC shipping"
     },
     {
       "id": "buy_encl",
@@ -847,7 +847,7 @@
     },
     {
       "id": "t2",
-      "text": "Host tests and audits: test_logic (154 checks), check_pinmap.py (+ --selftest), make_enclosure.py (43 checks), sync_plan.py --check",
+      "text": "Host tests and audits: test_logic (166 checks), check_pinmap.py (+ --selftest), make_enclosure.py (63 checks), make_mounts.py (28 checks), sync_plan.py --check; run_checks.py re-runs them all",
       "where": "Pass: all green"
     }
   ],
@@ -912,7 +912,7 @@
     {
       "id": "st_04",
       "phase": "Phase 1 · Bench vision",
-      "text": "Breadboard ESP32 + CC1101 + GPS + two blinker switches + piezo; run the v2 logic (154 host checks already pass) against the Pi over the UART protocol."
+      "text": "Breadboard ESP32 + CC1101 + GPS + two blinker switches + piezo; run the v2 logic (166 host checks already pass) against the Pi over the UART protocol."
     },
     {
       "id": "st_05",
@@ -922,17 +922,17 @@
     {
       "id": "st_06",
       "phase": "Phase 2 · Enclosure",
-      "text": "Measure the TS-7 (fit template page 1) and the plugs; regenerate (make_enclosure.py, 43 checks) and the template; print the bezel and hang the display in it, then the housing, lid and pod in ASA (G6)."
+      "text": "Measure the TS-7 (fit template page 1) and the plugs; regenerate (make_enclosure.py, 63 checks) and the template; print the bezel and hang the display in it, then the housing, lid and USB wing in ASA (G6)."
     },
     {
       "id": "st_07",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 6 layers, 1.6 mm, ENIG, Economic PCBA on 2 of 5 (G7, G8; carrier README)."
+      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 6 layers, 1.6 mm, ENIG, Economic PCBA on 2 of 5; the quote must read 100 × 100 mm (G7, G8; carrier README)."
     },
     {
       "id": "st_08",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "When the boards arrive: hand-solder the DevKit and CC1101 sockets (DevKit row to match yours), the two screw terminals and the fan header; check the polarized parts."
+      "text": "When the boards arrive: hand-solder the 10 SMD power parts first (flux, 60–80 W chisel tip), then the DevKit and CC1101 sockets (DevKit row to match yours), the two screw terminals and the fan header; check the polarized parts."
     },
     {
       "id": "st_09",
@@ -943,6 +943,16 @@
       "id": "st_10",
       "phase": "Phase 4 · Bring-up",
       "text": "Pi + TS-7 + both cameras on the carrier: B4 measured at the Pi's GPIO 5 V pin, B5 with an AM radio (RT rework if it whines), B6 radio noise floor with everything on."
+    },
+    {
+      "id": "st_sw_esp",
+      "phase": "Phase 5 · Software",
+      "text": "ESP32 application around the tested logic (02-firmware/v2), started on a breadboard while the boards are made: the CC1101 driver and EG53MA4 decoder from bringup/ with carrier-sense gating (RF-01), GPS NMEA, BluetoothSerial for the OBD-II dongle (B8b), LEDC PWM for the LEDs, the piezo patterns, Pi power sequencing, UART2 to the Pi and a Wi-Fi OTA service mode (ESP-01). Flash it over the DevKit's USB."
+    },
+    {
+      "id": "st_sw_pi",
+      "phase": "Phase 5 · Software",
+      "text": "Pi app: two-camera capture and detector (V1 sets the model and frame rate), the 1024 × 600 touch UI (a camera only on the blinker or a danger; nothing needs touch while moving: D5, V8, S3, DSP-09), the UART link with the touch screen's mute counter (LNK-07), the first-month logging mode."
     },
     {
       "id": "st_11",
@@ -1304,7 +1314,7 @@
       "likelihood": "High if solid",
       "title": "Hand-soldering a 6-layer board: through-hole pins on inner planes won't wet",
       "cause": "",
-      "fix": "Thermal reliefs on all plane connections; ENIG",
+      "fix": "Thermal reliefs on all through-hole plane connections; ENIG. The ten hand-soldered SMD power parts join only small local power pours (≤ 4.4 cm² a side; solid, for the current); the one pad on the GND planes, C104's −, has spokes. A 60–80 W chisel tip and flux",
       "status": "Fixed (layout rule)",
       "status_keys": [
         "fixed"
@@ -2233,7 +2243,7 @@
       "id": "G3",
       "needed": "Every part physically on hand and identified",
       "status": "you",
-      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself: the sockets, two 5.08 mm screw terminals (4- and 6-pole) and the fan header (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>); everything else JLCPCB assembles"
+      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself: the sockets, two 5.08 mm screw terminals (4- and 6-pole), the fan header and the ten large SMD power parts (C104, F101, F601, F901, L101, L201, L301, Q101, R104, R211: one LCSC order, ~$4 for two boards) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>); everything else JLCPCB assembles"
     },
     {
       "id": "G4",
@@ -2263,7 +2273,7 @@
       "id": "G8",
       "needed": "JLCPCB quote confirms the 6-layer 100 × 100 mm promo price and options",
       "status": "you",
-      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages: 6+ layer FR-4 is ENIG only (no HASL), inner copper 0.5 oz, Economic PCBA takes 6 layers at 1.6 mm with the standard stack-up, and epoxy-filled, capped vias are the default"
+      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages: 6+ layer FR-4 is ENIG only (no HASL), inner copper 0.5 oz, Economic PCBA takes 6 layers at 1.6 mm with the standard stack-up, and epoxy-filled, capped vias are the default. The outline's outer edge is exactly 100.0 × 100.0 mm (its centre line is inset by half the 0.1 mm line, which a size check counts), so the quote must read 100 × 100"
     }
   ],
   "enclosure": {

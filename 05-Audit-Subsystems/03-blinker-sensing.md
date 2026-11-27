@@ -6,7 +6,7 @@
 
 Why lamp taps and not OBD-II is settled in the premortem ([O1](../00-project-management/PREMORTEM_v2.md#obd-ii-dongle-optional-speed-source)).
 
-**Maturity:** logic written and tested on a PC (now part of 154 checks, plus a 13,622-case stress sweep run for this audit). The opto circuit is a prose design. The tap point on this car isn't found yet (G9).
+**Maturity:** logic written and tested on a PC (now part of 166 checks, plus a 13,622-case stress sweep run for this audit). The opto circuit is on the carrier PCB (U501/U502, rev A, ready to order). The tap point on this car isn't found yet (G9).
 
 **Verdict: Watch** (it was **Act** before the audit's fixes). The audit found a critical bug: hazards pressed during a turn signal could read as a turn to the *other* side, and sound a danger beep for that lane. Two high-severity bugs came with it. All three are fixed and covered by tests. What's left needs the car: where to tap, and what the lamps look like on a scope.
 

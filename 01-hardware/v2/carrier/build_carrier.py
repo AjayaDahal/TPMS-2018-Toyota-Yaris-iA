@@ -373,7 +373,7 @@ def build_footprints():
         f.rect(x0_ - 0.25, -1.52, x1_ + 0.25, 37.08, "F.CrtYd", 0.05)
     for bx in (s1, s2):
         f.rect(-1.45, -7.62, bx + 1.45, 43.18, "F.Fab", 0.1)
-    f.text("1", -1.9, -1.4, "F.SilkS", size=1.0, justify="right")
+    f.text("1", 0, -2.4, "F.SilkS", size=1.0)          # above pin 1: left of it is off the board
     f.text("ANTENNA: no copper", s2 / 2, -4.6, "F.Fab", size=1.0)
     f.text("USB", s2 / 2, 41.0, "F.Fab", size=1.0)
     f.text("0.9", s1, 37.6, "F.SilkS", size=1.0)        # staggered so they don't read as one number
@@ -817,18 +817,25 @@ def outline_points(r=LAY.CORNER_R, n=6, inset=0.0):
     return pts
 
 
+EDGE_W = 0.1
+
+
 def add_outline(board):
+    """The board edge, its centre line inset by half the line width: the outer edge of the line, which a fab's
+    size detection and KiCad's Gerber job file measure, is then exactly BOARD_W x BOARD_H (100.0, not 100.1, so
+    the order stays inside the 100 x 100 mm price tier)."""
     W, H, r = LAY.BOARD_W, LAY.BOARD_H, LAY.CORNER_R
-    k = r * (1 - math.sqrt(0.5))
+    e = EDGE_W / 2
+    q = (r - e) * math.sqrt(0.5)                  # arcs keep their centres, radius r - e: outer corner radius r
     E = pcbnew.Edge_Cuts
-    add_seg(board, (r, 0), (W - r, 0), E)
-    add_seg(board, (W, r), (W, H - r), E)
-    add_seg(board, (W - r, H), (r, H), E)
-    add_seg(board, (0, H - r), (0, r), E)
-    add_arc(board, (W - r, 0), (W - k, k), (W, r), E)
-    add_arc(board, (W, H - r), (W - k, H - k), (W - r, H), E)
-    add_arc(board, (r, H), (k, H - k), (0, H - r), E)
-    add_arc(board, (0, r), (k, k), (r, 0), E)
+    add_seg(board, (r, e), (W - r, e), E, EDGE_W)
+    add_seg(board, (W - e, r), (W - e, H - r), E, EDGE_W)
+    add_seg(board, (W - r, H - e), (r, H - e), E, EDGE_W)
+    add_seg(board, (e, H - r), (e, r), E, EDGE_W)
+    add_arc(board, (W - r, e), (W - r + q, r - q), (W - e, r), E, EDGE_W)
+    add_arc(board, (W - e, H - r), (W - r + q, H - r + q), (W - r, H - e), E, EDGE_W)
+    add_arc(board, (r, H - e), (r - q, H - r + q), (e, H - r), E, EDGE_W)
+    add_arc(board, (e, r), (r - q, r - q), (r, e), E, EDGE_W)
 
 
 def add_text(board, s, x, y, layer=pcbnew.F_SilkS, size=1.0, thick=0.15, justify="center", rot=0):
@@ -1135,7 +1142,7 @@ def add_silkscreen(board, fps):
             dy = -4.4 if ref == "J1" else 4.6
             add_text(board, names[n - 1], x, y + dy, size=1.0)
     # door ports are "L" / "R": a row of 0603 parts sits right above the connectors (see the README's table)
-    for ref, name in (("J2", "L"), ("J3", "R"), ("J4", "POD"), ("J6", "PI"), ("J7", "GPS"),
+    for ref, name in (("J2", "L"), ("J3", "R"), ("J4", "BUZ"), ("J6", "PI"), ("J7", "GPS"),
                       ("J8", "FAN"), ("J9", "EXP"), ("J10", "ALT"), ("J11", "EXT 12V"), ("J12", "EXT 5V")):
         x0, y0, x1, y1 = fp_courtyard_bbox(fps[ref])
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
@@ -1446,6 +1453,22 @@ def add_gnd_pours(board):
                      min_w=0.25)
             for layer, name in ((pcbnew.F_Cu, "L1"), (pcbnew.In2_Cu, "L3"), (pcbnew.In3_Cu, "L4"),
                                 (pcbnew.In4_Cu, "L5"), (pcbnew.B_Cu, "L6"))]
+
+
+def relieve_hand_soldered_gnd(board):
+    """SMD pads join their pours solid (zones: THT_THERMAL). A hand-soldered SMD pad on GND would then sit solid in
+    the top GND pour, stitched to four inner GND planes, and an iron couldn't heat it: give those pads spokes. Their
+    fan-out via still joins them to the planes. Power-pour pads stay solid for current; those pours are small."""
+    hand = {p["ref"] for p in D.PARTS if p["hand"]}
+    done = []
+    for fp in board.GetFootprints():
+        if fp.GetReference() not in hand:
+            continue
+        for pad in fp.Pads():
+            if pad.GetAttribute() == pcbnew.PAD_ATTRIB_SMD and pad.GetNetname() == "GND":
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_THERMAL)
+                done.append(f"{fp.GetReference()}.{pad.GetNumber()}")
+    return sorted(done)
 
 
 def fill_zones(board):
@@ -2144,6 +2167,8 @@ def main():
     log("[5/9] pours, thermal vias, stitching")
     board = pcbnew.LoadBoard(PCB)
     fps = {fp.GetReference(): fp for fp in board.GetFootprints()}
+    relieved = relieve_hand_soldered_gnd(board)
+    log(f"  thermal reliefs on hand-soldered SMD GND pads: {', '.join(relieved) or 'none'}")
     pours = add_power_pours(board)
     gnd = add_gnd_pours(board)
     fill_zones(board)
