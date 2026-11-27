@@ -13,6 +13,7 @@ namespace {
 
 constexpr uint32_t kRing = 4096;        // power of two
 constexpr uint32_t kGapUs = 2500;       // a quiet period longer than this ends a burst
+constexpr uint32_t kGateHoldUs = 5000;  // keep gate open 5 ms past last strong RSSI so gaps stay intact
 constexpr uint16_t kGlitchUs = 15;      // shorter pulses are folded into their neighbours
 constexpr int kMinBurst = 40;           // shorter bursts are treated as noise
 
@@ -22,6 +23,9 @@ volatile uint32_t lastEdgeUs = 0;
 volatile uint32_t lastLevel = 0;        // input level after the last recorded edge
 volatile uint32_t inReg = GPIO_IN_REG;  // GPIO_IN1_REG for GPIO32..39
 volatile uint32_t inShift = 0;
+volatile bool useGate = false;
+volatile bool gateOpen = false;
+volatile uint32_t lastGateHighUs = 0;
 int attachedPin = -1;
 
 Burst cur;
@@ -29,6 +33,9 @@ bool inBurst = false, mergeNext = false;
 
 void IRAM_ATTR onEdge() {
   const uint32_t now = (uint32_t)esp_timer_get_time();
+  if (useGate && !gateOpen && (uint32_t)(now - lastGateHighUs) > kGateHoldUs) {
+    return;  // RF-01: ignore idle noise without touching lastEdgeUs so active bursts close cleanly
+  }
   const uint32_t level = (*(volatile uint32_t*)inReg >> inShift) & 1;
   // A glitch shorter than the interrupt latency (the CC1101's asynchronous output has ~38 ns ones) is over by the
   // time the level is read: no edge, so the pulse/gap alternation stays intact and the time adds to the next edge.
@@ -67,9 +74,24 @@ void attach(int pin) {
   inBurst = mergeNext = false;
   cur.n = 0;
   lastLevel = (uint32_t)digitalRead(pin);
-  lastEdgeUs = (uint32_t)esp_timer_get_time();
+  const uint32_t nowUs = (uint32_t)esp_timer_get_time();
+  lastEdgeUs = nowUs;
+  useGate = false;
+  gateOpen = false;
+  lastGateHighUs = nowUs - kGateHoldUs - 1;
   attachedPin = pin;
   attachInterrupt(digitalPinToInterrupt(pin), onEdge, CHANGE);
+}
+
+void setGate(bool open) {
+  useGate = true;
+  gateOpen = open;
+  if (open) lastGateHighUs = (uint32_t)esp_timer_get_time();
+}
+
+void clearGate() {
+  useGate = false;
+  gateOpen = false;
 }
 
 void detach() {

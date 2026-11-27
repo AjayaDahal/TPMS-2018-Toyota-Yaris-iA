@@ -29,7 +29,7 @@ namespace {
 // 38.4 kBd filter so chips down to ~50 us (19.2 kchip/s sensors) are resolved.
 const RfProfile kProfiles[] = {
     // name               MDMCFG4 MDMCFG3 MDMCFG2 DEVIATN AGCCTRL2/1/0
-    {"OOK bw203k 16kBd",   0x89,   0x4B,   0x30,   0x15,   0x03, 0x00, 0x91},  // GM/Schrader EG53MA4 (yours)
+    {"OOK bw203k 16kBd",   0x89,   0x4B,   0x30,   0x15,   0x03, 0x00, 0x91},  // GM/Schrader EG53MA4 (TI DN022 OOK)
     {"FSK d25k bw135k",    0xAA,   0x83,   0x00,   0x40,   0x43, 0x40, 0x91},  // other sensor brands
     {"FSK d38k bw203k",    0x8A,   0x83,   0x00,   0x44,   0x43, 0x40, 0x91},
     {"FSK d48k bw270k",    0x6A,   0x83,   0x00,   0x47,   0x43, 0x40, 0x91},
@@ -51,6 +51,9 @@ int mode = 0;
 bool rawDump = false;
 uint32_t nBursts = 0, nFrames = 0;
 int peakRssi = -200, liveRssi = -200, lastRssi = 0;
+int noiseFloor = -100, winMinRssi = 0;
+uint32_t winStartAt = 0;
+bool gateOn = false;
 rf::Burst burst;
 rf::Frame frame, lastFrame;
 #ifndef TPMS_BENCH_BARE
@@ -136,12 +139,14 @@ void setMode(int m) {
         if (!inRx) cc.rx();                                 // not in RX yet: strobe SRX again
       }
       rf::attach(PIN_CC_GDO0);
+      rf::setGate(false);
     } else {
       rf::detach();   // no CC1101: never listen to GDO0 (after a reset it outputs a 135 kHz clock)
     }
   } else {
     if (ccOk) cc.idle();
     rf::attach(PIN_MX05_DATA);
+    rf::clearGate();
   }
   peakRssi = -200;
   Serial.printf("\nmode %d: %s%s\n", mode, modeName(mode),
@@ -192,7 +197,10 @@ void selfTest() {
       sum += cc.rssiDbm();
       delay(5);
     }
-    Serial.printf("CC1101: state 0x%02X (0x0D = RX), noise floor %d dBm at 315 MHz\n", cc.marcState(), sum / 16);
+    noiseFloor = sum / 16;
+    winMinRssi = 0;
+    winStartAt = millis();
+    Serial.printf("CC1101: state 0x%02X (0x0D = RX), noise floor %d dBm at 315 MHz\n", cc.marcState(), noiseFloor);
     Serial.println("        (about -100 dBm or lower is good; much higher = interference from the board or nearby)");
   }
 #ifndef TPMS_BENCH_BARE
@@ -390,6 +398,14 @@ void loop() {
     lastRssiAt = now;
     liveRssi = cc.rssiDbm();
     peakRssi = max(peakRssi, liveRssi);
+    if (liveRssi < winMinRssi) winMinRssi = liveRssi;
+    gateOn = liveRssi >= noiseFloor + 6;
+    rf::setGate(gateOn);
+    if (now - winStartAt >= 1000) {
+      winStartAt = now;
+      if (winMinRssi < 0) noiseFloor = (noiseFloor * 3 + winMinRssi) / 4;
+      winMinRssi = 0;
+    }
   }
 
   while (rf::nextBurst(burst)) handleBurst();
@@ -413,9 +429,9 @@ void loop() {
   static uint32_t lastStats = 0;
   if (now - lastStats >= 10000) {
     lastStats = now;
-    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm, GDO2=%d\n",
+    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm, GDO2=%d, floor=%d gate=%d\n",
                   (unsigned long)(now / 1000), (unsigned long)nBursts, (unsigned long)nFrames,
                   (unsigned long)rf::edges(), (unsigned long)rf::dropped(), liveRssi,
-                  digitalRead(PIN_CC_GDO2));
+                  digitalRead(PIN_CC_GDO2), noiseFloor, gateOn ? 1 : 0);
   }
 }
