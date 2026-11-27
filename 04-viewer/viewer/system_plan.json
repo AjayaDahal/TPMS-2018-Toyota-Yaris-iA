@@ -2113,7 +2113,7 @@
       "likelihood": "Medium",
       "title": "The EG53MA4 decoder fails on real frames",
       "cause": "",
-      "fix": "Not yet tested on a real capture: drive with <code>rtl_433 -f 315M</code> first (v1 premortem step 1)",
+      "fix": "Decodes 64 of 64 real frames from rtl_433's SDR captures (<a href=\"../../05-Audit-Subsystems/13-tpms-radio.md\" target=\"_blank\">audit</a>), and on the bench the CC1101 decoded live 315 MHz frames sent by a USRP B205mini (<a href=\"../../02-firmware/bringup/RF_BENCH_TEST_LOG.md\" target=\"_blank\">bench log</a>). Still untested with your own sensors: drive with <code>rtl_433 -f 315M</code> first (v1 premortem step 1)",
       "status": "You",
       "status_keys": [
         "you"

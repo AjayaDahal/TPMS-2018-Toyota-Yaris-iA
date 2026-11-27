@@ -12,6 +12,7 @@ import serial
 
 TOOLS_DIR = Path(__file__).resolve().parent
 SIM_SCRIPT = TOOLS_DIR / "b205_sim_tpms.py"
+STATS_RE = re.compile(r"\[(\d+)\s+s\]\s+bursts\s+\d+\s+frames\s+\d+,\s+edges\s+(\d+)")
 
 
 class SerialCapture:
@@ -60,6 +61,29 @@ class SerialCapture:
 def run_sim(args_list: list[str]) -> subprocess.CompletedProcess:
     cmd = ["python3", "-s", str(SIM_SCRIPT)] + args_list
     return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def set_squelch(cap: SerialCapture, want: str) -> bool:
+    """Press 'g' until the firmware reports the RF-01 squelch gate in the wanted state (it toggles on each press)."""
+    for _ in range(2):
+        cap.drain()
+        cap.send(b"g")
+        time.sleep(0.3)
+        states = [m.group(1) for l in cap.drain() if (m := re.match(r"squelch (on|off)\b", l))]
+        if not states:
+            return False  # firmware from before the 'g' key
+        if states[-1] == want:
+            return True
+    return False
+
+
+def idle_edge_rate(lines: list[str]) -> str:
+    """Noise edges per second between the first and last 10 s stats lines (the firmware's count is cumulative)."""
+    pts = [(int(m.group(1)), int(m.group(2))) for l in lines if (m := STATS_RE.search(l))]
+    if len(pts) < 2 or pts[-1][0] <= pts[0][0]:
+        return "n/a (needs two 10 s stats lines: use --idle-sec 25 or more)"
+    (t0, e0), (t1, e1) = pts[0], pts[-1]
+    return f"{(e1 - e0) / (t1 - t0):.0f} edges/s over {t1 - t0} s"
 
 
 def run_t4_cw(cap: SerialCapture, gains: list[float]):
@@ -183,25 +207,39 @@ def main():
     p.add_argument("--label", default="T5")
     p.add_argument("--cw-gains", default="15,25,35,45")
     p.add_argument("--tx-gains", default="50,40,30,20,10,0")
+    p.add_argument("--squelch", choices=("on", "off", "both"),
+                   help="set the firmware's RF-01 RSSI squelch ('g') first; 'both' runs the idle check and T5 with it "
+                        "on, then again with it off")
     args = p.parse_args()
 
     cap = SerialCapture(args.port)
     try:
-        if args.idle_sec > 0:
-            print(f"\n=== IDLE CHECK ({args.idle_sec:.1f} s) ===")
-            cap.drain()
-            time.sleep(args.idle_sec)
-            cap.send(b"d")
-            time.sleep(0.3)
-            for l in cap.drain():
-                print(" ", l)
-        if args.t4:
-            run_t4_cw(cap, [float(x) for x in args.cw_gains.split(",")])
-        if args.t5:
-            run_t5_sweep(cap, [float(x) for x in args.tx_gains.split(",")], label=args.label)
+        for i, sq in enumerate(("on", "off") if args.squelch == "both" else (args.squelch,)):
+            tag = ""
+            if sq:
+                if not set_squelch(cap, sq):
+                    print("The ESP32 did not answer 'g': flash the bring-up build with the squelch toggle",
+                          file=sys.stderr)
+                    return 1
+                tag = f" (squelch {sq})"
+            if args.idle_sec > 0:
+                print(f"\n=== IDLE CHECK ({args.idle_sec:.1f} s){tag} ===")
+                cap.drain()
+                time.sleep(args.idle_sec)
+                cap.send(b"d")
+                time.sleep(0.3)
+                idle_lines = cap.drain()
+                for l in idle_lines:
+                    print(" ", l)
+                print(f"Idle noise: {idle_edge_rate(idle_lines)}{tag}")
+            if args.t4 and i == 0:  # CW RSSI doesn't depend on the squelch
+                run_t4_cw(cap, [float(x) for x in args.cw_gains.split(",")])
+            if args.t5:
+                run_t5_sweep(cap, [float(x) for x in args.tx_gains.split(",")], label=args.label + tag)
     finally:
         cap.close()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

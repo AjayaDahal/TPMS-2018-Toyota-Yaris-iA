@@ -54,6 +54,7 @@ int peakRssi = -200, liveRssi = -200, lastRssi = 0;
 int noiseFloor = -100, winMinRssi = 0;
 uint32_t winStartAt = 0;
 bool gateOn = false;
+bool squelch = true;      // RF-01 RSSI gate in use ('g' toggles it, to compare decode rates with and without)
 rf::Burst burst;
 rf::Frame frame, lastFrame;
 #ifndef TPMS_BENCH_BARE
@@ -139,7 +140,7 @@ void setMode(int m) {
         if (!inRx) cc.rx();                                 // not in RX yet: strobe SRX again
       }
       rf::attach(PIN_CC_GDO0);
-      rf::setGate(false);
+      if (squelch) rf::setGate(false);                      // shut until the first RSSI reading
     } else {
       rf::detach();   // no CC1101: never listen to GDO0 (after a reset it outputs a 135 kHz clock)
     }
@@ -172,9 +173,10 @@ void dumpCc1101() {
 
 void printHelp() {
 #ifdef TPMS_BENCH_BARE
-  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, h = help");
+  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, g = squelch on/off, h = help");
 #else
-  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, t = LED/buzzer test, h = help");
+  Serial.println("keys: p = next profile, r = raw pulse dump on/off, d = CC1101 register dump, g = squelch on/off, "
+                 "t = LED/buzzer test, h = help");
 #endif
   Serial.println("Profile 0 (OOK) decodes your GM/Schrader EG53MA4 sensors: wake one with the OEC-T5 tool, or drive.");
 }
@@ -385,6 +387,11 @@ void loop() {
       case 'p': setMode(mode + 1); break;
       case 'r': rawDump = !rawDump; Serial.printf("raw dump %s\n", rawDump ? "on" : "off"); break;
       case 'd': dumpCc1101(); break;
+      case 'g':
+        squelch = !squelch;
+        if (!squelch) rf::clearGate();
+        Serial.printf("squelch %s\n", squelch ? "on (RF-01 RSSI gate)" : "off (every edge captured)");
+        break;
 #ifndef TPMS_BENCH_BARE
       case 't': ledWalk(); beep(80); break;
 #endif
@@ -393,14 +400,19 @@ void loop() {
     }
   }
 
-  static uint32_t lastRssiAt = 0;
-  if (ccOk && mode < kCcModes && now - lastRssiAt >= 2) {   // track the peak RSSI while a burst arrives
-    lastRssiAt = now;
+  // RF-01 gate: read the RSSI every 0.5-1 ms, so a frame loses little preamble before the gate opens. The interval is
+  // dithered: a fixed one stays in step with the OOK chips (1 ms is ~8 EG53MA4 chips, so every reading can land on an
+  // "off" chip of the 0101... preamble and the gate opens too late)
+  static uint32_t lastRssiUs = 0, rssiGapUs = 0;
+  const uint32_t nowUs = micros();
+  if (ccOk && mode < kCcModes && nowUs - lastRssiUs >= rssiGapUs) {
+    lastRssiUs = nowUs;
+    rssiGapUs = (uint32_t)random(500, 1000);
     liveRssi = cc.rssiDbm();
     peakRssi = max(peakRssi, liveRssi);
     if (liveRssi < winMinRssi) winMinRssi = liveRssi;
     gateOn = liveRssi >= noiseFloor + 6;
-    rf::setGate(gateOn);
+    if (squelch) rf::setGate(gateOn);
     if (now - winStartAt >= 1000) {
       winStartAt = now;
       if (winMinRssi < 0) noiseFloor = (noiseFloor * 3 + winMinRssi) / 4;
@@ -429,9 +441,10 @@ void loop() {
   static uint32_t lastStats = 0;
   if (now - lastStats >= 10000) {
     lastStats = now;
-    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm, GDO2=%d, floor=%d gate=%d\n",
+    Serial.printf("[%lu s] bursts %lu frames %lu, edges %lu (noise), dropped %lu, RSSI now %d dBm, GDO2=%d, floor=%d gate=%d"
+                  " squelch=%s\n",
                   (unsigned long)(now / 1000), (unsigned long)nBursts, (unsigned long)nFrames,
                   (unsigned long)rf::edges(), (unsigned long)rf::dropped(), liveRssi,
-                  digitalRead(PIN_CC_GDO2), noiseFloor, gateOn ? 1 : 0);
+                  digitalRead(PIN_CC_GDO2), noiseFloor, gateOn ? 1 : 0, squelch ? "on" : "off");
   }
 }

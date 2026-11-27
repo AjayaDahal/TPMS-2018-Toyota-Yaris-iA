@@ -70,6 +70,7 @@ class RfBenchManager:
             "baud": 115200,
             "error": "",
             "raw_dump": False,
+            "squelch": None,
             "mode_idx": 0,
             "mode_name": "OOK bw203k 16kBd",
             "cc_ok": None,
@@ -202,7 +203,7 @@ class RfBenchManager:
                     ser.rts = False
                     self._append_serial("[viewer] ESP32 hardware reset pulsed", "sys")
                     return {"ok": True}
-                if cmd in ("d", "p", "r", "h"):
+                if cmd in ("d", "p", "r", "g", "h"):
                     ser.write(cmd.encode("ascii"))
                     ser.flush()
                     return {"ok": True}
@@ -350,6 +351,8 @@ class RfBenchManager:
                 self.esp["rssi_dbm"] = rssi
                 if gdo2 is not None:
                     self.esp["gdo2"] = gdo2
+                if sq := re.search(r"squelch=(on|off)", line):   # firmware with the 'g' toggle appends this
+                    self.esp["squelch"] = sq.group(1)
                 kind = "stat"
 
             elif m := re.search(
@@ -381,6 +384,9 @@ class RfBenchManager:
                 kind = "cc"
             elif "raw dump off" in line:
                 self.esp["raw_dump"] = False
+                kind = "cc"
+            elif m := re.match(r"squelch (on|off)\b", line):
+                self.esp["squelch"] = m.group(1)
                 kind = "cc"
             elif re.search(r"pulses=\d+|^\s*(MAN|DMAN|chips|raw)\b", line):
                 self.rx_other.appendleft({"ts": now_hms(), "line": line.strip()})

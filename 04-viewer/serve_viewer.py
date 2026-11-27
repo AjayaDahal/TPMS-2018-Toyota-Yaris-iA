@@ -2,7 +2,9 @@
 
 Only files that belong to the repository are served: tracked files and new files git doesn't ignore
 (`git ls-files --cached --others --exclude-standard`). Git-ignored personal files and build output are never served,
-and requests must carry a localhost Host header (a web page can't read the files through DNS rebinding).
+and requests must carry a localhost Host header (a web page can't read the files through DNS rebinding). The RF
+bench API also refuses cross-site POSTs (a foreign Origin, or a body that isn't JSON), so another tab can't drive the
+transmitter.
 """
 import argparse
 import json
@@ -84,6 +86,19 @@ class Handler(SimpleHTTPRequestHandler):
         host = (self.headers.get("Host") or "").lower()
         return host in {f"127.0.0.1:{self.port}", f"localhost:{self.port}", f"[::1]:{self.port}"}
 
+    def post_ok(self):
+        """Refuse cross-site requests to the RF bench API (CSRF): a web page in another tab could otherwise key the
+        USRP transmitter or type into the ESP32. Browsers add Origin to every cross-site POST, and only form-style
+        content types skip the CORS preflight (which this server never answers), so require both a local Origin (if
+        any) and a JSON body. Returns the HTTP error code, or 0 when the request may proceed."""
+        origin = self.headers.get("Origin")
+        if origin is not None and origin.lower() not in {f"http://127.0.0.1:{self.port}",
+                                                        f"http://localhost:{self.port}", f"http://[::1]:{self.port}"}:
+            return 403
+        if not (self.headers.get("Content-Type") or "").lower().startswith("application/json"):
+            return 415
+        return 0
+
     def send_json(self, code, payload):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(code)
@@ -94,8 +109,13 @@ class Handler(SimpleHTTPRequestHandler):
 
     def read_json_body(self):
         length = int(self.headers.get("Content-Length") or "0")
+        if length > 65536:
+            raise ValueError("body too large")
         raw = self.rfile.read(length) if length > 0 else b"{}"
-        return json.loads(raw.decode("utf-8") or "{}")
+        data = json.loads(raw.decode("utf-8") or "{}")
+        if not isinstance(data, dict):
+            raise ValueError("expected a JSON object")
+        return data
 
     def do_GET(self):
         if urlsplit(self.path).path == "/api/rf/state":
@@ -110,6 +130,10 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.host_ok():
             self.send_error(421)
             return
+        if code := self.post_ok():
+            self.send_json(code, {"ok": False, "error": "Cross-site request refused" if code == 403
+                                  else "Content-Type must be application/json"})
+            return
         path = urlsplit(self.path).path
         try:
             data = self.read_json_body()
@@ -118,7 +142,12 @@ class Handler(SimpleHTTPRequestHandler):
             return
 
         if path == "/api/rf/connect":
-            res = self.rf_bench.connect(data.get("port", ""), int(data.get("baud", 115200)))
+            try:
+                baud = int(data.get("baud", 115200))
+            except (TypeError, ValueError):
+                self.send_json(400, {"ok": False, "error": "baud must be an integer"})
+                return
+            res = self.rf_bench.connect(data.get("port", ""), baud)
             self.send_json(200 if res.get("ok") else 400, res)
         elif path == "/api/rf/disconnect":
             self.send_json(200, self.rf_bench.disconnect())

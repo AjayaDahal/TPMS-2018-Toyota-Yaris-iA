@@ -294,7 +294,7 @@ export function createRfBenchUI() {
     kRx.innerHTML = `<strong>${sum.rx_total_frames ?? 0} decoded</strong><span>${pct} (${sum.tx_matched_frames ?? 0} matched)</span>`;
 
     const kNoise = document.getElementById("rf-kpi-noise");
-    kNoise.innerHTML = `<strong>${(esp.edges ?? 0).toLocaleString()} edges</strong><span>bursts ${esp.bursts ?? 0} · drop ${esp.dropped ?? 0}</span>`;
+    kNoise.innerHTML = `<strong>${(esp.edges ?? 0).toLocaleString()} edges</strong><span>bursts ${esp.bursts ?? 0} · drop ${esp.dropped ?? 0} · squelch ${esc(esp.squelch ?? "—")}</span>`;
 
     // Register dump table
     const regsEl = document.getElementById("rf-regs-dl");
@@ -399,6 +399,7 @@ export function createRfBenchUI() {
   document.getElementById("rf-btn-dump").onclick = () => postJson("/api/rf/cmd", { cmd: "d" }).then(poll);
   document.getElementById("rf-btn-profile").onclick = () => postJson("/api/rf/cmd", { cmd: "p" }).then(poll);
   document.getElementById("rf-btn-raw").onclick = () => postJson("/api/rf/cmd", { cmd: "r" }).then(poll);
+  document.getElementById("rf-btn-squelch").onclick = () => postJson("/api/rf/cmd", { cmd: "g" }).then(poll);
   btnProbe.onclick = async () => {
     usrpStatus.textContent = "Scanning UHD devices...";
     await postJson("/api/rf/probe-usrp");

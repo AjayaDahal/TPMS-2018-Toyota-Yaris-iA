@@ -179,7 +179,7 @@ Can OBD-II replace the indicator taps? Not well, but it can feed the speed gate.
 |---|---|---|---|---|
 | R1 | The 433 MHz-tuned radio loses ~10 dB at 315 MHz; rear wheels drop out | Medium | Most of that loss is the **antenna**: a 433 MHz quarter-wave whip used at 315 MHz loses 9.5–11.7 dB, while the module's 433 MHz matching costs only ~0.2–0.5 dB if it follows TI's reference ([audit RF-09](../05-Audit-Subsystems/13-tpms-radio.md)). Use a 315 MHz quarter-wave antenna (~23 cm). A 315 MHz-tuned module with the same 2 × 4 pinout (~$3) is worth it only if an RSSI A/B test shows a gain. Check RSSI per wheel | Buy + You |
 | R2 | The Pi 4, its USB 3 ports, the display and the regulator raise the 315 MHz noise floor; the TS-7's HDMI flat cable is unshielded and carries broadband TMDS data at ~0.5 Gb/s per lane | Medium-High | The antenna leaves the enclosure: CC1101 → short RG316 → SMA bulkhead in the box wall → 30 cm RG316 → whip away from the Pi; cameras on the USB 2.0 ports; ferrites. Buy a shielded HDMI flat cable if you can find one; keep it short and away from the CC1101 and its lead. Compare the noise floor with everything on and off | You (B6) |
-| R3 | The EG53MA4 decoder fails on real frames | Medium | Not yet tested on a real capture: drive with `rtl_433 -f 315M` first (v1 premortem step 1) | You |
+| R3 | The EG53MA4 decoder fails on real frames | Medium | Decodes 64 of 64 real frames from rtl_433's SDR captures ([audit](../05-Audit-Subsystems/13-tpms-radio.md)), and on the bench the CC1101 decoded live 315 MHz frames sent by a USRP B205mini ([bench log](../02-firmware/bringup/RF_BENCH_TEST_LOG.md)). Still untested with your own sensors: drive with `rtl_433 -f 315M` first (v1 premortem step 1) | You |
 
 ### Safety and nuisance
 

@@ -94,8 +94,8 @@ Per [`CC1101_E07-M1101D_Socket.kicad_mod`](../../01-hardware/lib/TPMS.pretty/CC1
 | **T2** | CC1101 SPI bring-up & 315 MHz RX state | `PARTNUM 0x00`, `VERSION 0x14`/`0x04`/`0x17`/`0x03`, `MARCSTATE 0x0D` (RX) | ✅ **PASS** (`PARTNUM=0x00`, `VERSION=0x14` TI chip, `MARCSTATE=0x0D`, registers verified) |
 | **T3** | Idle 315 MHz noise floor & edge rate | Baseline `noise floor` (dBm) and 10 s idle `edges` count recorded | ✅ **MEASURED** (noise floor `-87` to `-89 dBm`, `26572 edges / 10 s`, `163 bursts`, `dropped=0`, `GDO2=1` at idle) |
 | **T4** | USRP B205mini detection & 315 MHz CW RSSI / GDO2 check | `uhd_find_devices` detects B205mini; low-power 315.000 MHz CW raises CC1101 `rssiDbm()` & `GDO2` on the 433 MHz-labeled E07 | ✅ **PASS** (user bench session: RSSI jumped from `-90 dBm` idle to `-73 dBm` peak during `25 dB` TX bursts on the 433 MHz-labeled E07) |
-| **T5** | Simulated Schrader EG53MA4 ASK/OOK TX → E07 RX decode | B205mini transmits synthetic EG53MA4 frame (40-bit zero preamble + 80-bit payload, Manchester 123 µs half-bit); ESP32 decodes exact ID / pressure / temp / flags & logs RSSI sweep | ⚠️ **Partial (2/60 decodes pre-fix; ready for re-test)** — `ID 123456` decoded cleanly (`31.9 psi`, `77 F`, `-73 dBm`), other bursts fragmented by untimed UHD TX underflows; TX script fixed (`500 kS/s` timed) |
-| **T6** | Carrier-sense gating & noise rejection (**RF-01**) | Reduce idle noise bursts/edges without losing sensitivity | ✅ **IDLE VERIFIED** — hardware `AGCCTRL1/2` CS (`0x03/0x07`, `0x04/0x07`) stayed `GDO2=1` at `-91 dBm`; adaptive `noiseFloor + 6 dB` RSSI squelch gate dropped idle noise from `~27,842 edges / 10 s` (`162 bursts`) to **`80 edges / 10 s` (`1 burst`)** (`99.7%` reduction) |
+| **T5** | Simulated Schrader EG53MA4 ASK/OOK TX → E07 RX decode | B205mini transmits synthetic EG53MA4 frame (40-bit zero preamble + 80-bit payload, Manchester 123 µs half-bit); ESP32 decodes exact ID / pressure / temp / flags & logs RSSI sweep | ⚠️ **Partial (2/60 decodes pre-fix; ready for re-test)** — `ID 123456` decoded cleanly (`31.9 psi`, `77 F`, `-73 dBm`), other bursts fragmented by untimed UHD TX underflows; TX script fixed (`500 kS/s` timed). Re-test with the squelch on and off (Entry #5) |
+| **T6** | Carrier-sense gating & noise rejection (**RF-01**) | Reduce idle noise bursts/edges without losing sensitivity | ✅ **IDLE VERIFIED** — hardware `AGCCTRL1/2` CS (`0x03/0x07`, `0x04/0x07`) stayed `GDO2=1` at `-91 dBm`; adaptive `noiseFloor + 6 dB` RSSI squelch gate dropped idle noise from `~27,842 edges / 10 s` (`162 bursts`) to **`80 edges / 10 s` (`1 burst`)** (`99.7%` reduction). ⚠️ Decoding with the gate on is untested, and the review changed its timing (40 ms hold, dithered 0.5–1 ms RSSI reads): re-test both halves (Entry #5) |
 
 ---
 
@@ -141,3 +141,50 @@ Per [`CC1101_E07-M1101D_Socket.kicad_mod`](../../01-hardware/lib/TPMS.pretty/CC1
   3. **RF-01 adaptive RSSI squelch gate** ([`src/rf.h`](src/rf.h), [`src/rf_capture.cpp`](src/rf_capture.cpp), [`src/main.cpp`](src/main.cpp)): Restored TI DN022 `AGCCTRL2/1/0 = 0x03/0x00/0x91` for full sensitivity and gated `onEdge()` in `rf_capture.cpp` whenever `liveRssi >= noiseFloor + 6 dB` (`5 ms` holdover across gaps). Idle noise dropped from `~27,842 edges / 10 s` (`162 bursts`) to **`80 edges / 10 s` (`1 burst`)** (`floor=-90 dBm`, `gate=0`).
   4. [`04-viewer/viewer/index.html`](../../04-viewer/viewer/index.html): Raised default B205mini TX gain slider from `25` to `35 dB`.
 - **Next action:** Hard-refresh the viewer (`http://127.0.0.1:28778/viewer/`), ensure the B205mini is connected on USB 3.0, and re-test all 4 presets (`FL 123456`, `FR ABCDEF`, `RL 2FC871`, `RR 3495AC`).
+
+### Entry #5 — 2026-11-27 (Review: the Squelch Could Cut Frames, the RF Bench API Was Open to Other Web Pages; A/B Tooling)
+- **Reviewed:** commits `714ff24` and `516cfd7` (bench env, B205mini tools, viewer RF Bench, timed TX fix, RF-01 squelch) against T1–T6 above. The bench work holds up: T1–T4 are clean, the T5 fragments are explained by the USRP underflows, and the squelch's idle result is real. Two problems found, both fixed:
+- **1. The squelch could cut frames ([RF-17](../../05-Audit-Subsystems/13-tpms-radio.md)).** The gate read the RSSI every 2–3 ms (`millis()` ≥ 2 in `loop()`) and stayed open only 5 ms past the last reading above `floor + 6 dB`.
+  - A Manchester OOK frame is "on" for half its chips, so a reading that lands on an "off" chip can return the noise floor.
+  - A fixed reading period also stays in step with the preamble's 123 µs chips: 1 ms is ~8 chips, so the readings keep landing on the same chip phase.
+  - The gate then shuts mid-frame, and the dropped edges break the pulse/gap alternation. T6 measured idle noise only, so this couldn't show yet.
+  - Simulated worst case, 4,000 frames per cell. The RSSI follows the chip envelope, and a frame counts only if the gate opens within its first 20 preamble bits (what [`eg53ma4.cpp`](src/eg53ma4.cpp) tolerates) and then stays open:
+
+    | RSSI read every | Hold 5 ms | Hold 40 ms | Hold 40 ms, sensor chips 118 / 128 µs |
+    |---|---|---|---|
+    | 2–3 ms (as benched) | 2.5 % | 69 % | 83 / 67 % |
+    | 1–2 ms | 9 % | 84 % | 98 / 65 % |
+    | 0.5–1 ms, dithered (**now**) | 77 % | **98 %** | 98 / 99 % |
+
+    With dithered reads, a 10 ms hold already gives 98 % and 20 ms 98 %. The remaining 2 % are gates that open after the 20th preamble bit.
+  - If the CC1101's RSSI averages over a few chips instead, the gate never sees the "off" chips and every row passes. That is likely at −73 dBm, where a 50 % duty frame still reads ~13 dB over the floor. The A/B re-test below shows which case the hardware is.
+  - **Fix:**
+    - [`src/rf_capture.cpp`](src/rf_capture.cpp): `kGateHoldUs` from 5 ms to **40 ms**, longer than a ~30 ms frame. A frame that opens the gate in its preamble then passes whole, whatever its RSSI does.
+    - [`src/main.cpp`](src/main.cpp): the RSSI is read every **0.5–1 ms with a random interval** (`micros()`), so the reads can't stay in step with the chips.
+    - New key **`g`**: squelch on/off (on after reset). The 10 s stats line ends with `squelch=on|off`.
+    - The noise-floor estimate and the +6 dB threshold are unchanged.
+  - **The cost, to measure:**
+    - Each spurious opening now lets in up to 40 ms of noise (~100 edges), and the RSSI is read about twice as often. Expect more idle edges than the first version's 80 / 10 s; the target is still a large cut from ~27,800.
+    - If it lets in too much, drop `kGateHoldUs` to 20 ms (still 98 % in the simulation above).
+  - **Built (PlatformIO 6.2.0, espressif32 6.13.0, 0 warnings):** `bench-cc1101` RAM 12.6 % (41,180 B) / Flash 21.7 % (284,809 B); `esp32doit-devkit-v1` RAM 13.1 % (43,060 B) / Flash 22.9 % (300,053 B).
+- **2. Any web page could drive the bench ([VW-22](../../05-Audit-Subsystems/15-viewer-and-tooling.md)).**
+  - The `/api/rf/*` POSTs checked only the `Host` header and parsed the body as JSON whatever its type.
+  - While the viewer ran, a page in another browser tab could send a "simple" cross-site POST (`text/plain`, no CORS preflight). That could start the B205mini transmitting at up to 55 dB gain, or send keys and reset pulses to the ESP32.
+  - **Fix in [`serve_viewer.py`](../../04-viewer/serve_viewer.py):**
+    - POSTs must be `Content-Type: application/json` (415 otherwise). A cross-site JSON POST needs a CORS preflight, which the server never grants.
+    - POSTs that carry an `Origin` must come from the viewer's own address (403 otherwise).
+    - A non-integer baud or a non-object body returns 400 instead of a traceback.
+  - **Verified:** 17 HTTP probes passed, and in the browser the RF Bench tab's own buttons still work.
+- **A/B tooling for the re-test:**
+  - **Viewer:** the RF Bench tab has a **Toggle Squelch (g)** button, and the Demod Activity card shows `squelch on/off`. The backend now passes `g` through and parses the state.
+  - [`tools/run_bench_tests.py`](tools/run_bench_tests.py) `--squelch on|off|both` sets the squelch with `g` before the idle check and T5. `both` runs the pair twice.
+  - The idle check now prints the edge rate per second, taken between two 10 s stats lines (the `edges` counter is cumulative since boot).
+- **Re-test (T5b / T6b), on your Linux bench:**
+  1. Flash: `pio run -d 02-firmware/bringup -e bench-cc1101 -t upload`. The boot banner's key list should include `g = squelch on/off`.
+  2. Keep the B205mini over the air at ≥ 40–50 dB separation. Use a 315 MHz quarter-wave (~23 cm) on the E07 if you have one (RF-09).
+  3. In `02-firmware/bringup`, run `python3 tools/run_bench_tests.py --idle-sec 25 --t5 --squelch both`.
+  4. **Pass:** with the squelch on, T5 decodes as many frames as with it off (within 1 per 10) at every gain that decodes. Idle edges/s with it on should be ≥ 90 % below the off run.
+  5. In the viewer, with the squelch on, send all 4 presets (`123456`, `ABCDEF`, `2FC871`, `3495AC`) at 35 dB. Each should show a matched RX.
+  6. **If decodes drop with the squelch on:** watch the RSSI during frames (`d` dumps). Try a +4 dB threshold before anything else.
+  7. **If idle noise is too high:** shorten the hold to 20 ms.
+  8. Then port the gate, as tuned, to the v2 receiver (RF-01).

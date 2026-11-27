@@ -130,7 +130,7 @@ def check_js(tmp):
     if not shutil.which("node"):
         return record("viewer JavaScript syntax", None, "node not installed")
     errs = []
-    files = ("app.js", "car_scene.js", "pcb6_scene.js", "products_scene.js")
+    files = sorted(p.name for p in (ROOT / "04-viewer" / "viewer").glob("*.js"))   # the app's modules (not vendor/)
     for f in files:
         dst = pathlib.Path(tmp) / (f[:-3] + ".mjs")
         shutil.copy(ROOT / "04-viewer" / "viewer" / f, dst)

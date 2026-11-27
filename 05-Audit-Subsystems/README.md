@@ -45,12 +45,12 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 | 10 | [Enclosure and thermal](10-enclosure-and-thermal.md) | Watch | 0 / 2 / 8 / 3 / 1 | 1 | Heat (ENC-01); the TS-7's real size (ENC-03); the USB passthrough and the trim beside the opening are unmeasured (ENC-13) |
 | 11 | [Carrier PCB](11-carrier-pcb.md) | Watch | 0 / 1 / 14 / 8 / 2 | 19 (carrier design) | Ready to order; the quote must read 100 × 100 mm, and check the polarized parts in JLCPCB's placement preview (PCB-P2) |
 | 12 | [Vehicle integration](12-vehicle-integration.md) | Watch | 0 / 0 / 7 / 2 / 1 | — | ACC during cranking (VEH-01); the repeater wire (VEH-07) |
-| 13 | [TPMS radio](13-tpms-radio.md) | Watch | 0 / 1 / 9 / 5 / 1 | 9 | No carrier-sense gating: noise can swamp the decoder in the car (RF-01) |
+| 13 | [TPMS radio](13-tpms-radio.md) | Watch | 0 / 1 / 10 / 5 / 1 | 10 | The bench's RSSI squelch is proven on idle noise only: decode with it on, then port it to the v2 app (RF-01, RF-17) |
 | 14 | [v1 panel](14-v1-panel.md) | Watch | 0 / 0 / 4 / 10 / 1 | 7 | The regulator's heatsink pour is split (V1-01): fix before ordering |
-| 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 10 / 10 / 0 | 16 | Hand-copied keep-outs in the viewer (VW-14) |
+| 15 | [Viewer and tooling](15-viewer-and-tooling.md) | Sound | 0 / 1 / 11 / 10 / 0 | 17 | Hand-copied keep-outs in the viewer (VW-14) |
 | 16 | [Safety and legal](16-safety-and-legal.md) | Watch | 0 / 1 / 5 / 6 / 0 | 1 | Trusting an untested aid (SAF-01) |
 | 17 | [Project and repository](17-project-and-repo.md) | Sound | 0 / 0 / 4 / 3 / 1 | 2 | The plan was matched against an old inventory (PRJ-03) |
-| | **Total** | | **1 / 18 / 105 / 68 / 15** (207) | **81** | |
+| | **Total** | | **1 / 18 / 107 / 68 / 15** (209) | **83** | |
 
 **Since the audit:**
 - The TS-7 redesign closed 7 more findings (DSP-01, DSP-02, DSP-03, DSP-05, DSP-08, ENC-02, PI-03) and added 3 (DSP-10, DSP-11, RF-16).
@@ -59,6 +59,7 @@ The [v2 premortem](../00-project-management/PREMORTEM_v2.md) remains the plan of
 - The final pre-order audit (2026-11-27) added 5 carrier findings and fixed them all: the board read as 100.1 × 100.1 mm (PCB-20), C104's hand-soldered GND pad sat solid on the planes (PCB-21), an off-board pin-1 mark (PCB-22), J4 still labelled "POD" (PCB-23), a low cost estimate and buy lists without the hand-soldered power parts (PCB-24). It also corrected 11 stale counts and the "not ready to order" status in three READMEs, and added the doc-count check to `run_checks.py` (PRJ-04, partly fixed).
 - The Pi ↔ ESP32 expansion (2026-11-27, your request) added 4. Three are fixed: the expansion itself, with the Pi's I2C6 switched onto the carrier bus by its GPIO18 (LNK-08); a trap caught in its design, where the usual I2C1 would have let the ESP32's polling wake a halted Pi (LNK-09); and the board change, with J6 to GH-6 and four parts (PCB-25). The fourth, one-master-at-a-time on the I2C bus (LNK-10), is open until the firmware's hand-over exists.
 - The back's signature (2026-11-27: the AjayaDesign logo and the dedication on the bottom silkscreen) turned up one viewer bug and fixed it: the Bottom (L6) view showed a mirror image of the underside (VW-21). The board's copper, mask, paste and drill files are unchanged, checked geometrically.
+- Your first 315 MHz bench session (2026-11-26, [bench log](../02-firmware/bringup/RF_BENCH_TEST_LOG.md)) ran the real CC1101 for the first time. It decoded simulated EG53MA4 frames over the air from a USRP B205mini, and an RSSI squelch cut the idle noise edges by 99.7 % (RF-01, now partly fixed). Reviewing it (2026-11-27) added 2 findings and fixed both. The squelch's 5 ms hang time and fixed reading period could cut frames (RF-17). Any web page could drive the RF bench's transmitter through the viewer's API (VW-22).
 
 The counts above include all of them.
 
@@ -74,7 +75,7 @@ Ranked by what they would cost if ignored. The Pi's 5 V margin (PWR-01) and the 
 
    Test both purchased cameras at once on the day they arrive.
 3. **The TS-7's real size** ([DSP-10](09-display-and-ui.md), [ENC-03](10-enclosure-and-thermal.md)). SunFounder lists 121 mm; its photos say ~124.4 mm, and the bezel fills the console opening's height with the photo value. Measure the display and lay it on the fit template before printing anything.
-4. **TPMS in a noisy car** ([RF-01](13-tpms-radio.md), [RF-16](13-tpms-radio.md)). Without carrier-sense gating, the demodulator's noise can keep bursts from ever ending, and the TS-7's HDMI flat cable is a new noise source. Watch the edge counter on the bench (B6), before writing the v2 app.
+4. **TPMS in a noisy car** ([RF-01](13-tpms-radio.md), [RF-16](13-tpms-radio.md), [RF-17](13-tpms-radio.md)). The bench confirmed it: ~2,700 noise edges/s while idle, with the CC1101's own carrier sense stuck on. The bring-up's RSSI squelch cuts that by 99.7 %, but it must still be shown to decode with the squelch on, then go into the v2 app. The TS-7's HDMI flat cable is a new noise source: watch the edge counter in B6.
 5. **Updating the ESP32 after install** ([ESP-01](02-esp32-controller.md), [PCB-02](11-carrier-pcb.md)). The board leaves the DevKit's USB reachable with the lid off; without a Wi-Fi update mode, every firmware fix still means opening the box.
 6. **The first carrier boards on the bench** ([PCB-13](11-carrier-pcb.md), [PWR-P6](01-power-and-protection.md)). AM-band noise and the Pi buck's heat only show on a built board. Bring it up on a current-limited supply; the rework table has a fix for each.
 7. **Trust** ([SAF-01](16-safety-and-legal.md)). Run the first month with the buzzer muted and log every alert, so the miss and false-alarm rates are known.

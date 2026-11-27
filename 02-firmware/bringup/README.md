@@ -43,6 +43,7 @@ The CC1101 is only ever put in receive mode; this firmware never transmits.
    - Close to −100 dBm means the antenna needs a better spot (use an SMA extension, keep it away from metal).
 7. Frames from other cars' sensors (other IDs) are normal; the application will ignore IDs it hasn't learned.
 8. Bursts that aren't EG53MA4 frames are printed as `MAN` / `DMAN` / `chips` bit dumps. Send `r` to also print raw pulse widths.
+9. The squelch is on after reset: the capture ignores the demodulator while the RSSI is less than 6 dB over the noise floor, which keeps idle noise from swamping the decoder ([RF-01](../../05-Audit-Subsystems/13-tpms-radio.md)). If a weak wheel never decodes, send `g` to turn it off and compare. The 10 s status line ends with `squelch=on` or `off`.
 
 If no EG53MA4 frame ever appears but `chips` dumps do, send `r` to capture the raw pulse widths. Then compare them with `rtl_433 -f 315M -A` on your RTL-SDR.
 

@@ -13,7 +13,12 @@ namespace {
 
 constexpr uint32_t kRing = 4096;        // power of two
 constexpr uint32_t kGapUs = 2500;       // a quiet period longer than this ends a burst
-constexpr uint32_t kGateHoldUs = 5000;  // keep gate open 5 ms past last strong RSSI so gaps stay intact
+// RF-01 squelch hang time: the gate stays open this long after the last RSSI reading above the threshold. In Manchester
+// OOK the RSSI can read at the noise floor on every "off" chip, so the hold outlasts a whole frame (EG53MA4: 120 bits
+// of 246 us, ~30 ms): a frame that opens the gate in its preamble then passes intact however its RSSI readings fall.
+// Simulated worst case (RSSI following the chips, readings every 0.5-1 ms): ~98 % of frames intact, against 2-5 % with
+// the first gate's 5 ms hold and 2 ms readings.
+constexpr uint32_t kGateHoldUs = 40000;
 constexpr uint16_t kGlitchUs = 15;      // shorter pulses are folded into their neighbours
 constexpr int kMinBurst = 40;           // shorter bursts are treated as noise
 
