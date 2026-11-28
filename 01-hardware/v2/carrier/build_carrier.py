@@ -2131,10 +2131,16 @@ def fit_rotation(kicad_pads, jlc, sym):
     jp = _pad_centres([[n, x, y] for n, x, y in jlc["pads"]])
     pairs = []
     if sym in POLARITY:
-        names = {v.strip().upper(): k for k, v in jlc["names"].items()}
+        alias = {"+": "A", "ANODE": "A", "-": "K", "−": "K", "CATHODE": "K", "C": "K"}
+        names = {}
+        for k, v in jlc["names"].items():
+            v = v.strip().upper()
+            names[alias.get(v, v)] = k
         k_num, a_num = names.get("K"), names.get("A")
-        if k_num is None or a_num is None:            # fall back: cathode is usually pad 1
-            k_num, a_num = "1", "2"
+        if k_num is None or a_num is None:
+            if set(jlc["names"].values()) != {"1", "2"}:  # unknown names on a polarised part: don't guess
+                raise SystemExit(f"polarity: can't tell anode from cathode in JLC footprint names {jlc['names']}")
+            k_num, a_num = "1", "2"                    # bidirectional TVS (pads named 1/2): either way
         pairs = [[("1", k_num), ("2", a_num)]]
     else:
         common = sorted(set(kp) & set(jp))

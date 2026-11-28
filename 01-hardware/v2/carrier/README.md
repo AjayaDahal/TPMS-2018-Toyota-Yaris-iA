@@ -53,7 +53,7 @@ Every ESP32 signal passes a series resistor next to its DevKit pin. It limits fa
    Every line (**51 BOM lines** and **169 placements**: 41 basic + 4 preferred + 6 extended) should match its LCSC part, with **no line marked unmatched or "not placed"**. The 8 hand-soldered SMD parts (7 power parts plus the TMP75), the 5 THT connectors, and the DNP rework options are in `tpms_v2_carrier_hand_solder_and_dnp.csv`.
 3. **Placement preview:** check every polarized part before you confirm:
    - the diodes: SS56C at D201/D301, SS14 at D304, the 1N4148Ws; the SMCJ24CA at D101 and SMBJ6.0CA at D203/D302 are bidirectional, so either way is fine;
-   - the LEDs: D102, D204, D303, D305, D501, D503, D505;
+   - the LEDs: D102, D204, D303, D305, D501, D503, D505. JLCPCB marks the cathode `−` and the anode `+`; the `−` must sit on the silkscreen's cathode side (the yellow D303/D501/D503 were 180° off before [PCB-30](../../../05-Audit-Subsystems/11-carrier-pcb.md));
    - pin 1 of every IC: U101, U201, U202, U301, U302, U501–U503, U802 (U801 is hand-soldered);
    - the three inductors L101, L201, L301 are unpolarized.
 
