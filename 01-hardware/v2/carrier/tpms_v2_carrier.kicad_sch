@@ -8017,7 +8017,7 @@
 				)
 			)
 		)
-		(property "MPN" "-60V P-MOSFET TO-252 DPAK, <=25 mOhm (LCSC C7503186, UMW SUD50P06-15 / Vishay SUD50P06-15-GE3 or SQD50P06-15L_GE3)"
+		(property "MPN" "-60V P-MOSFET TO-252 DPAK, <=25 mOhm, G-D(tab)-S (LCSC C7503186 UMW SUD50P06-15, or Vishay SUD50P06-15-GE3)"
 			(at 123.19 54.61 0)
 			(hide yes)
 			(effects
@@ -8725,7 +8725,16 @@
 				)
 			)
 		)
-		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)"
+		(property "LCSC" "C408485"
+			(at 86.36 74.93 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "Sunlord MWSA1004S-6R8MT"
 			(at 86.36 74.93 0)
 			(hide yes)
 			(effects
@@ -9625,7 +9634,7 @@
 				)
 			)
 		)
-		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)"
+		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)"
 			(at 92.71 81.28 0)
 			(hide yes)
 			(effects
@@ -13168,7 +13177,16 @@
 				)
 			)
 		)
-		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)"
+		(property "LCSC" "C408485"
+			(at 30.48 144.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "Sunlord MWSA1004S-6R8MT"
 			(at 30.48 144.78 0)
 			(hide yes)
 			(effects
@@ -16560,7 +16578,7 @@
 				)
 			)
 		)
-		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)"
+		(property "MPN" "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)"
 			(at 148.59 166.37 0)
 			(hide yes)
 			(effects
@@ -21172,7 +21190,16 @@
 				)
 			)
 		)
-		(property "MPN" "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)"
+		(property "LCSC" "C408485"
+			(at 142.24 251.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "Sunlord MWSA1004S-6R8MT"
 			(at 142.24 251.46 0)
 			(hide yes)
 			(effects
@@ -41052,16 +41079,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C30389"
-			(at 260.35 229.87 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "TI TMP75AIDR"
+		(property "MPN" "TMP75AIDR temperature sensor, SOIC-8 (LCSC C30389, or TI TMP75AIDR from DigiKey/Mouser)"
 			(at 260.35 229.87 0)
 			(hide yes)
 			(effects

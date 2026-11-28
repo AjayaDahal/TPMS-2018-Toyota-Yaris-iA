@@ -457,16 +457,16 @@
       "qty": 2,
       "inv_stock": 0,
       "cost_usd": 52,
-      "notes": "JLCPCB Economic PCBA under-$59 hybrid (167 placements, 51 BOM lines: 41 basic + 4 preferred ($0 fee) + 6 extended lines — TPS54560B bucks, INA226 monitors, TMP75, TCA9534, JST-GH). Keeping the 10 chunky 2/3-pad SMD power parts (6 lines) off PCBA drops JLCPCB merchandise from $76.10 to ~$52–$55 (< $59.00), unlocking Global Standard Direct Line (~$5–$10 shipping instead of $91 in forced UPS Express DDP shipping + duties). Files in 03-manufacturing/v2_carrier"
+      "notes": "JLCPCB Economic PCBA under-$59 hybrid (169 placements, 51 BOM lines: 41 basic + 4 preferred ($0 fee) + 6 extended lines — TPS54560B bucks, 6.8 µH inductors, INA226 monitors, TCA9534, JST-GH). Keeping 8 SMD parts (7 chunky power parts + the TMP75) off PCBA keeps JLCPCB merchandise at ~$53–$57 instead of $76.10 (< $59.00), unlocking Global Standard Direct Line (~$5–$10 shipping instead of $91 in forced UPS Express DDP shipping + duties). Files in 03-manufacturing/v2_carrier"
     },
     {
-      "item": "Carrier hand-solder SMD power parts (DigiKey US or LCSC)",
+      "item": "Carrier hand-solder SMD parts (LCSC, exact parts)",
       "category": "Harness",
       "source": "BUY",
       "qty": 1,
       "inv_stock": 0,
-      "cost_usd": 25,
-      "notes": "For 2 boards (~$18–$20 + $6.99 USPS from DigiKey US, or ~$4–$5 + shipping from LCSC): 2 × 47 µF/50 V 6.3×7.7 electrolytic (C970679 / EEE-FK1H470P or lab bin), 2 × 4 A NANO2 fuse (0451004.MRL), 4 × 0.5 A/60 V 1812 PTC (mSMD050-60V), 6 × 6.8 µH 10×10 inductor (MWSA1004S-6R8MT / Bourns SRP1038A-6R8M), 2 × -60 V ≤25 mΩ TO-252 P-FET (SUD50P06-15 / Vishay SQD50P06-15L_GE3), 4 × 10 mΩ 2512 shunt (RLM25FEER010 / CSR2512FK10L0). Keeps JLCPCB order < $59 to save ~$80–$90 in shipping/duties"
+      "cost_usd": 12,
+      "notes": "For 2 boards, one LCSC order of the exact parts (~$5–$6 + shipping; LCSC minimums may apply): 2 × 47 µF/50 V 6.3×7.7 electrolytic C970679, 2 × 4 A NANO2 fuse 0451004.MRL C27515, 4 × 0.5 A/60 V 1812 PTC mSMD050-60V C70113, 2 × -60 V TO-252 P-FET SUD50P06-15 C7503186, 4 × 10 mΩ 2512 shunt RLM25FEER010 C192580, 2 × TMP75AIDR SOIC-8 C30389; plus 1–2 spares each. No substitutes. The 6.8 µH inductors (C408485) are JLCPCB-assembly-only stock, so JLCPCB places them. Keeps JLCPCB order < $59 to save ~$80–$90 in shipping/duties"
     },
     {
       "item": "Connectors and leads from the lab: elechawk GH1.25 → Dupont pigtails, blue 2-pole screw terminals, header strips, the 40-pin GPIO ribbon, Preciva Dupont kit + PR-3254 crimper",
@@ -684,7 +684,7 @@
     },
     {
       "id": "buy_pwr",
-      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): under-$59 hybrid — 167 placements, 51 BOM lines (6 extended + 4 preferred + 41 basic); keeps merchandise < $59.00 so Global Standard Direct Line unlocks (saving ~$80–$90 over forced UPS Express DDP)",
+      "text": "Carrier assembly at JLCPCB (Economic PCBA, 2 of 5 boards): under-$59 hybrid — 169 placements, 51 BOM lines (6 extended + 4 preferred + 41 basic); keeps merchandise < $59.00 so Global Standard Direct Line unlocks (saving ~$80–$90 over forced UPS Express DDP)",
       "cost": "~$52 (setup, stencil, 6 extended fees, parts; ~$44–49 w/ coupon; the $2 boards are their own line)"
     },
     {
@@ -694,8 +694,8 @@
     },
     {
       "id": "buy_conn",
-      "text": "10 chunky SMD power parts for 2 boards (C104, F101, F601/F901, L101/L201/L301, Q101, R104/R211 — DigiKey US ~$25 shipped or LCSC ~$15 shipped; MPNs in carrier README) + Add-A-Circuit (5 A). All 5 THT connectors and JST-GH leads come from the lab (Collect)",
-      "cost": "~$33 (DigiKey) or ~$23 (LCSC)"
+      "text": "8 hand-solder SMD parts for 2 boards (C104, F101, F601/F901, Q101, R104/R211, U801 — one LCSC order of the exact parts, ~$12–$18 shipped; LCSC numbers in carrier README) + Add-A-Circuit (5 A). All 5 THT connectors and JST-GH leads come from the lab (Collect)",
+      "cost": "~$20 (LCSC)"
     },
     {
       "id": "buy_encl",
@@ -913,12 +913,12 @@
     {
       "id": "st_07",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 2 layers, 1.6 mm, 1 oz, lead-free HASL, tented vias, Economic PCBA on 2 of 5 (167 placements, 51 BOM lines — merchandise < $59.00 so Global Standard Direct Line unlocks); the quote must read 100 × 100 mm (G7, G8; carrier README)."
+      "text": "Print the carrier's 1:1 assembly drawing and set the sockets and terminals on it; measure your DevKit's row spacing; then order at JLCPCB: 2 layers, 1.6 mm, 1 oz, lead-free HASL, tented vias, Economic PCBA on 2 of 5 (169 placements, 51 BOM lines — merchandise < $59.00 so Global Standard Direct Line unlocks); the quote must read 100 × 100 mm (G7, G8; carrier README)."
     },
     {
       "id": "st_08",
       "phase": "Phase 3 · Carrier PCB",
-      "text": "When the boards arrive: hand-solder the 10 chunky SMD power parts first (from DigiKey or LCSC; flux, 60–80 W chisel tip), then the 5 THT connectors — DevKit and CC1101 sockets (DevKit row to match yours), screw terminals (2 + 3 blue 2-pole blocks) and fan header; check the polarized parts."
+      "text": "When the boards arrive: hand-solder the 8 SMD parts first (one LCSC order; flux, 60–80 W chisel tip), then the 5 THT connectors — DevKit and CC1101 sockets (DevKit row to match yours), screw terminals (2 + 3 blue 2-pole blocks) and fan header; check the polarized parts."
     },
     {
       "id": "st_09",
@@ -1298,9 +1298,9 @@
       "id": "P8",
       "category": "Power and wiring",
       "likelihood": "Medium if solid",
-      "title": "Hand-soldering through-hole pins or the 10 chunky SMD power parts connected to copper pours won't wet",
+      "title": "Hand-soldering through-hole pins or the 8 hand-solder SMD parts connected to copper pours won't wet",
       "cause": "",
-      "fix": "Thermal reliefs on all through-hole pour connections and on <code>C104</code>'s GND pad (<code>PCB-21</code>); the other 9 SMD power parts join small local pours; lead-free HASL; all 167 tiny/fine-pitch/PowerPAD SMDs are reflowed by JLCPCB PCBA; solder the remaining parts with a 60–80 W chisel tip and flux",
+      "fix": "Thermal reliefs on all through-hole pour connections and on <code>C104</code>'s and <code>U801</code>'s GND pads (<code>PCB-21</code>); the other power parts join small local pours; lead-free HASL; all 169 tiny/fine-pitch/PowerPAD SMDs are reflowed by JLCPCB PCBA; solder the remaining parts with a 60–80 W chisel tip and flux",
       "status": "Fixed (layout rule)",
       "status_keys": [
         "fixed"
@@ -2242,7 +2242,7 @@
       "id": "G3",
       "needed": "Every part physically on hand and identified",
       "status": "you",
-      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself, the 10 chunky SMD power parts (C104, F101, F601, F901, L101, L201, L301, Q101, R104, R211 — ordered from DigiKey ~$18–$20 + $6.99 USPS or LCSC ~$4–$5 + shipping; kept off JLCPCB PCBA so merchandise stays &lt; $59 for cheap shipping) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>). The 5 THT connectors come from the lab: count them against <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">Connectors from your lab</a>. Everything else (all 167 tiny/fine-pitch/PowerPAD SMDs) JLCPCB assembles"
+      "detail": "<b>You:</b> the TS-7 (on hand) plus its HDMI flat-cable kit, two 90° micro-USB leads (left and right angle) and three 90° USB-A adapters, Pi 4 RAM ≥ 2 GB, CC1101 module pinout, GPS cable pinout. For the carrier itself, the 8 hand-solder SMD parts (C104, F101, F601, F901, Q101, R104, R211, U801 — one LCSC order of the exact parts, ~$5–$6 + shipping; kept off JLCPCB PCBA so merchandise stays &lt; $59 for cheap shipping) (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">hand-solder list</a>). The 5 THT connectors come from the lab: count them against <a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">Connectors from your lab</a>. Everything else (all 169 tiny/fine-pitch/PowerPAD/inductor SMDs) JLCPCB assembles"
     },
     {
       "id": "G4",
@@ -2272,7 +2272,7 @@
       "id": "G8",
       "needed": "JLCPCB quote confirms the 2-layer 100 × 100 mm price and &lt; $59.00 Global Standard Direct Line shipping",
       "status": "you",
-      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages and live checkout: 2-layer FR-4 at 1.6 mm, 1 oz copper both sides, lead-free HASL, tented vias (all drills ≥ 0.30 mm / pad ≥ 0.60 mm, zero small-hole or POFV fee), and Economic PCBA single-sided top assembly for 167 SMD placements (51 BOM lines: 6 extended + 4 preferred + 41 basic). Keeping the 10 chunky SMD power parts off PCBA drops merchandise from $76.10 to ~$52–$55 (&lt; $59.00), unlocking Global Standard Direct Line instead of $91 in forced UPS Express DDP shipping + duties. The outline's outer edge is exactly 100.0 × 100.0 mm, so the quote must read 100 × 100"
+      "detail": "<b>You</b>, at checkout (<a href=\"../../01-hardware/v2/carrier/README.md\" target=\"_blank\">order steps</a>). Verified from JLCPCB's capability pages and live checkout: 2-layer FR-4 at 1.6 mm, 1 oz copper both sides, lead-free HASL, tented vias (all drills ≥ 0.30 mm / pad ≥ 0.60 mm, zero small-hole or POFV fee), and Economic PCBA single-sided top assembly for 169 SMD placements (51 BOM lines: 6 extended + 4 preferred + 41 basic). Keeping 8 SMD parts off PCBA drops merchandise from $76.10 to ~$53–$57 (&lt; $59.00), unlocking Global Standard Direct Line instead of $91 in forced UPS Express DDP shipping + duties. The outline's outer edge is exactly 100.0 × 100.0 mm, so the quote must read 100 × 100"
     }
   ],
   "enclosure": {

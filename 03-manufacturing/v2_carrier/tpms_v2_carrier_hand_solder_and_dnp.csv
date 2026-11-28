@@ -8,12 +8,10 @@ F901,0.5A/60V,"0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)"
 J1,12V_IN,"4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P side by side: 5.0 or 5.08 mm pitch both fit)","12 V ACC in (1), GND (2), spare 12 V sense input (3) and its return (4)"
 J5,5V_OUT,"6-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/6-5,08, 2x KF301-3P or 3x KF301-2P)","5V_PI out: 1-2 Pi USB-C pigtail, 3-4 display split lead, 5-6 spare"
 J8,FAN,1x2 2.54 mm right-angle male header (fan lead),"30 mm lid fan (1 = +5 V, 2 = switched -)"
-L101,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",Input pi filter
-L201,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
-L301,6.8uH,"6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
-Q101,SUD50P06-15,"-60V P-MOSFET TO-252 DPAK, <=25 mOhm (LCSC C7503186, UMW SUD50P06-15 / Vishay SUD50P06-15-GE3 or SQD50P06-15L_GE3)","Reverse-battery P-MOSFET, -60 V, 12 mOhm"
-R104,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",12 V current shunt; remove to isolate both bucks
-R211,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",5V_PI current shunt; remove to isolate the Pi rail
+Q101,SUD50P06-15,"-60V P-MOSFET TO-252 DPAK, <=25 mOhm, G-D(tab)-S (LCSC C7503186 UMW SUD50P06-15, or Vishay SUD50P06-15-GE3)","Reverse-battery P-MOSFET, -60 V, 12 mOhm"
+R104,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",12 V current shunt; remove to isolate both bucks
+R211,10m,"10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",5V_PI current shunt; remove to isolate the Pi rail
+U801,TMP75,"TMP75AIDR temperature sensor, SOIC-8 (LCSC C30389, or TI TMP75AIDR from DigiKey/Mouser)","Board temperature, LM75 compatible, I2C 0x48"
 C204,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor
 C210,DNP 47u/10V,not fitted (rework option),DNP: spare output capacitor
 C304,DNP 10u/50V,not fitted (rework option),DNP: spare input capacitor

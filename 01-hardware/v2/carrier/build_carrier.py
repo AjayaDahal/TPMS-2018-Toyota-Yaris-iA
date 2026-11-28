@@ -1508,12 +1508,74 @@ POWER_POURS = [
 
 
 def add_power_pours(board):
-    zones = []
-    for i, (net, rect) in enumerate(POWER_POURS):
-        for layer, tag in ((pcbnew.F_Cu, "F"), (pcbnew.B_Cu, "B")):
-            zones.append(new_zone(board, layer, net, rect_pts(*rect), f"PWR_{net}_{tag}", prio=10 + i,
-                                  conn=pcbnew.ZONE_CONNECTION_THT_THERMAL, clearance=0.3, min_w=0.3))
-    return zones
+    """Power pours on F.Cu only. On 2 layers B.Cu is the ground return: a power pour there (as on the 6-layer
+    board's L6) cut the Pi buck's input-cap ground and J5's 5 A return off from the bottom ground."""
+    return [new_zone(board, pcbnew.F_Cu, net, rect_pts(*rect), f"PWR_{net}_F", prio=10 + i,
+                     conn=pcbnew.ZONE_CONNECTION_THT_THERMAL, clearance=0.3, min_w=0.3)
+            for i, (net, rect) in enumerate(POWER_POURS)]
+
+
+# Ground pads of the power stage: each gets its own via(s) straight into the bottom ground, so the bucks' hot loops
+# (input caps -> IC -> catch diode) and the 5 A return close through B.Cu even where F.Cu ground is cut by straps.
+# (ref, vias per GND pad)
+POWER_GND_VIAS = [("C101", 1), ("C102", 1), ("C103", 1), ("C105", 1), ("D101", 2),
+                  ("C201", 2), ("C202", 2), ("C203", 2), ("C204", 1), ("D201", 3), ("D203", 1),
+                  ("C206", 1), ("C207", 1), ("C208", 1), ("C209", 1), ("C210", 1),
+                  ("C301", 2), ("C302", 2), ("C303", 2), ("C304", 1), ("D301", 3), ("D302", 1),
+                  ("C306", 1), ("C307", 1), ("C308", 1), ("C309", 1), ("C310", 1)]
+
+
+def add_power_gnd_vias(board):
+    pads, tracks = _copper_items(board)
+    obs = Obstacles(board)
+    fps = {fp.GetReference(): fp for fp in board.GetFootprints()}
+    ak = LAY.ANTENNA_KEEPOUT
+    added, short = 0, []
+    for ref, want in POWER_GND_VIAS:
+        for pad in fps[ref].Pads():
+            if pad.GetNetname() != "GND" or pad.GetDrillSizeX() > 0:
+                continue
+            bb = pad.GetBoundingBox()
+            (x0, y0), (x1, y1) = T(pcbnew.VECTOR2I(bb.GetLeft(), bb.GetTop())), T(
+                pcbnew.VECTOR2I(bb.GetRight(), bb.GetBottom()))
+            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            cands = []
+            for d in (0.75, 0.95, 1.2, 1.5, 1.9, 2.4):
+                ex0, ey0, ex1, ey1 = x0 - d, y0 - d, x1 + d, y1 + d
+                per = 2 * ((ex1 - ex0) + (ey1 - ey0))
+                for i in range(int(per / 0.25)):
+                    s = i * 0.25
+                    for seg, length in ((0, ex1 - ex0), (1, ey1 - ey0), (2, ex1 - ex0), (3, ey1 - ey0)):
+                        if s <= length:
+                            x, y = [(ex0 + s, ey0), (ex1, ey0 + s), (ex1 - s, ey1), (ex0, ey1 - s)][seg]
+                            cands.append((d, math.hypot(x - cx, y - cy), round(x, 3), round(y, 3)))
+                            break
+                        s -= length
+            got = 0
+            for _d, _r, x, y in sorted(cands):
+                if got >= want:
+                    break
+                if not (1.2 <= x <= LAY.BOARD_W - 1.2 and 1.2 <= y <= LAY.BOARD_H - 1.2):
+                    continue
+                if ak[0] - 0.8 < x < ak[2] + 0.8 and ak[1] - 0.8 < y < ak[3] + 0.8:
+                    continue
+                if not obs.clear(x, y, 0.3, "GND", clr=0.2, drill_r=0.15):
+                    continue
+                px_, py_ = min(max(x, x0), x1), min(max(y, y0), y1)
+                if not _path_clear([(px_, py_), (x, y)], 0.25, "GND", pads, tracks, 0.2):
+                    continue
+                add_via(board, x, y, "GND", 0.6, 0.3)
+                t = pcbnew.PCB_TRACK(board)
+                t.SetStart(P(px_, py_)); t.SetEnd(P(x, y)); t.SetWidth(MM(0.5)); t.SetLayer(pcbnew.F_Cu)
+                t.SetNet(board.FindNet("GND")); board.Add(t)
+                obs.add_via(x, y, 0.3, "GND", 0.15)
+                obs.items.append((px_, py_, x, y, 0.25, "GND"))
+                tracks.append((px_, py_, x, y, 0.25, "GND", pcbnew.F_Cu))
+                got += 1
+                added += 1
+            if got < want:
+                short.append(f"{ref}.{pad.GetNumber()} {got}/{want}")
+    return added, short
 
 
 def add_gnd_pours(board):
@@ -2234,20 +2296,16 @@ def main():
     fps = {fp.GetReference(): fp for fp in board.GetFootprints()}
     relieved = relieve_hand_soldered_gnd(board)
     log(f"  thermal reliefs on hand-soldered SMD GND pads: {', '.join(relieved) or 'none'}")
-    pours = add_power_pours(board)
+    n_pgv, pgv_short = add_power_gnd_vias(board)
+    log(f"  power-stage GND vias: {n_pgv}" + (f" (short: {', '.join(pgv_short)})" if pgv_short else ""))
+    add_power_pours(board)
     gnd = add_gnd_pours(board)
-    fill_zones(board)
-    n_pwr = 0
-    for net, rect in POWER_POURS:
-        zf = [z for z in pours if z.GetNetname() == net and z.GetLayer() == pcbnew.F_Cu]
-        zb = [z for z in pours if z.GetNetname() == net and z.GetLayer() == pcbnew.B_Cu]
-        n_pwr += stitch(board, {pcbnew.F_Cu: zf, pcbnew.B_Cu: zb}, net, 1.6, rect, 0.8, 0.4)
     fill_zones(board)
     layers = {pcbnew.F_Cu: [z for z in gnd if z.GetLayer() == pcbnew.F_Cu],
               pcbnew.B_Cu: [z for z in gnd if z.GetLayer() == pcbnew.B_Cu]}
     n_gnd = stitch(board, layers, "GND", 3.0)
     fill_zones(board)
-    log(f"  vias: {n_ep} in exposed pads, {n_pwr} power stitching, {n_gnd} GND stitching")
+    log(f"  vias: {n_ep} in exposed pads, {n_pgv} power-stage GND, {n_gnd} GND stitching")
     pcbnew.SaveBoard(PCB, board)
     set_stackup(PCB)
 

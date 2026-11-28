@@ -88,7 +88,7 @@ LCSC = {
     (GH4, "GH-4"): "C189895", (GH6, "GH-6"): "C133065",
 }
 PREFERRED = {"C41411747", "C18199187", "C2925451", "C42432283"}          # $0 feeder fee on Economic PCBA
-EXTENDED = {"C1850354", "C49851", "C30389", "C783615", "C189895", "C133065"}  # only the 6 fine-pitch / PowerPAD / GH lines
+EXTENDED = {"C1850354", "C49851", "C408485", "C783615", "C189895", "C133065"}  # 6 extended lines on PCBA
 MPN = {
     "C1850354": "TI TPS54560BDDAR", "C49851": "TI INA226AIDGSR", "C30389": "TI TMP75AIDR",
     "C783615": "TI TCA9534PWR", "C5446": "Torex XC6206P332MR-G", "C42432283": "ICPL-356-50CEAXW",
@@ -98,9 +98,10 @@ MPN = {
     "C189895": "JST SM04B-GHS-TB(LF)(SN)", "C133065": "JST SM06B-GHS-TB(LF)(SN)", "C20917": "AOS AO3400A",
     "C8545": "2N7002", "C2480": "SS14", "C81598": "1N4148W", "C1002": "Sunlord GZ1608D601TF",
 }
-# Hand-soldered parts: 5 THT connectors + 10 large 2/3-pad SMD power parts (6 extended lines). Keeping these 6 lines
-# off JLCPCB Economic PCBA trims ~$24 off the merchandise total (~$76 -> ~$52), staying under JLCPCB's $59.00
-# Global Standard Direct Line cutoff (avoiding ~$91 in forced UPS Express DDP shipping + duties).
+# Hand-soldered parts: 5 THT connectors + 7 SMD parts that LCSC sells retail (5 extended lines). Keeping these lines
+# off JLCPCB Economic PCBA keeps the merchandise total under JLCPCB's $59.00 Global Standard Direct Line cutoff
+# (above it, checkout forces UPS Express DDP: ~$91 shipping + duties). The 6.8 uH inductors (C408485) stay on PCBA:
+# JLCPCB stocks them for assembly only and LCSC does not sell them retail, so they could not be bought loose.
 HAND = {
     "J1": "4-pos 5.08 mm screw terminal, horizontal entry (Phoenix MKDS 1,5/4-5,08, KF301-4P, or 2x KF301-2P "
           "side by side: 5.0 or 5.08 mm pitch both fit)",
@@ -112,12 +113,10 @@ HAND = {
     "F101": "4A 2410 NANO2 fast SMD fuse (LCSC C27515, Littelfuse 0451004.MRL)",
     "F601": "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
     "F901": "0.5A/60V 1812 PTC polyfuse (LCSC C70113, Littelfuse mSMD050-60V)",
-    "L101": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
-    "L201": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
-    "L301": "6.8uH 11x10 mm shielded inductor, >= 8.5A (LCSC C408485, Sunlord MWSA1004S-6R8MT / Bourns SRP1038A-6R8M)",
-    "Q101": "-60V P-MOSFET TO-252 DPAK, <=25 mOhm (LCSC C7503186, UMW SUD50P06-15 / Vishay SUD50P06-15-GE3 or SQD50P06-15L_GE3)",
-    "R104": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",
-    "R211": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010 / Stackpole CSR2512FK10L0)",
+    "Q101": "-60V P-MOSFET TO-252 DPAK, <=25 mOhm, G-D(tab)-S (LCSC C7503186 UMW SUD50P06-15, or Vishay SUD50P06-15-GE3)",
+    "R104": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",
+    "R211": "10 mOhm 1% 2W 2512 current shunt (LCSC C192580, Viking RLM25FEER010)",
+    "U801": "TMP75AIDR temperature sensor, SOIC-8 (LCSC C30389, or TI TMP75AIDR from DigiKey/Mouser)",
 }
 
 PARTS = []
@@ -171,7 +170,7 @@ part("Q101", "Transistor_FET:Q_PMOS_GDS", "SUD50P06-15", TO252, {"1": "Q101_G", 
 R("R101", "33k", "12V_RP", "Q101_G", desc="Q101 gate: Vgs = -5 V at 12 V, -16 V at 39 V")
 R("R102", "47k", "Q101_G", "GND")
 C("C101", "10u/50V", "12V_RP", "GND", fp=C1206)
-part("L101", "Device:L", "6.8uH", MWSA, two("12V_RP", "12V_PROT"), hand=True, desc="Input pi filter")
+part("L101", "Device:L", "6.8uH", MWSA, two("12V_RP", "12V_PROT"), desc="Input pi filter")
 C("C102", "10u/50V", "12V_PROT", "GND", fp=C1206)
 C("C103", "10u/50V", "12V_PROT", "GND", fp=C1206)
 part("C104", "Device:C_Polarized", "47u/50V", CPE63, two("12V_PROT", "GND"), hand=True,
@@ -200,7 +199,7 @@ part("U201", "TPMS2:TPS54560B", "TPS54560B", PPAD8,
       "8": "SW_PI", "9": "GND"}, desc="60 V 5 A buck, 441 kHz, 5.17 V out")
 C("C205", "100n", "BOOT_PI", "SW_PI")
 D("D201", "SS56C", "SW_PI", "GND", fp=SMC, sym="Device:D_Schottky", desc="Catch diode 60 V 5 A (Preferred)")
-part("L201", "Device:L", "6.8uH", MWSA, two("SW_PI", "5V_PI_RAW"), hand=True)
+part("L201", "Device:L", "6.8uH", MWSA, two("SW_PI", "5V_PI_RAW"))
 for i in range(4):
     C(f"C{206 + i}", "47u/10V", "5V_PI_RAW", "GND", fp=C1206)
 C("C210", "47u/10V", "5V_PI_RAW", "GND", fp=C1206, dnp=True, desc="DNP: spare output capacitor")
@@ -250,7 +249,7 @@ part("U301", "TPMS2:TPS54560B", "TPS54560B", PPAD8,
       "8": "SW_ESP", "9": "GND"}, desc="60 V 5 A buck, 485 kHz, 5.17 V out")
 C("C305", "100n", "BOOT_ESP", "SW_ESP")
 D("D301", "SS56C", "SW_ESP", "GND", fp=SMC, sym="Device:D_Schottky")
-part("L301", "Device:L", "6.8uH", MWSA, two("SW_ESP", "5V_ESP_RAW"), hand=True)
+part("L301", "Device:L", "6.8uH", MWSA, two("SW_ESP", "5V_ESP_RAW"))
 for i in range(4):
     C(f"C{306 + i}", "47u/10V", "5V_ESP_RAW", "GND", fp=C1206)
 C("C310", "47u/10V", "5V_ESP_RAW", "GND", fp=C1206, dnp=True, desc="DNP: spare output capacitor")
@@ -384,7 +383,7 @@ R("R801", "4.7k", "3V3", "I2C_SDA")
 R("R802", "4.7k", "3V3", "I2C_SCL")
 part("U801", "TPMS2:TMP75", "TMP75", SOIC8,
      {"1": "I2C_SDA", "2": "I2C_SCL", "3": None, "4": "GND", "5": "GND", "6": "GND", "7": "GND", "8": "3V3"},
-     desc="Board temperature, LM75 compatible, I2C 0x48")
+     hand=True, desc="Board temperature, LM75 compatible, I2C 0x48")
 C("C801", "100n", "3V3", "GND")
 part("U802", "TPMS2:TCA9534", "TCA9534", TSSOP16,
      {"1": "GND", "2": "GND", "3": "GND", "4": "EXP_P0", "5": "EXP_P1", "6": "EXP_P2", "7": "EXP_P3", "8": "GND",
